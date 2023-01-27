@@ -14,6 +14,7 @@ func main() {
 	log.Println("qbittorrent URL :", models.Getbaseurl())
 	log.Println("username :", models.GetUsername())
 	log.Println("password :", models.Getpasswordmasked())
+	log.Println("Starting ...")
 	http.ListenAndServe(":8090", nil)
 
 }

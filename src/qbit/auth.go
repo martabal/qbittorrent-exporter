@@ -26,11 +26,7 @@ func Auth() {
 		if string(body) == "Fails." {
 			log.Println("Authentication Error")
 		} else {
-			cookies := resp.Header["Set-Cookie"][0]
-			onlycookie := strings.Split(cookies, ";")[0]
-			cookie := strings.Split(onlycookie, "=")[1]
-			log.Println("New cookie :", cookie)
-			models.Setcookie(cookie)
+			models.Setcookie(strings.Split(strings.Split(resp.Header["Set-Cookie"][0], ";")[0], "=")[1])
 		}
 
 	}
