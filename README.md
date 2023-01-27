@@ -12,8 +12,14 @@ This app is made for to be integrated with the [qbittorrent-grafana-dashboard](h
 
 ## About this App
 
-This app uses between 5-12Mo of RAM and uses bearly no CPU power.  
+### Credits
+
 I was using an excellent [exporter](https://github.com/caseyscarborough/qbittorrent-exporter) written in Java and I wanted to learn Go, that's how I got the idea to rewrite the exporter in Go.
+
+### Resources
+
+This app uses between 5-12Mo of RAM and uses bearly no CPU power.  
+Docker compressed size is ~8 MB.
 
 ## Run it
 
