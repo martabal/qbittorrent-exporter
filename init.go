@@ -20,13 +20,8 @@ func startup() {
 	} else {
 		initenv()
 	}
+	log.Println("Loaded all env... Starting")
 	qbit.Auth()
-}
-
-func envVariable(key string) string {
-
-	// return the env variable using os package
-	return os.Getenv(key)
 }
 func useenvfile() {
 
