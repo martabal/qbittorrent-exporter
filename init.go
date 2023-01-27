@@ -24,8 +24,8 @@ func startup() {
 
 	qbit.Auth()
 }
-func useenvfile() {
 
+func useenvfile() {
 	myEnv, err := godotenv.Read()
 	username := myEnv["QBITTORRENT_USERNAME"]
 	password := myEnv["QBITTORRENT_PASSWORD"]
@@ -43,15 +43,13 @@ func useenvfile() {
 		qbit_url = "http://localhost:8090"
 	}
 	models.Setuser(username, password)
-
 	models.Setbaseurl(qbit_url)
-
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
 	log.Println("Using .env file")
-
 }
+
 func initenv() {
 	username := os.Getenv("QBITTORRENT_USERNAME")
 	password := os.Getenv("QBITTORRENT_PASSWORD")
@@ -68,8 +66,6 @@ func initenv() {
 		log.Println("Qbittorrent base_url is not set. Using default base_url")
 		qbit_url = "http://localhost:8090"
 	}
-
 	models.Setuser(username, password)
 	models.Setbaseurl(qbit_url)
-
 }

@@ -23,10 +23,12 @@ func Auth() {
 		if err != nil {
 			log.Fatalln(err)
 		}
-		if string(body) == "Fails." {
-			log.Println("Authentication Error")
-		} else {
-			models.Setcookie(strings.Split(strings.Split(resp.Header["Set-Cookie"][0], ";")[0], "=")[1])
+		if resp.StatusCode == 200 {
+			if string(body) == "Fails." {
+				log.Println("Authentication Error")
+			} else {
+				models.Setcookie(strings.Split(strings.Split(resp.Header["Set-Cookie"][0], ";")[0], "=")[1])
+			}
 		}
 
 	}
