@@ -17,10 +17,8 @@ func Auth() {
 	params.Add("password", password)
 	resp, err := http.PostForm(qbit_url+"/api/v2/auth/login", params)
 	if err != nil {
-		log.Println("Can't connect to server")
+		log.Println("Can't connect to ", models.Getbaseurl())
 	} else {
-
-		//We Read the response body on the line below.
 		body, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
 			log.Fatalln(err)

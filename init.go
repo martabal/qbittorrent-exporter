@@ -12,6 +12,7 @@ import (
 
 func startup() {
 	var envfile bool
+	models.SetPromptError(false)
 	flag.BoolVar(&envfile, "e", false, "Use .env file")
 	flag.Parse()
 

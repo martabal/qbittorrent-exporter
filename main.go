@@ -21,7 +21,6 @@ func main() {
 func metrics(w http.ResponseWriter, req *http.Request) {
 
 	value := qbit.Allrequests()
-
 	if value == "" {
 		value = qbit.Allrequests()
 	}
