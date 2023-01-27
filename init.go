@@ -15,13 +15,13 @@ func startup() {
 	models.SetPromptError(false)
 	flag.BoolVar(&envfile, "e", false, "Use .env file")
 	flag.Parse()
-
+	log.Println("Loading all parameters")
 	if envfile {
 		useenvfile()
 	} else {
 		initenv()
 	}
-	log.Println("Loaded all env... Starting")
+
 	qbit.Auth()
 }
 func useenvfile() {
