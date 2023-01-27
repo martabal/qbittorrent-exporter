@@ -1,0 +1,24 @@
+{
+  "name": "qbittorrent-prometheus",
+  "version": "0.1.0",
+  "description": "export qbittorrent data to prometheus",
+  "main": "main.go",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev" : "go run .",
+    "dev:env" : "go run . -e",
+    "build" : "go build -o ./a.out && ./a.out",
+    "build:env" : "go build -o ./a.out && ./a.out -e"
+  },
+  "keywords": [
+    "golang",
+    "qbittorrent",
+    "prometheus",
+    "export",
+    "grafana",
+    "dashboard",
+    "metrics"
+  ],
+  "author": "martabal",
+  "license": "MIT"
+}
