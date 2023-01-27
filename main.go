@@ -10,11 +10,11 @@ import (
 
 func main() {
 	startup()
-	http.HandleFunc("/metrics", metrics)
 	log.Println("qbittorrent URL :", models.Getbaseurl())
 	log.Println("username :", models.GetUsername())
 	log.Println("password :", models.Getpasswordmasked())
 	log.Println("Started")
+	http.HandleFunc("/metrics", metrics)
 	http.ListenAndServe(":8090", nil)
 }
 
