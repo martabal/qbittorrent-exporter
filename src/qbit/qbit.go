@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"qbit-prom/src/models"
 	"strconv"
-	"strings"
 )
 
 func Gettorrent() string {
@@ -222,51 +221,39 @@ func Sendbackmessagetorrent(result models.Response) string {
 		} else {
 			count_uploading += 1
 		}
-		qbittorrent_torrent_info = qbittorrent_torrent_info + `qbittorrent_torrent_info{name="` + result[i].Name + `",state="` + result[i].State + `",size="` + fmt.Sprintf("%g", result[i].Size) + `",progress="` + fmt.Sprintf("%g", result[i].Progress) + `",seeders="` + fmt.Sprintf("%g", result[i].NumSeeds) + `",leechers="` + fmt.Sprintf("%g", result[i].NumLeechs) + `",dl_speed="` + fmt.Sprintf("%g", result[i].Dlspeed) + `",up_speed="` + fmt.Sprintf("%g", result[i].Upspeed) + `",amount_left="` + fmt.Sprintf("%g", result[i].AmountLeft) + `",time_active="` + fmt.Sprintf("%g", result[i].TimeActive) + `",eta="` + fmt.Sprintf("%g", result[i].Eta) + `",uploaded="` + fmt.Sprintf("%g", result[i].Uploaded) + `",uploaded_session="` + fmt.Sprintf("%g", result[i].UploadedSession) + `",downloaded="` + fmt.Sprintf("%g", result[i].Downloaded) + `",downloaded_session="` + fmt.Sprintf("%g", result[i].DownloadedSession) + `",max_ratio="` + fmt.Sprintf("%g", result[i].MaxRatio) + `",ratio="` + fmt.Sprintf("%g", result[i].Ratio) + `",} 1.0` + "\n"
-		qbittorrent_torrent_download_speed_bytes = qbittorrent_torrent_download_speed_bytes + `qbittorrent_torrent_download_speed_bytes{name="` + result[i].Name + `",} ` + fmt.Sprintf("%.1f", result[i].Dlspeed) + "\n"
-		qbittorrent_torrent_upload_speed_bytes = qbittorrent_torrent_upload_speed_bytes + `qbittorrent_torrent_upload_speed_bytes{name="` + result[i].Name + `",} ` + fmt.Sprintf("%.1f", result[i].Upspeed) + "\n"
-		qbittorrent_torrent_eta = qbittorrent_torrent_eta + `qbittorrent_torrent_eta{name="` + result[i].Name + `",} ` + fmt.Sprintf("%.1f", result[i].Eta) + "\n"
+		qbittorrent_torrent_info = qbittorrent_torrent_info + `qbittorrent_torrent_info{name="` + result[i].Name + `",state="` + result[i].State + `",size="` + strconv.Itoa(result[i].Size) + `",progress="` + fmt.Sprintf("%.1f", result[i].Progress) + `",seeders="` + strconv.Itoa(result[i].NumSeeds) + `",leechers="` + strconv.Itoa(result[i].NumLeechs) + `",dl_speed="` + strconv.Itoa(result[i].Dlspeed) + `",up_speed="` + strconv.Itoa(result[i].Upspeed) + `",amount_left="` + strconv.Itoa(result[i].AmountLeft) + `",time_active="` + strconv.Itoa(result[i].TimeActive) + `",eta="` + strconv.Itoa(result[i].Eta) + `",uploaded="` + strconv.Itoa(result[i].Uploaded) + `",uploaded_session="` + strconv.Itoa(result[i].UploadedSession) + `",downloaded="` + strconv.Itoa(result[i].Downloaded) + `",downloaded_session="` + strconv.Itoa(result[i].DownloadedSession) + `",max_ratio="` + fmt.Sprintf("%.1f", result[i].MaxRatio) + `",ratio="` + fmt.Sprintf("%.f", result[i].Ratio) + `",} 1.0` + "\n"
+		qbittorrent_torrent_download_speed_bytes = qbittorrent_torrent_download_speed_bytes + `qbittorrent_torrent_download_speed_bytes{name="` + result[i].Name + `",} ` + strconv.Itoa(result[i].Dlspeed) + "\n"
+		qbittorrent_torrent_upload_speed_bytes = qbittorrent_torrent_upload_speed_bytes + `qbittorrent_torrent_upload_speed_bytes{name="` + result[i].Name + `",} ` + strconv.Itoa(result[i].Upspeed) + "\n"
+		qbittorrent_torrent_eta = qbittorrent_torrent_eta + `qbittorrent_torrent_eta{name="` + result[i].Name + `",} ` + strconv.Itoa(result[i].Eta) + "\n"
 		qbittorrent_torrent_progress = qbittorrent_torrent_progress + `qbittorrent_torrent_progress{name="` + result[i].Name + `",} ` + fmt.Sprintf("%.1f", result[i].Progress) + "\n"
-		qbittorrent_torrent_time_active = qbittorrent_torrent_time_active + `qbittorrent_torrent_time_active{name="` + result[i].Name + `",} ` + fmt.Sprintf("%.1f", result[i].TimeActive) + "\n"
-		qbittorrent_torrent_seeders = qbittorrent_torrent_seeders + `qbittorrent_torrent_seeders{name="` + result[i].Name + `",} ` + fmt.Sprintf("%.1f", result[i].NumSeeds) + "\n"
-		qbittorrent_torrent_leechers = qbittorrent_torrent_leechers + `qbittorrent_torrent_leechers{name="` + result[i].Name + `",} ` + fmt.Sprintf("%.1f", result[i].NumLeechs) + "\n"
+		qbittorrent_torrent_time_active = qbittorrent_torrent_time_active + `qbittorrent_torrent_time_active{name="` + result[i].Name + `",} ` + strconv.Itoa(result[i].TimeActive) + "\n"
+		qbittorrent_torrent_seeders = qbittorrent_torrent_seeders + `qbittorrent_torrent_seeders{name="` + result[i].Name + `",} ` + strconv.Itoa(result[i].NumSeeds) + "\n"
+		qbittorrent_torrent_leechers = qbittorrent_torrent_leechers + `qbittorrent_torrent_leechers{name="` + result[i].Name + `",} ` + strconv.Itoa(result[i].NumLeechs) + "\n"
 		qbittorrent_torrent_ratio = qbittorrent_torrent_ratio + `qbittorrent_torrent_ratio{name="` + result[i].Name + `",} ` + fmt.Sprintf("%v", result[i].Ratio) + "\n"
-		qbittorrent_torrent_amount_left_bytes = qbittorrent_torrent_amount_left_bytes + `qbittorrent_torrent_amount_left_bytes{name="` + result[i].Name + `",} ` + fmt.Sprintf("%.1f", result[i].AmountLeft) + "\n"
-		qbittorrent_torrent_size_bytes = qbittorrent_torrent_size_bytes + `qbittorrent_torrent_size_bytes{name="` + result[i].Name + `",} ` + fmt.Sprintf("%.1f", result[i].Size) + "\n"
-		qbittorrent_torrent_session_downloaded_bytes = qbittorrent_torrent_session_downloaded_bytes + `qbittorrent_torrent_session_downloaded_bytes{name="` + result[i].Name + `",} ` + fmt.Sprintf("%.1f", result[i].DownloadedSession) + "\n"
-		qbittorrent_torrent_session_uploaded_bytes = qbittorrent_torrent_session_uploaded_bytes + `qbittorrent_torrent_session_uploaded_bytes{name="` + result[i].Name + `",} ` + fmt.Sprintf("%.1f", result[i].UploadedSession) + "\n"
-		qbittorrent_torrent_total_downloaded_bytes = qbittorrent_torrent_total_downloaded_bytes + `qbittorrent_torrent_total_downloaded_bytes{name="` + result[i].Name + `",} ` + fmt.Sprintf("%.1f", result[i].DownloadedSession) + "\n"
-		qbittorrent_torrent_total_uploaded_bytes = qbittorrent_torrent_total_uploaded_bytes + `qbittorrent_torrent_total_uploaded_bytes{name="` + result[i].Name + `",} ` + convert(result[i].UploadedSession) + "\n"
+		qbittorrent_torrent_amount_left_bytes = qbittorrent_torrent_amount_left_bytes + `qbittorrent_torrent_amount_left_bytes{name="` + result[i].Name + `",} ` + strconv.Itoa(result[i].AmountLeft) + "\n"
+		qbittorrent_torrent_size_bytes = qbittorrent_torrent_size_bytes + `qbittorrent_torrent_size_bytes{name="` + result[i].Name + `",} ` + strconv.Itoa(result[i].Size) + "\n"
+		qbittorrent_torrent_session_downloaded_bytes = qbittorrent_torrent_session_downloaded_bytes + `qbittorrent_torrent_session_downloaded_bytes{name="` + result[i].Name + `",} ` + strconv.Itoa(result[i].DownloadedSession) + "\n"
+		qbittorrent_torrent_session_uploaded_bytes = qbittorrent_torrent_session_uploaded_bytes + `qbittorrent_torrent_session_uploaded_bytes{name="` + result[i].Name + `",} ` + strconv.Itoa(result[i].UploadedSession) + "\n"
+		qbittorrent_torrent_total_downloaded_bytes = qbittorrent_torrent_total_downloaded_bytes + `qbittorrent_torrent_total_downloaded_bytes{name="` + result[i].Name + `",} ` + strconv.Itoa(result[i].Downloaded) + "\n"
+		qbittorrent_torrent_total_uploaded_bytes = qbittorrent_torrent_total_uploaded_bytes + `qbittorrent_torrent_total_uploaded_bytes{name="` + result[i].Name + `",} ` + strconv.Itoa(result[i].Uploaded) + "\n"
 
 	}
 	qbittorrent_torrent_states = qbittorrent_torrent_states + `qbittorrent_torrent_states{name="stalledUP",} ` + strconv.Itoa(count_stelledup) + "\n"
 	qbittorrent_torrent_states = qbittorrent_torrent_states + `qbittorrent_torrent_states{name="uploading",} ` + strconv.Itoa(count_uploading) + "\n"
 	qbittorrent_global_torrents = qbittorrent_global_torrents + "qbittorrent_global_torrents " + strconv.Itoa(count_stelledup+count_uploading) + "\n"
-	total := qbittorrent_torrent_download_speed_bytes + qbittorrent_torrent_upload_speed_bytes + qbittorrent_torrent_eta + qbittorrent_torrent_progress + qbittorrent_torrent_time_active + qbittorrent_torrent_states + qbittorrent_torrent_seeders + qbittorrent_torrent_leechers + qbittorrent_torrent_ratio + qbittorrent_torrent_amount_left_bytes + qbittorrent_torrent_size_bytes + qbittorrent_torrent_info + qbittorrent_torrent_session_downloaded_bytes + qbittorrent_torrent_session_uploaded_bytes + qbittorrent_torrent_total_downloaded_bytes + qbittorrent_torrent_total_uploaded_bytes
+	total := qbittorrent_torrent_download_speed_bytes + qbittorrent_torrent_upload_speed_bytes + qbittorrent_torrent_eta + qbittorrent_torrent_progress + qbittorrent_torrent_time_active + qbittorrent_torrent_states + qbittorrent_torrent_seeders + qbittorrent_torrent_leechers + qbittorrent_torrent_ratio + qbittorrent_torrent_amount_left_bytes + qbittorrent_torrent_size_bytes + qbittorrent_torrent_info + qbittorrent_torrent_session_downloaded_bytes + qbittorrent_torrent_session_uploaded_bytes + qbittorrent_torrent_total_downloaded_bytes + qbittorrent_torrent_total_uploaded_bytes + qbittorrent_global_torrents
 	return total
-}
-
-func convert(input float64) string {
-
-	if input < 10000000 {
-		return fmt.Sprintf("%.1f", input)
-	} else {
-		temp := fmt.Sprintf(strconv.FormatFloat(input, 'E', -1, 64))
-		temp = strings.ReplaceAll(temp, "+0", "")
-		temp = strings.ReplaceAll(temp, "+", "")
-		return temp
-	}
-
 }
 
 func Sendbackmessagepreference(result models.Preferences) string {
 	total := ""
-	total = total + "# HELP qbittorrent_app_max_active_downloads The max number of downloads allowed\n# TYPE qbittorrent_app_max_active_downloads gauge\nqbittorrent_app_max_active_downloads " + fmt.Sprintf("%.1f", result.MaxActiveDownloads) + "\n"
-	total = total + "# HELP qbittorrent_app_max_active_uploads The max number of active uploads allowed\n# TYPE qbittorrent_app_max_active_uploads gauge\nqbittorrent_app_max_active_uploads " + fmt.Sprintf("%.1f", result.MaxActiveUploads) + "\n"
-	total = total + "# HELP qbittorrent_app_max_active_torrents The max number of active torrents allowed\n# TYPE qbittorrent_app_max_active_torrents gauge\nqbittorrent_app_max_active_torrents " + fmt.Sprintf("%.1f", result.MaxActiveTorrents) + "\n"
-	total = total + "# HELP qbittorrent_app_download_rate_limit_bytes The global download rate limit (in bytes)\n# TYPE qbittorrent_app_download_rate_limit_bytes gauge\nqbittorrent_app_download_rate_limit_bytes " + fmt.Sprintf("%.1f", result.DlLimit) + "\n"
-	total = total + "# HELP qbittorrent_app_upload_rate_limit_bytes The global upload rate limit (in bytes)\n# TYPE qbittorrent_app_upload_rate_limit_bytes gauge\nqbittorrent_app_upload_rate_limit_bytes " + fmt.Sprintf("%.1f", result.UpLimit) + "\n"
-	total = total + "# HELP qbittorrent_app_alt_download_rate_limit_bytes The alternate download rate limit (in bytes)\n# TYPE qbittorrent_app_alt_download_rate_limit_bytes gauge\nqbittorrent_app_alt_download_rate_limit_bytes " + fmt.Sprintf("%.1f", result.AltDlLimit) + "\n"
+	total = total + "# HELP qbittorrent_app_max_active_downloads The max number of downloads allowed\n# TYPE qbittorrent_app_max_active_downloads gauge\nqbittorrent_app_max_active_downloads " + strconv.Itoa(result.MaxActiveDownloads) + "\n"
+	total = total + "# HELP qbittorrent_app_max_active_uploads The max number of active uploads allowed\n# TYPE qbittorrent_app_max_active_uploads gauge\nqbittorrent_app_max_active_uploads " + strconv.Itoa(result.MaxActiveUploads) + "\n"
+	total = total + "# HELP qbittorrent_app_max_active_torrents The max number of active torrents allowed\n# TYPE qbittorrent_app_max_active_torrents gauge\nqbittorrent_app_max_active_torrents " + strconv.Itoa(result.MaxActiveTorrents) + "\n"
+	total = total + "# HELP qbittorrent_app_download_rate_limit_bytes The global download rate limit (in bytes)\n# TYPE qbittorrent_app_download_rate_limit_bytes gauge\nqbittorrent_app_download_rate_limit_bytes " + strconv.Itoa(result.DlLimit) + "\n"
+	total = total + "# HELP qbittorrent_app_upload_rate_limit_bytes The global upload rate limit (in bytes)\n# TYPE qbittorrent_app_upload_rate_limit_bytes gauge\nqbittorrent_app_upload_rate_limit_bytes " + strconv.Itoa(result.UpLimit) + "\n"
+	total = total + "# HELP qbittorrent_app_alt_download_rate_limit_bytes The alternate download rate limit (in bytes)\n# TYPE qbittorrent_app_alt_download_rate_limit_bytes gauge\nqbittorrent_app_alt_download_rate_limit_bytes " + strconv.Itoa(result.AltDlLimit) + "\n"
+	total = total + "# HELP qbittorrent_app_alt_upload_rate_limit_bytes The alternate upload rate limit (in bytes)\n# TYPE qbittorrent_app_alt_upload_rate_limit_bytes gauge\nqbittorrent_app_alt_upload_rate_limit_bytes " + strconv.Itoa(result.AltUpLimit) + "\n"
 
 	return total
 }
@@ -279,11 +266,12 @@ func Sendbackmessagemaindata(result models.Maindata) string {
 	}
 	total := ""
 	total = total + "# HELP qbittorrent_app_alt_rate_limits_enabled If alternate rate limits are enabled\n# TYPE qbittorrent_app_alt_rate_limits_enabled gauge\nqbittorrent_app_alt_rate_limits_enabled " + UseAltSpeedLimits + "\n"
-	total = total + "# HELP qbittorrent_global_alltime_downloaded_bytes The all-time total download amount of torrents (in bytes)\n# TYPE qbittorrent_global_alltime_downloaded_bytes gauge\nqbittorrent_global_alltime_downloaded_bytes " + fmt.Sprintf("%.1f", result.ServerState.AlltimeDl) + "\n"
-	total = total + "# HELP qbittorrent_global_alltime_uploaded_bytes The all-time total upload amount of torrents (in bytes)\n# TYPE qbittorrent_global_alltime_uploaded_bytes gauge\nqbittorrent_global_alltime_uploaded_bytes " + fmt.Sprintf("%.1f", result.ServerState.AlltimeUl) + "\n"
-	total = total + "# HELP qbittorrent_global_session_downloaded_bytes The total download amount of torrents for this session (in bytes)\n# TYPE qbittorrent_global_session_downloaded_bytes gauge\nqbittorrent_global_session_downloaded_bytes " + fmt.Sprintf("%.1f", result.ServerState.DlInfoData) + "\n"
-	total = total + "# HELP qbittorrent_global_download_speed_bytes The current download speed of all torrents (in bytes)\n# TYPE qbittorrent_global_download_speed_bytes gauge\nqbittorrent_global_download_speed_bytes " + fmt.Sprintf("%.1f", result.ServerState.DlInfoSpeed) + "\n"
-	total = total + "# HELP qbittorrent_global_upload_speed_bytes The total current upload speed of all torrents (in bytes)\n# TYPE qbittorrent_global_upload_speed_bytes gauge\nqbittorrent_global_upload_speed_bytes " + fmt.Sprintf("%.1f", result.ServerState.UpInfoSpeed) + "\n"
+	total = total + "# HELP qbittorrent_global_alltime_downloaded_bytes The all-time total download amount of torrents (in bytes)\n# TYPE qbittorrent_global_alltime_downloaded_bytes gauge\nqbittorrent_global_alltime_downloaded_bytes " + strconv.Itoa(result.ServerState.AlltimeDl) + "\n"
+	total = total + "# HELP qbittorrent_global_alltime_uploaded_bytes The all-time total upload amount of torrents (in bytes)\n# TYPE qbittorrent_global_alltime_uploaded_bytes gauge\nqbittorrent_global_alltime_uploaded_bytes " + strconv.Itoa(result.ServerState.AlltimeUl) + "\n"
+	total = total + "# HELP qbittorrent_global_session_downloaded_bytes The total download amount of torrents for this session (in bytes)\n# TYPE qbittorrent_global_session_downloaded_bytes gauge\nqbittorrent_global_session_downloaded_bytes " + strconv.Itoa(result.ServerState.DlInfoData) + "\n"
+	total = total + "# HELP qbittorrent_global_session_uploaded_bytes The total upload amount of torrents for this session (in bytes)\n# TYPE qbittorrent_global_session_uploaded_bytes gauge\nqbittorrent_global_session_uploaded_bytes " + strconv.Itoa(result.ServerState.UpInfoData) + "\n"
+	total = total + "# HELP qbittorrent_global_download_speed_bytes The current download speed of all torrents (in bytes)\n# TYPE qbittorrent_global_download_speed_bytes gauge\nqbittorrent_global_download_speed_bytes " + strconv.Itoa(result.ServerState.DlInfoSpeed) + "\n"
+	total = total + "# HELP qbittorrent_global_upload_speed_bytes The total current upload speed of all torrents (in bytes)\n# TYPE qbittorrent_global_upload_speed_bytes gauge\nqbittorrent_global_upload_speed_bytes " + strconv.Itoa(result.ServerState.UpInfoSpeed) + "\n"
 	total = total + "# HELP qbittorrent_global_ratio The current global ratio of all torrents\n# TYPE qbittorrent_global_ratio gauge\nqbittorrent_global_ratio " + result.ServerState.GlobalRatio + "\n"
 	return total
 }
