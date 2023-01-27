@@ -59,7 +59,7 @@ go build -o ./qbittorrent-promtheus
 ./qbittorrent-prometheus
 ```
 
-If you want to use an .env file, edit `.env.example` to match your setup then run it with :
+If you want to use an .env file, edit `.env.example` to match your setup, rename it `.env` then run it with :
 
 ```sh
 ./qbittorrent-prometheus -e
