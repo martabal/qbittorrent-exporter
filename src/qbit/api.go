@@ -208,7 +208,7 @@ func Sendbackmessagetorrent(result models.Response) string {
 	qbittorrent_torrent_ratio := "# HELP qbittorrent_torrent_ratio The current ratio each torrent\n# TYPE qbittorrent_torrent_ratio gauge\n"
 	qbittorrent_torrent_amount_left_bytes := "# HELP qbittorrent_torrent_amount_left_bytes The amount remaining for each torrent (in bytes)\n# TYPE qbittorrent_torrent_amount_left_bytes gauge\n"
 	qbittorrent_torrent_size_bytes := "# HELP qbittorrent_torrent_size_bytes The size for each torrent (in bytes)\n# TYPE qbittorrent_torrent_size_bytes gauge\n"
-	qbittorrent_torrent_session_downloaded_bytes := "# HELP qbittorrent_torrent_session_downloaded_bytes The current session download amount of torrents (in bytes)\n# TYPE qbittorrent_torrent_session_downloaded_bytes gauge"
+	qbittorrent_torrent_session_downloaded_bytes := "# HELP qbittorrent_torrent_session_downloaded_bytes The current session download amount of torrents (in bytes)\n# TYPE qbittorrent_torrent_session_downloaded_bytes gauge\n"
 	qbittorrent_torrent_session_uploaded_bytes := "# HELP qbittorrent_torrent_session_uploaded_bytes The current session upload amount of torrents (in bytes)\n# TYPE qbittorrent_torrent_session_uploaded_bytes gauge\n"
 	qbittorrent_torrent_total_downloaded_bytes := "# HELP qbittorrent_torrent_total_downloaded_bytes The current total download amount of torrents (in bytes)\n# TYPE qbittorrent_torrent_total_downloaded_bytes gauge\n"
 	qbittorrent_torrent_total_uploaded_bytes := "# HELP qbittorrent_torrent_total_uploaded_bytes The current total upload amount of torrents (in bytes)\n# TYPE qbittorrent_torrent_total_uploaded_bytes gauge\n"
