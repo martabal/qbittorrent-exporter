@@ -27,18 +27,18 @@ func startup() {
 func useenvfile() {
 
 	myEnv, err := godotenv.Read()
-	username := myEnv["QBITTORENT_USERNAME"]
-	password := myEnv["QBITTORENT_PASSWORD"]
-	qbit_url := myEnv["QBITTORENT_BASE_URL"]
-	if myEnv["QBITTORENT_USERNAME"] == "" {
+	username := myEnv["QBITTORRENT_USERNAME"]
+	password := myEnv["QBITTORRENT_PASSWORD"]
+	qbit_url := myEnv["QBITTORRENT_BASE_URL"]
+	if myEnv["QBITTORRENT_USERNAME"] == "" {
 		log.Println("Qbittorrent username is not set. Using default username")
 		username = "admin"
 	}
-	if myEnv["QBITTORENT_PASSWORD"] == "" {
+	if myEnv["QBITTORRENT_PASSWORD"] == "" {
 		log.Println("Qbittorrent password is not set. Using default password")
 		password = "adminadmin"
 	}
-	if myEnv["QBITTORENT_BASE_URL"] == "" {
+	if myEnv["QBITTORRENT_BASE_URL"] == "" {
 		log.Println("Qbittorrent base_url is not set. Using default base_url")
 		qbit_url = "http://localhost:8090"
 	}
@@ -53,18 +53,18 @@ func useenvfile() {
 
 }
 func initenv() {
-	username := os.Getenv("QBITTORENT_USERNAME")
-	password := os.Getenv("QBITTORENT_PASSWORD")
-	qbit_url := os.Getenv("QBITTORENT_BASE_URL")
-	if os.Getenv("QBITTORENT_USERNAME") == "" {
+	username := os.Getenv("QBITTORRENT_USERNAME")
+	password := os.Getenv("QBITTORRENT_PASSWORD")
+	qbit_url := os.Getenv("QBITTORRENT_BASE_URL")
+	if os.Getenv("QBITTORRENT_USERNAME") == "" {
 		log.Println("Qbittorrent username is not set. Using default username")
 		username = "admin"
 	}
-	if os.Getenv("QBITTORENT_PASSWORD") == "" {
+	if os.Getenv("QBITTORRENT_PASSWORD") == "" {
 		log.Println("Qbittorrent password is not set. Using default password")
 		password = "adminadmin"
 	}
-	if os.Getenv("QBITTORENT_BASE_URL") == "" {
+	if os.Getenv("QBITTORRENT_BASE_URL") == "" {
 		log.Println("Qbittorrent base_url is not set. Using default base_url")
 		qbit_url = "http://localhost:8090"
 	}

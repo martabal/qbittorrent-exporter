@@ -22,9 +22,9 @@ This app running uses between 5-12Mo of RAM and uses bearly no CPU power.
 
 ```sh
 docker run --name=qbit \
-    -e QBITTORENT_URL=http://192.168.1.10:8080 \
-    -e QBITTORENT_PASSWORD='<your_password>' \
-    -e QBITTORENT_USERNAME=admin \
+    -e QBITTORRENT_URL=http://192.168.1.10:8080 \
+    -e QBITTORRENT_PASSWORD='<your_password>' \
+    -e QBITTORRENT_USERNAME=admin \
     -p 8090:8090 \
     martabal/qbittorrent-prometheus
 ```
@@ -38,9 +38,9 @@ services:
     image: martabal/qbittorrent-prometheus:latest
     container_name: qbittorrent-prometheus
     environment:
-      - QBITTORENT_URL=http://192.168.1.10:8080
-      - QBITTORENT_PASSWORD='<your_password>'
-      - QBITTORENT_USERNAME=admin
+      - QBITTORRENT_URL=http://192.168.1.10:8080
+      - QBITTORRENT_PASSWORD='<your_password>'
+      - QBITTORRENT_USERNAME=admin
     ports:
       - 8090:8090
     restart: unless-stopped
@@ -51,6 +51,6 @@ services:
 | Parameters | Function | Default Value |
 | :-----: | ----- | ----- |
 | `-p 8090` | Webservice port |  |
-| `-e QBITTORENT_USERNAME` | qBittorrent username | `admin` |
-| `-e QBITTORENT_PASSWORD` | qBittorrent password | `adminadmin` |
-| `-e QBITTORENT_BASE_URL` | qBittorrent base URL | `http://localhost:8090` |
+| `-e QBITTORRENT_USERNAME` | qBittorrent username | `admin` |
+| `-e QBITTORRENT_PASSWORD` | qBittorrent password | `adminadmin` |
+| `-e QBITTORRENT_BASE_URL` | qBittorrent base URL | `http://localhost:8090` |
