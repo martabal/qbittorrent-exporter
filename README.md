@@ -1,5 +1,7 @@
 # qbittorrent-prometheus
 
+[![manual push](https://github.com/martabal/qbittorrent-prometheus/actions/workflows/push_docker.yml/badge.svg)](https://github.com/martabal/qbittorrent-prometheus/actions/workflows/push_docker.yml)
+
 <p align="center">
 <img src="img/qbittorrent.png" width=100> <img src="img/prometheus.png" width=100><img src="img/golang.png" width=100>
 </p>
