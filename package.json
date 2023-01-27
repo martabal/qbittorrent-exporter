@@ -1,6 +1,6 @@
 {
   "name": "qbittorrent-prometheus",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "export qbittorrent data to prometheus",
   "main": "main.go",
   "scripts": {
