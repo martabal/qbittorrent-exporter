@@ -17,7 +17,7 @@ I was using an excellent [exporter](https://github.com/caseyscarborough/qbittorr
 
 ## Run it
 
-## docker-cli ([click here for more info](https://docs.docker.com/engine/reference/commandline/cli/))
+### Docker-cli ([click here for more info](https://docs.docker.com/engine/reference/commandline/cli/))
 
 ```sh
 docker run --name=qbit \
@@ -28,7 +28,7 @@ docker run --name=qbit \
     martabal/qbittorrent-prometheus
 ```
 
-## docker-compose
+### Docker-compose
 
 ```yaml
 version: "2.1"
@@ -45,7 +45,23 @@ services:
     restart: unless-stopped
 ```
 
+### Without docker
+
+```sh
+go get -d -v
+go build -o ./qbittorrent-promtheus
+./qbittorrent-prometheus
+```
+
+If you want to use an .env file, edit `.env.example` to match your setup then run it with :
+
+```sh
+./qbittorrent-prometheus -e
+```
+
 ## Parameters
+
+### Environment variables
 
 | Parameters | Function | Default Value |
 | :-----: | ----- | ----- |
@@ -53,3 +69,9 @@ services:
 | `-e QBITTORRENT_USERNAME` | qBittorrent username | `admin` |
 | `-e QBITTORRENT_PASSWORD` | qBittorrent password | `adminadmin` |
 | `-e QBITTORRENT_BASE_URL` | qBittorrent base URL | `http://localhost:8090` |
+
+### Arguments
+
+| Arguments | Function |
+| :-----: | ----- |
+| -e | Use the .env file (must be placed in the same directory) |
