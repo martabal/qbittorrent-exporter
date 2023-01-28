@@ -64,7 +64,7 @@ func initenv() {
 	}
 	if os.Getenv("QBITTORRENT_BASE_URL") == "" {
 		log.Println("Qbittorrent base_url is not set. Using default base_url")
-		qbit_url = "http://localhost:8090"
+		qbit_url = "http://localhost:8080"
 	}
 	models.Setuser(username, password)
 	models.Setbaseurl(qbit_url)

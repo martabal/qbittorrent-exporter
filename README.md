@@ -18,7 +18,7 @@ I was using an excellent [exporter](https://github.com/caseyscarborough/qbittorr
 
 ### Resources
 
-This app uses between 5-12Mo of RAM and uses bearly no CPU power.  
+This app uses ~15 times less RAM compared to the [original exporter](https://github.com/caseyscarborough/qbittorrent-exporter) for the same amount of torrents.
 Docker compressed size is ~8 MB.
 
 ## Run it
@@ -54,6 +54,8 @@ services:
 ### Without docker
 
 ```sh
+git clone https://github.com/martabal/qbittorrent-prometheus.git
+cd qbittorent-prometheus
 go get -d -v
 go build -o ./qbittorrent-promtheus
 ./qbittorrent-prometheus
@@ -80,4 +82,4 @@ If you want to use an .env file, edit `.env.example` to match your setup, rename
 
 | Arguments | Function |
 | :-----: | ----- |
-| -e | Use the .env file (must be placed in the same directory) |
+| -e | Use a .env file containing environment variables (.env file must be placed in the same directory) |
