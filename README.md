@@ -8,7 +8,7 @@
 
 This app is a Prometheus exporter for qBittorrent.  
 You must have version 4.1.0 of qBittorrent or higher.  
-This app is made for to be integrated with the [qbittorrent-grafana-dashboard](https://github.com/caseyscarborough/qbittorrent-grafana-dashboard)  
+This app is made to be integrated with the [qbittorrent-grafana-dashboard](https://github.com/caseyscarborough/qbittorrent-grafana-dashboard)  
 
 ## About this App
 
