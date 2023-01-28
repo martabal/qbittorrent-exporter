@@ -162,7 +162,7 @@ func Apirequest(uri string, method string) (*http.Response, error) {
 
 	req, err := http.NewRequest(method, models.Getbaseurl()+uri, nil)
 	if err != nil {
-		log.Println("Error with url")
+		log.Fatalln("Error with url")
 	}
 
 	req.AddCookie(&http.Cookie{Name: "SID", Value: models.Getcookie()})
@@ -170,10 +170,15 @@ func Apirequest(uri string, method string) (*http.Response, error) {
 	resp, err := client.Do(req)
 	if err != nil {
 		err := fmt.Errorf("Can't connect to server")
-		log.Println(err.Error())
+		if models.GetPromptError() == false {
+			log.Println(err.Error())
+			models.SetPromptError(true)
+		}
+
 		return resp, err
 
 	} else {
+		models.SetPromptError(false)
 		if resp.StatusCode == 200 {
 
 			return resp, nil
@@ -183,7 +188,7 @@ func Apirequest(uri string, method string) (*http.Response, error) {
 			if models.GetPromptError() == false {
 				models.SetPromptError(true)
 
-				log.Println("Error code ", err.Error())
+				log.Println("Error code", err.Error())
 
 			}
 			return resp, err
