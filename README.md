@@ -57,7 +57,7 @@ services:
 git clone https://github.com/martabal/qbittorrent-exporter.git
 cd qbittorent-exporter
 go get -d -v
-go build -o ./qbittorrent-promtheus
+go build -o ./qbittorrent-exporter
 ./qbittorrent-exporter
 ```
 
