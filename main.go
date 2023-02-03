@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"qbit-prom/src/models"
-	qbit "qbit-prom/src/qbit"
+	"qbit-exp/src/models"
+	qbit "qbit-exp/src/qbit"
 )
 
 func main() {
