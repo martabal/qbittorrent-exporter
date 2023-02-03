@@ -6,7 +6,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"qbit-prom/src/models"
+	"qbit-exp/src/models"
 	"strconv"
 )
 
@@ -251,8 +251,7 @@ func Sendbackmessagetorrent(result *models.Response) string {
 }
 
 func Sendbackmessagepreference(result *models.Preferences) string {
-	total := ""
-	total = total + "# HELP qbittorrent_app_max_active_downloads The max number of downloads allowed\n# TYPE qbittorrent_app_max_active_downloads gauge\nqbittorrent_app_max_active_downloads " + strconv.Itoa((*result).MaxActiveDownloads) + "\n"
+	total := "# HELP qbittorrent_app_max_active_downloads The max number of downloads allowed\n# TYPE qbittorrent_app_max_active_downloads gauge\nqbittorrent_app_max_active_downloads " + strconv.Itoa((*result).MaxActiveDownloads) + "\n"
 	total = total + "# HELP qbittorrent_app_max_active_uploads The max number of active uploads allowed\n# TYPE qbittorrent_app_max_active_uploads gauge\nqbittorrent_app_max_active_uploads " + strconv.Itoa((*result).MaxActiveUploads) + "\n"
 	total = total + "# HELP qbittorrent_app_max_active_torrents The max number of active torrents allowed\n# TYPE qbittorrent_app_max_active_torrents gauge\nqbittorrent_app_max_active_torrents " + strconv.Itoa((*result).MaxActiveTorrents) + "\n"
 	total = total + "# HELP qbittorrent_app_download_rate_limit_bytes The global download rate limit (in bytes)\n# TYPE qbittorrent_app_download_rate_limit_bytes gauge\nqbittorrent_app_download_rate_limit_bytes " + strconv.Itoa((*result).DlLimit) + "\n"
@@ -269,8 +268,8 @@ func Sendbackmessagemaindata(result *models.Maindata) string {
 	if (*result).ServerState.UseAltSpeedLimits == true {
 		UseAltSpeedLimits = "1.0"
 	}
-	total := ""
-	total = total + "# HELP qbittorrent_app_alt_rate_limits_enabled If alternate rate limits are enabled\n# TYPE qbittorrent_app_alt_rate_limits_enabled gauge\nqbittorrent_app_alt_rate_limits_enabled " + UseAltSpeedLimits + "\n"
+
+	total := "# HELP qbittorrent_app_alt_rate_limits_enabled If alternate rate limits are enabled\n# TYPE qbittorrent_app_alt_rate_limits_enabled gauge\nqbittorrent_app_alt_rate_limits_enabled " + UseAltSpeedLimits + "\n"
 	total = total + "# HELP qbittorrent_global_alltime_downloaded_bytes The all-time total download amount of torrents (in bytes)\n# TYPE qbittorrent_global_alltime_downloaded_bytes gauge\nqbittorrent_global_alltime_downloaded_bytes " + strconv.Itoa((*result).ServerState.AlltimeDl) + "\n"
 	total = total + "# HELP qbittorrent_global_alltime_uploaded_bytes The all-time total upload amount of torrents (in bytes)\n# TYPE qbittorrent_global_alltime_uploaded_bytes gauge\nqbittorrent_global_alltime_uploaded_bytes " + strconv.Itoa((*result).ServerState.AlltimeUl) + "\n"
 	total = total + "# HELP qbittorrent_global_session_downloaded_bytes The total download amount of torrents for this session (in bytes)\n# TYPE qbittorrent_global_session_downloaded_bytes gauge\nqbittorrent_global_session_downloaded_bytes " + strconv.Itoa((*result).ServerState.DlInfoData) + "\n"

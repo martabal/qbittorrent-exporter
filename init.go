@@ -4,8 +4,8 @@ import (
 	"flag"
 	"log"
 	"os"
-	"qbit-prom/src/models"
-	qbit "qbit-prom/src/qbit"
+	"qbit-exp/src/models"
+	qbit "qbit-exp/src/qbit"
 
 	"github.com/joho/godotenv"
 )

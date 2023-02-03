@@ -1,6 +1,6 @@
-# qbittorrent-prometheus
+# qbittorrent-exporter
 
-[![manual push](https://github.com/martabal/qbittorrent-prometheus/actions/workflows/push_docker.yml/badge.svg)](https://github.com/martabal/qbittorrent-prometheus/actions/workflows/push_docker.yml)
+[![manual push](https://github.com/martabal/qbittorrent-exporter/actions/workflows/push_docker.yml/badge.svg)](https://github.com/martabal/qbittorrent-exporter/actions/workflows/push_docker.yml)
 
 <p align="center">
 <img src="img/qbittorrent.png" width=100> <img src="img/prometheus.png" width=100><img src="img/golang.png" width=100>
@@ -31,7 +31,7 @@ docker run --name=qbit \
     -e QBITTORRENT_PASSWORD='<your_password>' \
     -e QBITTORRENT_USERNAME=admin \
     -p 8090:8090 \
-    martabal/qbittorrent-prometheus
+    martabal/qbittorrent-exporter
 ```
 
 ### Docker-compose
@@ -40,8 +40,8 @@ docker run --name=qbit \
 version: "2.1"
 services:
   immich:
-    image: martabal/qbittorrent-prometheus:latest
-    container_name: qbittorrent-prometheus
+    image: martabal/qbittorrent-exporter:latest
+    container_name: qbittorrent-exporter
     environment:
       - QBITTORRENT_URL=http://192.168.1.10:8080
       - QBITTORRENT_PASSWORD='<your_password>'
@@ -54,17 +54,17 @@ services:
 ### Without docker
 
 ```sh
-git clone https://github.com/martabal/qbittorrent-prometheus.git
-cd qbittorent-prometheus
+git clone https://github.com/martabal/qbittorrent-exporter.git
+cd qbittorent-exporter
 go get -d -v
 go build -o ./qbittorrent-promtheus
-./qbittorrent-prometheus
+./qbittorrent-exporter
 ```
 
 If you want to use an .env file, edit `.env.example` to match your setup, rename it `.env` then run it with :
 
 ```sh
-./qbittorrent-prometheus -e
+./qbittorrent-exporter -e
 ```
 
 ## Parameters

@@ -1,4 +1,4 @@
-module qbit-prom
+module qbit-exp
 
 go 1.19
 
