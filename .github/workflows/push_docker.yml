@@ -42,6 +42,6 @@ jobs:
           platforms: linux/arm/v7,linux/amd64,linux/arm64
           push: ${{ github.event_name != 'pull_request' }}
           tags: |
-            martabal/qbitorrent-exporter:${{ inputs.tags }}
-            martabal/qbitorrent-exporter:latest
+            martabal/qbittorrent-exporter:${{ inputs.tags }}
+            martabal/qbittorrent-exporter:latest
 

@@ -45,4 +45,6 @@ arm/
 powerpc/
 mips/
 
+img/
+
 .env
