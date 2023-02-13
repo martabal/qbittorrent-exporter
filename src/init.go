@@ -1,7 +1,9 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
+	"io/ioutil"
 	"log"
 	"os"
 
@@ -12,11 +14,11 @@ import (
 )
 
 func startup() {
+	projectinfo()
 	var envfile bool
 	models.SetPromptError(false)
 	flag.BoolVar(&envfile, "e", false, "Use .env file")
 	flag.Parse()
-	log.Println("Loading all parameters")
 	if envfile {
 		useenvfile()
 	} else {
@@ -24,6 +26,24 @@ func startup() {
 	}
 
 	qbit.Auth()
+}
+
+func projectinfo() {
+	fileContent, err := os.Open("./package.json")
+
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+
+	defer fileContent.Close()
+
+	byteResult, _ := ioutil.ReadAll(fileContent)
+
+	var res map[string]interface{}
+	json.Unmarshal([]byte(byteResult), &res)
+	log.Println("Author :", res["author"])
+	log.Println(res["name"], "version", res["version"])
 }
 
 func useenvfile() {
