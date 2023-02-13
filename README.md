@@ -18,8 +18,8 @@ I was using an excellent [exporter](https://github.com/caseyscarborough/qbittorr
 
 ### Resources
 
-This app uses ~15 times less RAM compared to the [original exporter](https://github.com/caseyscarborough/qbittorrent-exporter) for the same amount of torrents.
-Docker compressed size is ~8 MB.
+This app uses ~20 times less RAM compared to the [original exporter](https://github.com/caseyscarborough/qbittorrent-exporter) for the same amount of torrents.
+Docker compressed size is ~10 MB.
 
 ## Run it
 
@@ -57,6 +57,7 @@ services:
 git clone https://github.com/martabal/qbittorrent-exporter.git
 cd qbittorent-exporter
 go get -d -v
+cd src
 go build -o ./qbittorrent-exporter
 ./qbittorrent-exporter
 ```

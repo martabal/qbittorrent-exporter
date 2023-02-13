@@ -1,11 +1,11 @@
 FROM golang:1.19-alpine3.17 AS builder
 
-WORKDIR $GOPATH/src/mypackage/myapp/
+WORKDIR /app
 
 COPY . .
 
-RUN go get -d -v && \
-    go build -o /go/bin/qbittorrent-exporter
+RUN go get -d -v ./src/ && \
+    go build -o /go/bin/qbittorrent-exporter ./src 
 
 FROM alpine:3.17
 

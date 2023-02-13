@@ -1,11 +1,13 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"qbit-exp/src/models"
 	qbit "qbit-exp/src/qbit"
+
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 func main() {
@@ -19,9 +21,12 @@ func main() {
 }
 
 func metrics(w http.ResponseWriter, req *http.Request) {
-	value := qbit.Allrequests()
-	if value == "" {
-		value = qbit.Allrequests()
+	registry := prometheus.NewRegistry()
+	err := qbit.Allrequests(registry)
+	if err != nil {
+		err = qbit.Allrequests(registry)
 	}
-	fmt.Fprintf(w, value)
+
+	h := promhttp.HandlerFor(registry, promhttp.HandlerOpts{})
+	h.ServeHTTP(w, req)
 }
