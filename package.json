@@ -7,8 +7,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev" : "go run ./src",
     "dev:env" : "go run ./src -e",
-    "build" : "cd src &&  go build -o ./a.out && ./a.out",
-    "build:env" : "cd src && go build -o ./a.out && ./a.out -e"
+    "build" : "go build -o ./qbittorrent-exporter.out ./src && ./qbittorrent-exporter.out -e",
+    "build:env" : "go build -o ./qbittorrent-exporter.out ./src && ./qbittorrent-exporter.out -e"
   },
   "keywords": [
     "golang",
