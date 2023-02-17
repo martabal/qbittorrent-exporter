@@ -1,4 +1,4 @@
-name: manual push
+name: Publish Release
 on:
   workflow_dispatch:
     inputs:
