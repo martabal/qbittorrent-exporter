@@ -1,7 +1,7 @@
 {
   "name": "qbittorrent-exporter",
-  "version": "0.1.6",
-  "description": "export qbittorrent data to prometheus",
+  "version": "0.1.7",
+  "description": "Export your qbittorrent data to prometheus",
   "main": "src/main.go",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
