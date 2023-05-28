@@ -47,4 +47,6 @@ jobs:
           tags: |
             martabal/qbittorrent-exporter:${{ inputs.tags }}
             martabal/qbittorrent-exporter:latest
+            ghcr.io/${{ github.repository_owner }}/qbittorrent-exporter:${{ inputs.tags }} 
+            ghcr.io/${{ github.repository_owner }}/qbittorrent-exporter:latest
 
