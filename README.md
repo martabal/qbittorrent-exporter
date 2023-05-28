@@ -78,6 +78,7 @@ If you want to use an .env file, edit `.env.example` to match your setup, rename
 | `-e QBITTORRENT_USERNAME` | qBittorrent username | `admin` |
 | `-e QBITTORRENT_PASSWORD` | qBittorrent password | `adminadmin` |
 | `-e QBITTORRENT_BASE_URL` | qBittorrent base URL | `http://localhost:8090` |
+| `-e LOG_LEVEL` | App log level | Choose between DEBUG, INFO, WARN and ERROR |
 
 ### Arguments
 
