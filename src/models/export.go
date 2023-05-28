@@ -2,6 +2,7 @@ package models
 
 type Response []struct {
 	AmountLeft        int     `json:"amount_left"`
+	Category          string  `json:"category"`
 	Dlspeed           int     `json:"dlspeed"`
 	Downloaded        int     `json:"downloaded"`
 	DownloadedSession int     `json:"downloaded_session"`
