@@ -4,8 +4,7 @@ WORKDIR /app
 
 COPY . .
 
-RUN go get -d -v ./src/ && \
-    go build -o /go/bin/qbittorrent-exporter ./src 
+RUN go build -o /go/bin/qbittorrent-exporter ./src 
 
 FROM alpine:3.18
 
