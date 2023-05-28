@@ -38,10 +38,6 @@ func metrics(w http.ResponseWriter, req *http.Request) {
 
 func startup() {
 	log.SetLevel(log.TraceLevel)
-	log.SetFormatter(&log.TextFormatter{
-		DisableColors: false,
-		FullTimestamp: true,
-	})
 	projectinfo()
 	var envfile bool
 	models.SetPromptError(false)

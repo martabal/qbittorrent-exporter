@@ -118,8 +118,7 @@ func Sendbackmessagetorrent(result *models.Response, r *prometheus.Registry) {
 		} else {
 			count_uploading += 1
 		}
-		qbittorrent_torrent_info.With(prometheus.Labels{"name": (*result)[i].Name, "state": (*result)[i].State, "size": strconv.Itoa((*result)[i].Size), "progress": strconv.Itoa(int((*result)[i].Progress)), "seeders": strconv.Itoa(int((*result)[i].NumSeeds)), "leechers": strconv.Itoa(int((*result)[i].NumLeechs)), "dl_speed": strconv.Itoa(int((*result)[i].Dlspeed)), "up_speed": strconv.Itoa(int((*result)[i].Upspeed)), "amount_left": strconv.Itoa(int((*result)[i].AmountLeft)), "time_active": strconv.Itoa(int((*result)[i].TimeActive)), "eta": strconv.Itoa(int((*result)[i].Eta)), "uploaded": strconv.Itoa(int((*result)[i].Uploaded)), "uploaded_session": strconv.Itoa(int((*result)[i].UploadedSession)), "downloaded": strconv.Itoa(int((*result)[i].Downloaded)), "downloaded_session": strconv.Itoa(int((*result)[i].DownloadedSession)), "max_ratio": strconv.Itoa(int((*result)[i].MaxRatio)), "ratio": strconv.Itoa(int((*result)[i].Ratio))}).Set(1)
-		//qbittorrent_torrent_info = qbittorrent_torrent_info + `qbittorrent_torrent_info{name="` + (*result)[i].Name + `",state="` + (*result)[i].State + `",size="` + strconv.Itoa((*result)[i].Size) + `",progress="` + fmt.Sprintf("%.1f", (*result)[i].Progress) + `",seeders="` + strconv.Itoa((*result)[i].NumSeeds) + `",leechers="` + strconv.Itoa((*result)[i].NumLeechs) + `",dl_speed="` + strconv.Itoa((*result)[i].Dlspeed) + `",up_speed="` + strconv.Itoa((*result)[i].Upspeed) + `",amount_left="` + strconv.Itoa((*result)[i].AmountLeft) + `",time_active="` + strconv.Itoa((*result)[i].TimeActive) + `",eta="` + strconv.Itoa((*result)[i].Eta) + `",uploaded="` + strconv.Itoa((*result)[i].Uploaded) + `",uploaded_session="` + strconv.Itoa((*result)[i].UploadedSession) + `",downloaded="` + strconv.Itoa((*result)[i].Downloaded) + `",downloaded_session="` + strconv.Itoa((*result)[i].DownloadedSession) + `",max_ratio="` + fmt.Sprintf("%.1f", (*result)[i].MaxRatio) + `",ratio="` + fmt.Sprintf("%.f", (*result)[i].Ratio) + `",} 1.0` + "\n"
+		qbittorrent_torrent_info.With(prometheus.Labels{"name": (*result)[i].Name, "category": (*result)[i].Category, "state": (*result)[i].State, "size": strconv.Itoa((*result)[i].Size), "progress": strconv.Itoa(int((*result)[i].Progress)), "seeders": strconv.Itoa(int((*result)[i].NumSeeds)), "leechers": strconv.Itoa(int((*result)[i].NumLeechs)), "dl_speed": strconv.Itoa(int((*result)[i].Dlspeed)), "up_speed": strconv.Itoa(int((*result)[i].Upspeed)), "amount_left": strconv.Itoa(int((*result)[i].AmountLeft)), "time_active": strconv.Itoa(int((*result)[i].TimeActive)), "eta": strconv.Itoa(int((*result)[i].Eta)), "uploaded": strconv.Itoa(int((*result)[i].Uploaded)), "uploaded_session": strconv.Itoa(int((*result)[i].UploadedSession)), "downloaded": strconv.Itoa(int((*result)[i].Downloaded)), "downloaded_session": strconv.Itoa(int((*result)[i].DownloadedSession)), "max_ratio": strconv.Itoa(int((*result)[i].MaxRatio)), "ratio": strconv.Itoa(int((*result)[i].Ratio))}).Set(1)
 
 	}
 
@@ -191,7 +190,7 @@ func Sendbackmessagemaindata(result *models.Maindata, r *prometheus.Registry) {
 
 	}
 	UseAltSpeedLimits := 0.0
-	if (*result).ServerState.UseAltSpeedLimits == true {
+	if (*result).ServerState.UseAltSpeedLimits {
 		UseAltSpeedLimits = 1.0
 	}
 	qbittorrent_app_alt_rate_limits_enabled := prometheus.NewGauge(prometheus.GaugeOpts{
