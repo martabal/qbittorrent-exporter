@@ -1,12 +1,13 @@
 package qbit
 
 import (
-	"io/ioutil"
-	"log"
+	"io"
 	"net/http"
 	"net/url"
 	"qbit-exp/src/models"
 	"strings"
+
+	log "github.com/sirupsen/logrus"
 )
 
 func Auth() {
@@ -17,15 +18,15 @@ func Auth() {
 	params.Add("password", password)
 	resp, err := http.PostForm(qbit_url+"/api/v2/auth/login", params)
 	if err != nil {
-		log.Println("Can't connect to ", models.Getbaseurl())
+		log.Warn("Can't connect to ", models.Getbaseurl())
 	} else {
-		body, err := ioutil.ReadAll(resp.Body)
+		body, err := io.ReadAll(resp.Body)
 		if err != nil {
 			log.Fatalln(err)
 		}
 		if resp.StatusCode == 200 {
 			if string(body) == "Fails." {
-				log.Println("Authentication Error")
+				log.Warn("Authentication Error")
 			} else {
 				models.Setcookie(strings.Split(strings.Split(resp.Header["Set-Cookie"][0], ";")[0], "=")[1])
 			}

@@ -3,25 +3,24 @@ package main
 import (
 	"encoding/json"
 	"flag"
-	"io/ioutil"
-	"log"
+	"fmt"
 	"net/http"
 	"os"
-
 	"qbit-exp/src/models"
 	qbit "qbit-exp/src/qbit"
 
 	"github.com/joho/godotenv"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	log "github.com/sirupsen/logrus"
 )
 
 func main() {
 	startup()
-	log.Println("qbittorrent URL :", models.Getbaseurl())
-	log.Println("username :", models.GetUsername())
-	log.Println("password :", models.Getpasswordmasked())
-	log.Println("Started")
+	log.Info("qbittorrent URL :", models.Getbaseurl())
+	log.Info("username :", models.GetUsername())
+	log.Info("password :", models.Getpasswordmasked())
+	log.Info("Started")
 	http.HandleFunc("/metrics", metrics)
 	http.ListenAndServe(":8090", nil)
 }
@@ -30,7 +29,7 @@ func metrics(w http.ResponseWriter, req *http.Request) {
 	registry := prometheus.NewRegistry()
 	err := qbit.Allrequests(registry)
 	if err != nil {
-		err = qbit.Allrequests(registry)
+		qbit.Allrequests(registry)
 	}
 
 	h := promhttp.HandlerFor(registry, promhttp.HandlerOpts{})
@@ -38,6 +37,11 @@ func metrics(w http.ResponseWriter, req *http.Request) {
 }
 
 func startup() {
+	log.SetLevel(log.TraceLevel)
+	log.SetFormatter(&log.TextFormatter{
+		DisableColors: false,
+		FullTimestamp: true,
+	})
 	projectinfo()
 	var envfile bool
 	models.SetPromptError(false)
@@ -53,21 +57,21 @@ func startup() {
 }
 
 func projectinfo() {
-	fileContent, err := os.Open("./package.json")
-
+	fileContent, err := os.ReadFile("./package.json")
 	if err != nil {
 		log.Fatal(err)
 		return
 	}
 
-	defer fileContent.Close()
-
-	byteResult, _ := ioutil.ReadAll(fileContent)
-
 	var res map[string]interface{}
-	json.Unmarshal([]byte(byteResult), &res)
-	log.Println("Author :", res["author"])
-	log.Println(res["name"], "version", res["version"])
+	err = json.Unmarshal(fileContent, &res)
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+
+	fmt.Println("Author:", res["author"])
+	fmt.Println(res["name"], "version", res["version"])
 }
 
 func useenvfile() {
@@ -76,23 +80,39 @@ func useenvfile() {
 	password := myEnv["QBITTORRENT_PASSWORD"]
 	qbit_url := myEnv["QBITTORRENT_BASE_URL"]
 	if myEnv["QBITTORRENT_USERNAME"] == "" {
-		log.Println("Qbittorrent username is not set. Using default username")
+		log.Warn("Qbittorrent username is not set. Using default username")
 		username = "admin"
 	}
 	if myEnv["QBITTORRENT_PASSWORD"] == "" {
-		log.Println("Qbittorrent password is not set. Using default password")
+		log.Warn("Qbittorrent password is not set. Using default password")
 		password = "adminadmin"
 	}
 	if myEnv["QBITTORRENT_BASE_URL"] == "" {
-		log.Println("Qbittorrent base_url is not set. Using default base_url")
+		log.Warn("Qbittorrent base_url is not set. Using default base_url")
 		qbit_url = "http://localhost:8090"
 	}
+
+	if myEnv["LOG_LEVEL"] == "DEBUG" {
+		log.SetLevel(log.DebugLevel)
+	} else if myEnv["LOG_LEVEL"] == "INFO" {
+		log.SetLevel(log.InfoLevel)
+	} else if myEnv["LOG_LEVEL"] == "WARN" {
+		log.SetLevel(log.WarnLevel)
+	} else if myEnv["LOG_LEVEL"] == "ERROR" {
+		log.SetLevel(log.ErrorLevel)
+	} else {
+		log.SetLevel(log.InfoLevel)
+	}
+	log.SetFormatter(&log.TextFormatter{
+		DisableColors: false,
+		FullTimestamp: true,
+	})
 	models.Setuser(username, password)
 	models.Setbaseurl(qbit_url)
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
-	log.Println("Using .env file")
+	log.Info("Using .env file")
 }
 
 func initenv() {
@@ -100,17 +120,34 @@ func initenv() {
 	password := os.Getenv("QBITTORRENT_PASSWORD")
 	qbit_url := os.Getenv("QBITTORRENT_BASE_URL")
 	if os.Getenv("QBITTORRENT_USERNAME") == "" {
-		log.Println("Qbittorrent username is not set. Using default username")
+		log.Warn("Qbittorrent username is not set. Using default username")
 		username = "admin"
 	}
 	if os.Getenv("QBITTORRENT_PASSWORD") == "" {
-		log.Println("Qbittorrent password is not set. Using default password")
+		log.Warn("Qbittorrent password is not set. Using default password")
 		password = "adminadmin"
 	}
 	if os.Getenv("QBITTORRENT_BASE_URL") == "" {
-		log.Println("Qbittorrent base_url is not set. Using default base_url")
+		log.Warn("Qbittorrent base_url is not set. Using default base_url")
 		qbit_url = "http://localhost:8080"
 	}
+
+	if os.Getenv("LOG_LEVEL") == "DEBUG" {
+		log.SetLevel(log.DebugLevel)
+	} else if os.Getenv("LOG_LEVEL") == "INFO" {
+		log.SetLevel(log.InfoLevel)
+	} else if os.Getenv("LOG_LEVEL") == "WARN" {
+		log.SetLevel(log.WarnLevel)
+	} else if os.Getenv("LOG_LEVEL") == "ERROR" {
+		log.SetLevel(log.ErrorLevel)
+	} else {
+		log.SetLevel(log.InfoLevel)
+	}
+	log.SetFormatter(&log.TextFormatter{
+		DisableColors: false,
+		FullTimestamp: true,
+	})
+
 	models.Setuser(username, password)
 	models.Setbaseurl(qbit_url)
 }

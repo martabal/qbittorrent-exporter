@@ -3,11 +3,13 @@ package qbit
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"log"
+	"io"
+
 	"net/http"
 	"qbit-exp/src/models"
 	prom "qbit-exp/src/prometheus"
+
+	log "github.com/sirupsen/logrus"
 
 	"sync"
 
@@ -21,25 +23,25 @@ func Gettorrent(r *prometheus.Registry) {
 	resp, err := Apirequest("/api/v2/torrents/info", "GET")
 	if err != nil {
 		if err.Error() == "403" {
-			log.Println("Cookie changed, try to reconnect ...")
+			log.Debug("Cookie changed, try to reconnect ...")
 
 		} else {
-			if models.GetPromptError() == false {
-				log.Println("Error : ", err)
+			if !models.GetPromptError() {
+				log.Debug("Error : ", err)
 			}
 		}
 	} else {
-		if models.GetPromptError() == true {
+		if models.GetPromptError() {
 			models.SetPromptError(false)
 		}
-		body, err := ioutil.ReadAll(resp.Body)
+		body, err := io.ReadAll(resp.Body)
 		if err != nil {
 			log.Fatalln(err)
 		} else {
 
 			var result models.Response
 			if err := json.Unmarshal(body, &result); err != nil { // Parse []byte to go struct pointer
-				log.Println("Can not unmarshal JSON")
+				log.Debug("Can not unmarshal JSON")
 			}
 			prom.Sendbackmessagetorrent(&result, r)
 
@@ -53,26 +55,26 @@ func getPreferences(r *prometheus.Registry) {
 	resp, err := Apirequest("/api/v2/app/preferences", "GET")
 	if err != nil {
 		if err.Error() == "403" {
-			log.Println("Cookie changed, try to reconnect ...")
+			log.Debug("Cookie changed, try to reconnect ...")
 
 		} else {
-			if models.GetPromptError() == false {
-				log.Println("Error : ", err)
+			if !models.GetPromptError() {
+				log.Debug("Error : ", err)
 			}
 		}
 
 	} else {
-		if models.GetPromptError() == true {
+		if models.GetPromptError() {
 			models.SetPromptError(false)
 		}
-		body, err := ioutil.ReadAll(resp.Body)
+		body, err := io.ReadAll(resp.Body)
 		if err != nil {
 			log.Fatalln(err)
 		} else {
 
 			var result models.Preferences
 			if err := json.Unmarshal(body, &result); err != nil { // Parse []byte to go struct pointer
-				log.Println("Can not unmarshal JSON")
+				log.Debug("Can not unmarshal JSON")
 			}
 			prom.Sendbackmessagepreference(&result, r)
 
@@ -85,25 +87,25 @@ func getMainData(r *prometheus.Registry) {
 	resp, err := Apirequest("/api/v2/sync/maindata", "GET")
 	if err != nil {
 		if err.Error() == "403" {
-			log.Println("Cookie changed, try to reconnect ...")
+			log.Debug("Cookie changed, try to reconnect ...")
 
 		} else {
-			if models.GetPromptError() == false {
-				log.Println("Error : ", err)
+			if !models.GetPromptError() {
+				log.Debug("Error : ", err)
 			}
 		}
 	} else {
-		if models.GetPromptError() == true {
+		if models.GetPromptError() {
 			models.SetPromptError(false)
 		}
-		body, err := ioutil.ReadAll(resp.Body)
+		body, err := io.ReadAll(resp.Body)
 		if err != nil {
 			log.Fatalln(err)
 		} else {
 
 			var result models.Maindata
 			if err := json.Unmarshal(body, &result); err != nil { // Parse []byte to go struct pointer
-				log.Println("Can not unmarshal JSON")
+				log.Debug("Can not unmarshal JSON")
 			}
 			prom.Sendbackmessagemaindata(&result, r)
 
@@ -118,21 +120,21 @@ func Handlerequest(uri string, method string) (string, error) {
 	if err != nil {
 
 		if err.Error() == "403" {
-			log.Println("Cookie changed, try to reconnect ...")
+			log.Debug("Cookie changed, try to reconnect ...")
 			Auth()
 		} else {
-			if models.GetPromptError() == false {
-				log.Println("Error : ", err)
+			if !models.GetPromptError() {
+				log.Debug("Error : ", err)
 			}
 
 		}
 		return "", err
 
 	} else {
-		if models.GetPromptError() == true {
+		if models.GetPromptError() {
 			models.SetPromptError(false)
 		}
-		body, err := ioutil.ReadAll(resp.Body)
+		body, err := io.ReadAll(resp.Body)
 		if err != nil {
 			log.Fatalln(err)
 			return "", err
@@ -194,9 +196,9 @@ func Apirequest(uri string, method string) (*http.Response, error) {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		err := fmt.Errorf("Can't connect to server")
-		if models.GetPromptError() == false {
-			log.Println(err.Error())
+		err := fmt.Errorf("can't connect to server")
+		if !models.GetPromptError() {
+			log.Debug(err.Error())
 			models.SetPromptError(true)
 		}
 
@@ -210,10 +212,10 @@ func Apirequest(uri string, method string) (*http.Response, error) {
 
 		} else {
 			err := fmt.Errorf("%d", resp.StatusCode)
-			if models.GetPromptError() == false {
+			if !models.GetPromptError() {
 				models.SetPromptError(true)
 
-				log.Println("Error code", err.Error())
+				log.Debug("Error code", err.Error())
 
 			}
 			return resp, err
