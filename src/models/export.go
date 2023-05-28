@@ -15,6 +15,7 @@ type Response []struct {
 	Ratio             float64 `json:"ratio"`
 	Size              int     `json:"size"`
 	State             string  `json:"state"`
+	Tags              string  `json:"tags"`
 	TimeActive        int     `json:"time_active"`
 	Uploaded          int     `json:"uploaded"`
 	UploadedSession   int     `json:"uploaded_session"`
@@ -32,6 +33,7 @@ type Preferences struct {
 }
 
 type Maindata struct {
+	CategoryMap map[string]Category `json:"categories"`
 	ServerState struct {
 		AlltimeDl         int    `json:"alltime_dl"`
 		AlltimeUl         int    `json:"alltime_ul"`
@@ -42,4 +44,10 @@ type Maindata struct {
 		UpInfoSpeed       int    `json:"up_info_speed"`
 		UseAltSpeedLimits bool   `json:"use_alt_speed_limits"`
 	} `json:"server_state"`
+	Tags []string `json:"tags"`
+}
+
+type Category struct {
+	Name     string `json:"name"`
+	SavePath string `json:"savePath"`
 }

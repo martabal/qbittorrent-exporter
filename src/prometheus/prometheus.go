@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"qbit-exp/src/models"
 	"strconv"
+	"strings"
 
 	"github.com/prometheus/client_golang/prometheus"
 )
@@ -77,7 +78,11 @@ func Sendbackmessagetorrent(result *models.Response, r *prometheus.Registry) {
 	qbittorrent_torrent_info := prometheus.NewGaugeVec(prometheus.GaugeOpts{
 		Name: "qbittorrent_torrent_info",
 		Help: "All info for torrents",
-	}, []string{"name", "state", "size", "progress", "seeders", "leechers", "dl_speed", "up_speed", "amount_left", "time_active", "eta", "uploaded", "uploaded_session", "downloaded", "downloaded_session", "max_ratio", "ratio"})
+	}, []string{"name", "category", "state", "size", "progress", "seeders", "leechers", "dl_speed", "up_speed", "amount_left", "time_active", "eta", "uploaded", "uploaded_session", "downloaded", "downloaded_session", "max_ratio", "ratio"})
+	qbittorrent_torrent_tags := prometheus.NewGaugeVec(prometheus.GaugeOpts{
+		Name: "qbittorrent_tags",
+		Help: "All tags associated to this torrent",
+	}, []string{"name", "tag"})
 	r.MustRegister(qbittorrent_eta)
 	r.MustRegister(qbittorrent_torrent_download_speed_bytes)
 	r.MustRegister(qbittorrent_torrent_upload_speed_bytes)
@@ -95,6 +100,7 @@ func Sendbackmessagetorrent(result *models.Response, r *prometheus.Registry) {
 	r.MustRegister(qbittorrent_torrent_total_uploaded_bytes)
 	r.MustRegister(qbittorrent_global_torrents)
 	r.MustRegister(qbittorrent_torrent_info)
+	r.MustRegister(qbittorrent_torrent_tags)
 
 	count_stelledup := 0
 	count_uploading := 0
@@ -119,7 +125,17 @@ func Sendbackmessagetorrent(result *models.Response, r *prometheus.Registry) {
 			count_uploading += 1
 		}
 		qbittorrent_torrent_info.With(prometheus.Labels{"name": (*result)[i].Name, "category": (*result)[i].Category, "state": (*result)[i].State, "size": strconv.Itoa((*result)[i].Size), "progress": strconv.Itoa(int((*result)[i].Progress)), "seeders": strconv.Itoa(int((*result)[i].NumSeeds)), "leechers": strconv.Itoa(int((*result)[i].NumLeechs)), "dl_speed": strconv.Itoa(int((*result)[i].Dlspeed)), "up_speed": strconv.Itoa(int((*result)[i].Upspeed)), "amount_left": strconv.Itoa(int((*result)[i].AmountLeft)), "time_active": strconv.Itoa(int((*result)[i].TimeActive)), "eta": strconv.Itoa(int((*result)[i].Eta)), "uploaded": strconv.Itoa(int((*result)[i].Uploaded)), "uploaded_session": strconv.Itoa(int((*result)[i].UploadedSession)), "downloaded": strconv.Itoa(int((*result)[i].Downloaded)), "downloaded_session": strconv.Itoa(int((*result)[i].DownloadedSession)), "max_ratio": strconv.Itoa(int((*result)[i].MaxRatio)), "ratio": strconv.Itoa(int((*result)[i].Ratio))}).Set(1)
+		if (*result)[i].Tags != "" {
+			separated_list := strings.Split((*result)[i].Tags, ", ")
+			for j := 0; j < len(separated_list); j++ {
+				labels := prometheus.Labels{
+					"name": (*result)[i].Name,
+					"tag":  separated_list[j],
+				}
+				qbittorrent_torrent_tags.With(labels).Set(1)
+			}
 
+		}
 	}
 
 	qbittorrent_torrent_states.With(prometheus.Labels{"name": "stalledUP"}).Set(float64(count_stelledup))
@@ -221,6 +237,14 @@ func Sendbackmessagemaindata(result *models.Maindata, r *prometheus.Registry) {
 		Name: "qbittorrent_global_upload_speed_bytes",
 		Help: "The total current upload speed of all torrents (in bytes)",
 	})
+	qbittorrent_global_tags := prometheus.NewGaugeVec(prometheus.GaugeOpts{
+		Name: "qbittorrent_global_tags",
+		Help: "All tags used in qbittorrent",
+	}, []string{"tag"})
+	qbittorrent_global_categories := prometheus.NewGaugeVec(prometheus.GaugeOpts{
+		Name: "qbittorrent_global_categories",
+		Help: "All categories used in qbittorrent",
+	}, []string{"category"})
 
 	r.MustRegister(qbittorrent_app_alt_rate_limits_enabled)
 	r.MustRegister(qbittorrent_global_alltime_downloaded_bytes)
@@ -229,6 +253,25 @@ func Sendbackmessagemaindata(result *models.Maindata, r *prometheus.Registry) {
 	r.MustRegister(qbittorrent_global_session_uploaded_bytes)
 	r.MustRegister(qbittorrent_global_download_speed_bytes)
 	r.MustRegister(qbittorrent_global_upload_speed_bytes)
+	r.MustRegister(qbittorrent_global_tags)
+	r.MustRegister(qbittorrent_global_categories)
+
+	if len((*result).Tags) > 0 {
+
+		for j := 0; j < len((*result).Tags); j++ {
+			labels := prometheus.Labels{
+				"tag": (*result).Tags[j],
+			}
+			qbittorrent_global_tags.With(labels).Set(1)
+		}
+
+	}
+	for _, category := range result.CategoryMap {
+		labels := prometheus.Labels{
+			"category": category.Name,
+		}
+		qbittorrent_global_categories.With(labels).Set(1)
+	}
 
 	qbittorrent_app_alt_rate_limits_enabled.Set(float64(UseAltSpeedLimits))
 	qbittorrent_global_alltime_downloaded_bytes.Set(float64((*result).ServerState.AlltimeDl))
