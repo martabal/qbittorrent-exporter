@@ -2,13 +2,14 @@
   "name": "qbittorrent-exporter",
   "version": "0.2.1",
   "description": "Export your qbittorrent data to prometheus",
-  "main": "src/main.go",
+  "main": "src/init.go",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev" : "go run ./src",
     "dev:env" : "go run ./src -e",
     "build" : "go build -o ./qbittorrent-exporter.out ./src && ./qbittorrent-exporter.out -e",
-    "build:env" : "go build -o ./qbittorrent-exporter.out ./src && ./qbittorrent-exporter.out -e"
+    "build:env" : "go build -o ./qbittorrent-exporter.out ./src && ./qbittorrent-exporter.out -e",
+    "format" : "go fmt ./src"
   },
   "keywords": [
     "golang",

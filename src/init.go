@@ -88,21 +88,8 @@ func useenvfile() {
 		qbit_url = "http://localhost:8090"
 	}
 
-	if myEnv["LOG_LEVEL"] == "DEBUG" {
-		log.SetLevel(log.DebugLevel)
-	} else if myEnv["LOG_LEVEL"] == "INFO" {
-		log.SetLevel(log.InfoLevel)
-	} else if myEnv["LOG_LEVEL"] == "WARN" {
-		log.SetLevel(log.WarnLevel)
-	} else if myEnv["LOG_LEVEL"] == "ERROR" {
-		log.SetLevel(log.ErrorLevel)
-	} else {
-		log.SetLevel(log.InfoLevel)
-	}
-	log.SetFormatter(&log.TextFormatter{
-		DisableColors: false,
-		FullTimestamp: true,
-	})
+	setLogLevel(myEnv["LOG_LEVEL"])
+
 	models.Setuser(username, password)
 	models.Setbaseurl(qbit_url)
 	if err != nil {
@@ -128,13 +115,20 @@ func initenv() {
 		qbit_url = "http://localhost:8080"
 	}
 
-	if os.Getenv("LOG_LEVEL") == "DEBUG" {
+	setLogLevel(os.Getenv("LOG_LEVEL"))
+
+	models.Setuser(username, password)
+	models.Setbaseurl(qbit_url)
+}
+
+func setLogLevel(log_level string) {
+	if log_level == "DEBUG" {
 		log.SetLevel(log.DebugLevel)
-	} else if os.Getenv("LOG_LEVEL") == "INFO" {
+	} else if log_level == "INFO" {
 		log.SetLevel(log.InfoLevel)
-	} else if os.Getenv("LOG_LEVEL") == "WARN" {
+	} else if log_level == "WARN" {
 		log.SetLevel(log.WarnLevel)
-	} else if os.Getenv("LOG_LEVEL") == "ERROR" {
+	} else if log_level == "ERROR" {
 		log.SetLevel(log.ErrorLevel)
 	} else {
 		log.SetLevel(log.InfoLevel)
@@ -143,7 +137,4 @@ func initenv() {
 		DisableColors: false,
 		FullTimestamp: true,
 	})
-
-	models.Setuser(username, password)
-	models.Setbaseurl(qbit_url)
 }

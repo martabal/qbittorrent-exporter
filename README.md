@@ -63,6 +63,16 @@ go build -o ./qbittorrent-exporter
 ./qbittorrent-exporter
 ```
 
+or
+
+```sh
+git clone https://github.com/martabal/qbittorrent-exporter.git
+cd qbittorent-exporter
+go get -d -v
+cd src
+go run ./src -e
+```
+
 If you want to use an .env file, edit `.env.example` to match your setup, rename it `.env` then run it with :
 
 ```sh
@@ -79,7 +89,7 @@ If you want to use an .env file, edit `.env.example` to match your setup, rename
 | `-e QBITTORRENT_USERNAME` | qBittorrent username | `admin` |
 | `-e QBITTORRENT_PASSWORD` | qBittorrent password | `adminadmin` |
 | `-e QBITTORRENT_BASE_URL` | qBittorrent base URL | `http://localhost:8090` |
-| `-e LOG_LEVEL` | App log level | Choose between DEBUG, INFO, WARN and ERROR |
+| `-e LOG_LEVEL` | App log level (`DEBUG`, `INFO`, `WARN` and `ERROR`) | `INFO` |
 
 ### Arguments
 
