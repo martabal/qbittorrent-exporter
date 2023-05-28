@@ -72,53 +72,54 @@ func projectinfo() {
 
 func useenvfile() {
 	myEnv, err := godotenv.Read()
-	username := myEnv["QBITTORRENT_USERNAME"]
-	password := myEnv["QBITTORRENT_PASSWORD"]
-	qbit_url := myEnv["QBITTORRENT_BASE_URL"]
-	if myEnv["QBITTORRENT_USERNAME"] == "" {
-		log.Warn("Qbittorrent username is not set. Using default username")
-		username = "admin"
-	}
-	if myEnv["QBITTORRENT_PASSWORD"] == "" {
-		log.Warn("Qbittorrent password is not set. Using default password")
-		password = "adminadmin"
-	}
-	if myEnv["QBITTORRENT_BASE_URL"] == "" {
-		log.Warn("Qbittorrent base_url is not set. Using default base_url")
-		qbit_url = "http://localhost:8090"
-	}
-
-	setLogLevel(myEnv["LOG_LEVEL"])
-
-	models.Setuser(username, password)
-	models.Setbaseurl(qbit_url)
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
-	log.Info("Using .env file")
+	username := myEnv["QBITTORRENT_USERNAME"]
+	password := myEnv["QBITTORRENT_PASSWORD"]
+	qbitURL := myEnv["QBITTORRENT_BASE_URL"]
+	logLevel := myEnv["LOG_LEVEL"]
+
+	if username == "" {
+		username = "admin"
+		log.Warn("Qbittorrent username is not set. Using default username")
+	}
+	if password == "" {
+		password = "adminadmin"
+		log.Warn("Qbittorrent password is not set. Using default password")
+	}
+	if qbitURL == "" {
+		qbitURL = "http://localhost:8090"
+		log.Warn("Qbittorrent base_url is not set. Using default base_url")
+	}
+
+	setLogLevel(logLevel)
+	models.Init(qbitURL, username, password)
+
+	log.Debug("Using .env file")
 }
 
 func initenv() {
-	username := os.Getenv("QBITTORRENT_USERNAME")
-	password := os.Getenv("QBITTORRENT_PASSWORD")
-	qbit_url := os.Getenv("QBITTORRENT_BASE_URL")
-	if os.Getenv("QBITTORRENT_USERNAME") == "" {
+	qbitUsername := os.Getenv("QBITTORRENT_USERNAME")
+	qbitPassword := os.Getenv("QBITTORRENT_PASSWORD")
+	qbitURL := os.Getenv("QBITTORRENT_BASE_URL")
+
+	if qbitUsername == "" {
+		qbitUsername = "admin"
 		log.Warn("Qbittorrent username is not set. Using default username")
-		username = "admin"
 	}
-	if os.Getenv("QBITTORRENT_PASSWORD") == "" {
+	if qbitPassword == "" {
+		qbitPassword = "adminadmin"
 		log.Warn("Qbittorrent password is not set. Using default password")
-		password = "adminadmin"
 	}
-	if os.Getenv("QBITTORRENT_BASE_URL") == "" {
+	if qbitURL == "" {
+		qbitURL = "http://localhost:8080"
 		log.Warn("Qbittorrent base_url is not set. Using default base_url")
-		qbit_url = "http://localhost:8080"
 	}
 
 	setLogLevel(os.Getenv("LOG_LEVEL"))
 
-	models.Setuser(username, password)
-	models.Setbaseurl(qbit_url)
+	models.Init(qbitURL, qbitUsername, qbitPassword)
 }
 
 func setLogLevel(log_level string) {
