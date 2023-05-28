@@ -1,17 +1,17 @@
-name: Test
+name: Build
 on:
   workflow_dispatch:
   push:
-    branches: [main,develop]
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
 jobs:
 
-  e2e-tests:
+  build:
     name: Run build
-
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-      - name:  Install dependecies
+      - name: Build
         run: go build -o ./qbittorrent-exporter.out ./src
