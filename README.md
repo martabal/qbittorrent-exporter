@@ -1,6 +1,7 @@
 # qbittorrent-exporter
 
 [![Publish Release](https://github.com/martabal/qbittorrent-exporter/actions/workflows/docker.yml/badge.svg)](https://github.com/martabal/qbittorrent-exporter/actions/workflows/docker.yml)
+[![Build](https://github.com/martabal/qbittorrent-exporter/actions/workflows/test.yml/badge.svg)](https://github.com/martabal/qbittorrent-exporter/actions/workflows/test.yml)
 
 <p align="center">
 <img src="img/qbittorrent.png" width=100> <img src="img/prometheus.png" width=100><img src="img/golang.png" width=100>
