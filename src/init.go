@@ -110,7 +110,7 @@ func getEnv(key string, fallback string, printLog bool, logLevel string, logPrin
 	}
 
 	if printLog {
-		switch logLevel {
+		switch strings.ToUpper(logLevel) {
 		case "DEBUG":
 			log.Debug(logPrinted)
 		case "INFO":
