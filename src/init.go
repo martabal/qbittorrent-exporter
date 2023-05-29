@@ -75,9 +75,9 @@ func loadenv() {
 		}
 		fmt.Println("Using .env file")
 	}
-	qbitUsername := getEnv("QBITTORRENT_USERNAME", "admin", true, "warn", "Qbittorrent username is not set. Using default username")
-	qbitPassword := getEnv("QBITTORRENT_PASSWORD", "adminadmin", true, "warn", "Qbittorrent password is not set. Using default password")
-	qbitURL := getEnv("QBITTORRENT_BASE_URL", "http://localhost:8080", true, "warn", "Qbittorrent base_url is not set. Using default base_url")
+	qbitUsername := getEnv("QBITTORRENT_USERNAME", "admin", true, "Qbittorrent username is not set. Using default username")
+	qbitPassword := getEnv("QBITTORRENT_PASSWORD", "adminadmin", true, "Qbittorrent password is not set. Using default password")
+	qbitURL := getEnv("QBITTORRENT_BASE_URL", "http://localhost:8080", true, "Qbittorrent base_url is not set. Using default base_url")
 
 	setLogLevel(os.Getenv("LOG_LEVEL"))
 
@@ -104,22 +104,13 @@ func setLogLevel(logLevel string) {
 	})
 }
 
-func getEnv(key string, fallback string, printLog bool, logLevel string, logPrinted string) string {
+func getEnv(key string, fallback string, printLog bool, logPrinted string) string {
 	if value, ok := os.LookupEnv(key); ok {
 		return value
 	}
 
 	if printLog {
-		switch strings.ToUpper(logLevel) {
-		case "DEBUG":
-			log.Debug(logPrinted)
-		case "INFO":
-			log.Info(logPrinted)
-		case "WARN":
-			log.Warn(logPrinted)
-		case "ERROR":
-			log.Error(logPrinted)
-		}
+		log.Warn(logPrinted)
 	}
 
 	return fallback
