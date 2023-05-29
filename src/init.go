@@ -8,6 +8,7 @@ import (
 	"os"
 	"qbit-exp/src/models"
 	qbit "qbit-exp/src/qbit"
+	"strings"
 
 	"github.com/joho/godotenv"
 	"github.com/prometheus/client_golang/prometheus"
@@ -39,15 +40,8 @@ func metrics(w http.ResponseWriter, req *http.Request) {
 func startup() {
 	log.SetLevel(log.TraceLevel)
 	projectinfo()
-	var envfile bool
 	models.SetPromptError(false)
-	flag.BoolVar(&envfile, "e", false, "Use .env file")
-	flag.Parse()
-	if envfile {
-		useenvfile()
-	} else {
-		initenv()
-	}
+	loadenv()
 
 	qbit.Auth()
 }
@@ -70,72 +64,63 @@ func projectinfo() {
 	fmt.Println(res["name"], "version", res["version"])
 }
 
-func useenvfile() {
-	myEnv, err := godotenv.Read()
-	if err != nil {
-		log.Fatal("Error loading .env file")
+func loadenv() {
+	var envfile bool
+	flag.BoolVar(&envfile, "e", false, "Use .env file")
+	flag.Parse()
+	if envfile {
+		err := godotenv.Load(".env")
+		if err != nil {
+			log.Panic("Error loading .env file")
+		}
+		fmt.Println("Using .env file")
 	}
-	username := myEnv["QBITTORRENT_USERNAME"]
-	password := myEnv["QBITTORRENT_PASSWORD"]
-	qbitURL := myEnv["QBITTORRENT_BASE_URL"]
-	logLevel := myEnv["LOG_LEVEL"]
-
-	if username == "" {
-		username = "admin"
-		log.Warn("Qbittorrent username is not set. Using default username")
-	}
-	if password == "" {
-		password = "adminadmin"
-		log.Warn("Qbittorrent password is not set. Using default password")
-	}
-	if qbitURL == "" {
-		qbitURL = "http://localhost:8090"
-		log.Warn("Qbittorrent base_url is not set. Using default base_url")
-	}
-
-	setLogLevel(logLevel)
-	models.Init(qbitURL, username, password)
-
-	log.Debug("Using .env file")
-}
-
-func initenv() {
-	qbitUsername := os.Getenv("QBITTORRENT_USERNAME")
-	qbitPassword := os.Getenv("QBITTORRENT_PASSWORD")
-	qbitURL := os.Getenv("QBITTORRENT_BASE_URL")
-
-	if qbitUsername == "" {
-		qbitUsername = "admin"
-		log.Warn("Qbittorrent username is not set. Using default username")
-	}
-	if qbitPassword == "" {
-		qbitPassword = "adminadmin"
-		log.Warn("Qbittorrent password is not set. Using default password")
-	}
-	if qbitURL == "" {
-		qbitURL = "http://localhost:8080"
-		log.Warn("Qbittorrent base_url is not set. Using default base_url")
-	}
+	qbitUsername := getEnv("QBITTORRENT_USERNAME", "admin", true, "warn", "Qbittorrent username is not set. Using default username")
+	qbitPassword := getEnv("QBITTORRENT_PASSWORD", "adminadmin", true, "warn", "Qbittorrent password is not set. Using default password")
+	qbitURL := getEnv("QBITTORRENT_BASE_URL", "http://localhost:8080", true, "warn", "Qbittorrent base_url is not set. Using default base_url")
 
 	setLogLevel(os.Getenv("LOG_LEVEL"))
 
 	models.Init(qbitURL, qbitUsername, qbitPassword)
 }
 
-func setLogLevel(log_level string) {
-	if log_level == "DEBUG" {
-		log.SetLevel(log.DebugLevel)
-	} else if log_level == "INFO" {
-		log.SetLevel(log.InfoLevel)
-	} else if log_level == "WARN" {
-		log.SetLevel(log.WarnLevel)
-	} else if log_level == "ERROR" {
-		log.SetLevel(log.ErrorLevel)
-	} else {
-		log.SetLevel(log.InfoLevel)
+func setLogLevel(logLevel string) {
+	logLevels := map[string]log.Level{
+		"DEBUG": log.DebugLevel,
+		"INFO":  log.InfoLevel,
+		"WARN":  log.WarnLevel,
+		"ERROR": log.ErrorLevel,
 	}
+
+	level, found := logLevels[strings.ToUpper(logLevel)]
+	if !found {
+		level = log.InfoLevel
+	}
+
+	log.SetLevel(level)
 	log.SetFormatter(&log.TextFormatter{
 		DisableColors: false,
 		FullTimestamp: true,
 	})
+}
+
+func getEnv(key string, fallback string, printLog bool, logLevel string, logPrinted string) string {
+	if value, ok := os.LookupEnv(key); ok {
+		return value
+	}
+
+	if printLog {
+		switch logLevel {
+		case "DEBUG":
+			log.Debug(logPrinted)
+		case "INFO":
+			log.Info(logPrinted)
+		case "WARN":
+			log.Warn(logPrinted)
+		case "ERROR":
+			log.Error(logPrinted)
+		}
+	}
+
+	return fallback
 }
