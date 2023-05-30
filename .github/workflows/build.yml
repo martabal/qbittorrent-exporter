@@ -1,4 +1,4 @@
-name: Test
+name: Build
 on:
   workflow_dispatch:
   push:
@@ -7,11 +7,11 @@ on:
     branches: [ "main" ]
 jobs:
 
-  test:
-    name: Run tests
+  build:
+    name: Run build
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-      - name: Test
-        run: go test -v ./src
+      - name: Build
+        run: go build -o ./qbittorrent-exporter.out ./src
