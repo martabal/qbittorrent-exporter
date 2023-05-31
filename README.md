@@ -74,7 +74,7 @@ cd src
 go run ./src -e
 ```
 
-If you want to use an .env file, edit `.env.example` to match your setup, rename it `.env` then run it with :
+If you want to use an .env file, edit `.env.example` to match your setup, rename it `.env` then run it in the same directory. If you want to force to use the environment variables use `-e` argument like :
 
 ```sh
 ./qbittorrent-exporter -e
@@ -96,4 +96,4 @@ If you want to use an .env file, edit `.env.example` to match your setup, rename
 
 | Arguments | Function |
 | :-----: | ----- |
-| -e | Use a .env file containing environment variables (.env file must be placed in the same directory) |
+| -e | If a .env file is in the same directory as the executable, the .env values will be used, -e force the usage of environment variable |

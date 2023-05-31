@@ -67,14 +67,15 @@ func projectinfo() {
 func loadenv() {
 	var envfile bool
 	flag.BoolVar(&envfile, "e", false, "Use .env file")
-	flag.Parse()
-	if envfile {
+	_, err := os.Stat(".env")
+	if !os.IsNotExist(err) && !envfile {
 		err := godotenv.Load(".env")
 		if err != nil {
-			log.Panic("Error loading .env file")
+			log.Panic("Error loading .env file:", err)
 		}
 		fmt.Println("Using .env file")
 	}
+
 	qbitUsername := getEnv("QBITTORRENT_USERNAME", "admin", true, "Qbittorrent username is not set. Using default username")
 	qbitPassword := getEnv("QBITTORRENT_PASSWORD", "adminadmin", true, "Qbittorrent password is not set. Using default password")
 	qbitURL := getEnv("QBITTORRENT_BASE_URL", "http://localhost:8080", true, "Qbittorrent base_url is not set. Using default base_url")
