@@ -9,7 +9,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 )
 
-func Sendbackmessagetorrent(result *models.Response, r *prometheus.Registry) {
+func Sendbackmessagetorrent(result *models.TypeResponse, r *prometheus.Registry) {
 
 	qbittorrent_eta := prometheus.NewGaugeVec(prometheus.GaugeOpts{
 		Name: "qbittorrent_torrent_eta",
@@ -145,7 +145,7 @@ func Sendbackmessagetorrent(result *models.Response, r *prometheus.Registry) {
 
 }
 
-func Sendbackmessagepreference(result *models.Preferences, r *prometheus.Registry) {
+func Sendbackmessagepreference(result *models.TypePreferences, r *prometheus.Registry) {
 	qbittorrent_app_max_active_downloads := prometheus.NewGauge(prometheus.GaugeOpts{
 		Name: "qbittorrent_app_max_active_downloads",
 		Help: "The max number of downloads allowed",
@@ -191,7 +191,7 @@ func Sendbackmessagepreference(result *models.Preferences, r *prometheus.Registr
 
 }
 
-func Sendbackmessagemaindata(result *models.Maindata, r *prometheus.Registry) {
+func Sendbackmessagemaindata(result *models.TypeMaindata, r *prometheus.Registry) {
 	globalratio, err := strconv.ParseFloat((*result).ServerState.GlobalRatio, 64)
 
 	if err != nil {

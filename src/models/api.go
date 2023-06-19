@@ -1,6 +1,6 @@
 package models
 
-type Response []struct {
+type TypeResponse []struct {
 	AmountLeft        int     `json:"amount_left"`
 	Category          string  `json:"category"`
 	Dlspeed           int     `json:"dlspeed"`
@@ -22,7 +22,7 @@ type Response []struct {
 	Upspeed           int     `json:"upspeed"`
 }
 
-type Preferences struct {
+type TypePreferences struct {
 	AltDlLimit         int `json:"alt_dl_limit"`
 	AltUpLimit         int `json:"alt_up_limit"`
 	DlLimit            int `json:"dl_limit"`
@@ -32,8 +32,8 @@ type Preferences struct {
 	UpLimit            int `json:"up_limit"`
 }
 
-type Maindata struct {
-	CategoryMap map[string]Category `json:"categories"`
+type TypeMaindata struct {
+	CategoryMap map[string]TypeCategory `json:"categories"`
 	ServerState struct {
 		AlltimeDl         int    `json:"alltime_dl"`
 		AlltimeUl         int    `json:"alltime_ul"`
@@ -47,7 +47,7 @@ type Maindata struct {
 	Tags []string `json:"tags"`
 }
 
-type Category struct {
+type TypeCategory struct {
 	Name     string `json:"name"`
 	SavePath string `json:"savePath"`
 }

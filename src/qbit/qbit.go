@@ -16,11 +16,13 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 )
 
+type Dict map[string]interface{}
+
 var wg sync.WaitGroup
 
-func Gettorrent(r *prometheus.Registry) {
+func getData(r *prometheus.Registry, url string, httpmethod string, data string) {
 	defer wg.Done()
-	resp, err := Apirequest("/api/v2/torrents/info", "GET")
+	resp, err := Apirequest(url, httpmethod)
 	if err != nil {
 		if err.Error() == "403" {
 			log.Debug("Cookie changed, try to reconnect ...")
@@ -38,70 +40,28 @@ func Gettorrent(r *prometheus.Registry) {
 		if err != nil {
 			log.Fatalln(err)
 		} else {
-
-			var result models.Response
-			if err := json.Unmarshal(body, &result); err != nil { // Parse []byte to go struct pointer
-				log.Debug("Can not unmarshal JSON")
+			switch data {
+			case "preference":
+				var result models.TypePreferences
+				if err := json.Unmarshal(body, &result); err != nil {
+					log.Debug("Can not unmarshal JSON")
+				}
+				prom.Sendbackmessagepreference(&result, r)
+			case "response":
+				var result models.TypeResponse
+				if err := json.Unmarshal(body, &result); err != nil {
+					log.Debug("Can not unmarshal JSON")
+				}
+				prom.Sendbackmessagetorrent(&result, r)
+			case "maindata":
+				var result models.TypeMaindata
+				if err := json.Unmarshal(body, &result); err != nil {
+					log.Debug("Can not unmarshal JSON")
+				}
+				prom.Sendbackmessagemaindata(&result, r)
+			default:
+				log.Panicln("Unknown type: ", data)
 			}
-			prom.Sendbackmessagetorrent(&result, r)
-		}
-	}
-}
-
-func getPreferences(r *prometheus.Registry) {
-	defer wg.Done()
-	resp, err := Apirequest("/api/v2/app/preferences", "GET")
-	if err != nil {
-		if err.Error() == "403" {
-			log.Debug("Cookie changed, try to reconnect ...")
-		} else {
-			if !models.GetPromptError() {
-				log.Debug("Error : ", err)
-			}
-		}
-	} else {
-		if models.GetPromptError() {
-			models.SetPromptError(false)
-		}
-		body, err := io.ReadAll(resp.Body)
-		if err != nil {
-			log.Fatalln(err)
-		} else {
-			var result models.Preferences
-			if err := json.Unmarshal(body, &result); err != nil { // Parse []byte to go struct pointer
-				log.Debug("Can not unmarshal JSON")
-			}
-			prom.Sendbackmessagepreference(&result, r)
-		}
-	}
-}
-
-func getMainData(r *prometheus.Registry) {
-	defer wg.Done()
-	resp, err := Apirequest("/api/v2/sync/maindata", "GET")
-	if err != nil {
-		if err.Error() == "403" {
-			log.Debug("Cookie changed, try to reconnect ...")
-
-		} else {
-			if !models.GetPromptError() {
-				log.Debug("Error : ", err)
-			}
-		}
-	} else {
-		if models.GetPromptError() {
-			models.SetPromptError(false)
-		}
-		body, err := io.ReadAll(resp.Body)
-		if err != nil {
-			log.Fatalln(err)
-		} else {
-
-			var result models.Maindata
-			if err := json.Unmarshal(body, &result); err != nil { // Parse []byte to go struct pointer
-				log.Debug("Can not unmarshal JSON")
-			}
-			prom.Sendbackmessagemaindata(&result, r)
 
 		}
 	}
@@ -138,11 +98,18 @@ func Handlerequest(uri string, method string) (string, error) {
 	}
 }
 
-func qbitversion(r *prometheus.Registry) error {
-
+func qbitversion(r *prometheus.Registry) {
+	defer wg.Done()
 	version, err := Handlerequest("/api/v2/app/version", "GET")
 	if err != nil {
-		return err
+		if err.Error() == "403" {
+			log.Debug("Cookie changed, try to reconnect ...")
+
+		} else {
+			if !models.GetPromptError() {
+				log.Debug("Error : ", err)
+			}
+		}
 	} else {
 		qbittorrent_app_version := prometheus.NewGauge(prometheus.GaugeOpts{
 			Name: "qbittorrent_app_version",
@@ -153,24 +120,27 @@ func qbitversion(r *prometheus.Registry) error {
 		})
 		r.MustRegister(qbittorrent_app_version)
 		qbittorrent_app_version.Set(1)
-
-		return nil
 	}
-
 }
 
 func Allrequests(r *prometheus.Registry) error {
 
-	err1 := qbitversion(r)
-	if err1 != nil {
-		return err1
+	wg.Add(1)
+	go qbitversion(r)
+
+	array := []Dict{
+		{"url": "/api/v2/app/preferences", "httpmethod": "GET", "structuretype": "preference"},
+		{"url": "/api/v2/torrents/info", "httpmethod": "GET", "structuretype": "response"},
+		{"url": "/api/v2/sync/maindata", "httpmethod": "GET", "structuretype": "maindata"},
 	}
-	wg.Add(1)
-	go Gettorrent(r)
-	wg.Add(1)
-	go getPreferences(r)
-	wg.Add(1)
-	go getMainData(r)
+
+	for i := 0; i < len(array); i++ {
+		url := array[i]["url"].(string)
+		httpmethod := array[i]["httpmethod"].(string)
+		structuretype := array[i]["structuretype"].(string)
+		wg.Add(1)
+		go getData(r, url, httpmethod, structuretype)
+	}
 	wg.Wait()
 	return nil
 }

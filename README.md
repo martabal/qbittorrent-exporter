@@ -34,9 +34,8 @@ docker run --name=qbit \
     -e QBITTORRENT_URL=http://192.168.1.10:8080 \
     -e QBITTORRENT_PASSWORD='<your_password>' \
     -e QBITTORRENT_USERNAME=admin \
-    -e EXPORTER_PORT=8090 `#optional` \
     -p 8090:8090 \
-    martabal/qbittorrent-exporter
+    ghcr.io/martabal/qbittorrent-exporter:latest
 ```
 
 ### Docker-compose
@@ -45,13 +44,12 @@ docker run --name=qbit \
 version: "2.1"
 services:
   immich:
-    image: martabal/qbittorrent-exporter:latest
+    image: ghcr.io/martabal/qbittorrent-exporter:latest
     container_name: qbittorrent-exporter
     environment:
       - QBITTORRENT_URL=http://192.168.1.10:8080
       - QBITTORRENT_PASSWORD='<your_password>'
       - QBITTORRENT_USERNAME=admin
-      - EXPORTER_PORT=8090 #optional
     ports:
       - 8090:8090
     restart: unless-stopped
@@ -100,7 +98,7 @@ go run ./src -e
 | `-e QBITTORRENT_USERNAME` | qBittorrent username | `admin` |
 | `-e QBITTORRENT_PASSWORD` | qBittorrent password | `adminadmin` |
 | `-e QBITTORRENT_BASE_URL` | qBittorrent base URL | `http://localhost:8090` |
-| `-e EXPORTER_PORT` | qbittorrent export port | `8090` |
+| `-e EXPORTER_PORT` | qbittorrent export port (optional) | `8090` |
 | `-e LOG_LEVEL` | App log level (`DEBUG`, `INFO`, `WARN` and `ERROR`) | `INFO` |
 
 ### Arguments
