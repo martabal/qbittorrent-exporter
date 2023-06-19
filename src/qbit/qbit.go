@@ -44,10 +44,8 @@ func Gettorrent(r *prometheus.Registry) {
 				log.Debug("Can not unmarshal JSON")
 			}
 			prom.Sendbackmessagetorrent(&result, r)
-
 		}
 	}
-
 }
 
 func getPreferences(r *prometheus.Registry) {
@@ -56,13 +54,11 @@ func getPreferences(r *prometheus.Registry) {
 	if err != nil {
 		if err.Error() == "403" {
 			log.Debug("Cookie changed, try to reconnect ...")
-
 		} else {
 			if !models.GetPromptError() {
 				log.Debug("Error : ", err)
 			}
 		}
-
 	} else {
 		if models.GetPromptError() {
 			models.SetPromptError(false)
@@ -71,17 +67,15 @@ func getPreferences(r *prometheus.Registry) {
 		if err != nil {
 			log.Fatalln(err)
 		} else {
-
 			var result models.Preferences
 			if err := json.Unmarshal(body, &result); err != nil { // Parse []byte to go struct pointer
 				log.Debug("Can not unmarshal JSON")
 			}
 			prom.Sendbackmessagepreference(&result, r)
-
 		}
 	}
-
 }
+
 func getMainData(r *prometheus.Registry) {
 	defer wg.Done()
 	resp, err := Apirequest("/api/v2/sync/maindata", "GET")
@@ -126,10 +120,8 @@ func Handlerequest(uri string, method string) (string, error) {
 			if !models.GetPromptError() {
 				log.Debug("Error : ", err)
 			}
-
 		}
 		return "", err
-
 	} else {
 		if models.GetPromptError() {
 			models.SetPromptError(false)
@@ -144,7 +136,6 @@ func Handlerequest(uri string, method string) (string, error) {
 			return sb, nil
 		}
 	}
-
 }
 
 func qbitversion(r *prometheus.Registry) error {
@@ -182,7 +173,6 @@ func Allrequests(r *prometheus.Registry) error {
 	go getMainData(r)
 	wg.Wait()
 	return nil
-
 }
 
 func Apirequest(uri string, method string) (*http.Response, error) {
@@ -201,15 +191,11 @@ func Apirequest(uri string, method string) (*http.Response, error) {
 			log.Debug(err.Error())
 			models.SetPromptError(true)
 		}
-
 		return resp, err
-
 	} else {
 		models.SetPromptError(false)
 		if resp.StatusCode == 200 {
-
 			return resp, nil
-
 		} else {
 			err := fmt.Errorf("%d", resp.StatusCode)
 			if !models.GetPromptError() {
@@ -219,9 +205,6 @@ func Apirequest(uri string, method string) (*http.Response, error) {
 
 			}
 			return resp, err
-
 		}
-
 	}
-
 }

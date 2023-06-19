@@ -31,7 +31,5 @@ func Auth() {
 				models.Setcookie(strings.Split(strings.Split(resp.Header["Set-Cookie"][0], ";")[0], "=")[1])
 			}
 		}
-
 	}
-
 }

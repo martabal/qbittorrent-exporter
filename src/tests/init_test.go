@@ -6,7 +6,7 @@ import (
 )
 
 func TestMain(t *testing.T) {
-	models.Init("http://localhost:8080", "admin", "adminadmin")
+	models.SetQbit("http://localhost:8080", "admin", "adminadmin")
 	result := models.Getpasswordmasked()
 
 	if !isValidMaskedPassword(result) {
