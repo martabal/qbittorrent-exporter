@@ -73,13 +73,19 @@ git clone https://github.com/martabal/qbittorrent-exporter.git
 cd qbittorent-exporter
 go get -d -v
 cd src
-go run ./src -e
+go run ./src
 ```
 
 If you want to use an .env file, edit `.env.example` to match your setup, rename it `.env` then run it in the same directory. If you want to force to use the environment variables use `-e` argument like :
 
 ```sh
 ./qbittorrent-exporter -e
+```
+
+or
+
+```sh
+go run ./src -e
 ```
 
 ## Parameters
@@ -98,4 +104,4 @@ If you want to use an .env file, edit `.env.example` to match your setup, rename
 
 | Arguments | Function |
 | :-----: | ----- |
-| -e | If a .env file is in the same directory as the executable, the .env values will be used, -e force the usage of environment variable |
+| -e | If qbittorrent-exporter detects a .env file in the same directory, the values in the .env will be used, `-e` forces the usage of environment variables |

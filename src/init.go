@@ -38,10 +38,9 @@ func metrics(w http.ResponseWriter, req *http.Request) {
 }
 
 func startup() {
-	log.SetLevel(log.TraceLevel)
+	loadenv()
 	projectinfo()
 	models.SetPromptError(false)
-	loadenv()
 
 	qbit.Auth()
 }
@@ -60,27 +59,29 @@ func projectinfo() {
 		return
 	}
 
-	fmt.Println("Author:", res["author"])
-	fmt.Println(res["name"], "version", res["version"])
+	fmt.Print(res["name"], " (version ", res["version"], ")\n")
+	fmt.Print("Author: ", res["author"], "\n")
+	fmt.Print("Using log level: ", log.GetLevel(), "\n")
 }
 
 func loadenv() {
 	var envfile bool
 	flag.BoolVar(&envfile, "e", false, "Use .env file")
+	flag.Parse()
 	_, err := os.Stat(".env")
 	if !os.IsNotExist(err) && !envfile {
 		err := godotenv.Load(".env")
 		if err != nil {
 			log.Panic("Error loading .env file:", err)
 		}
-		fmt.Println("Using .env file")
+		// fmt.Println("Using .env file")
 	}
 
 	qbitUsername := getEnv("QBITTORRENT_USERNAME", "admin", true, "Qbittorrent username is not set. Using default username")
 	qbitPassword := getEnv("QBITTORRENT_PASSWORD", "adminadmin", true, "Qbittorrent password is not set. Using default password")
 	qbitURL := getEnv("QBITTORRENT_BASE_URL", "http://localhost:8080", true, "Qbittorrent base_url is not set. Using default base_url")
 
-	setLogLevel(os.Getenv("LOG_LEVEL"))
+	setLogLevel(getEnv("LOG_LEVEL", "INFO", false, ""))
 
 	models.Init(qbitURL, qbitUsername, qbitPassword)
 }
