@@ -1,16 +1,16 @@
 package models
 
-type QbitConfig struct {
+type TypeQbitConfig struct {
 	Base_url string
 	Cookie   string
 	Username string
 	Password string
 }
 
-var Config QbitConfig
+var Config TypeQbitConfig
 
-func Init(baseurl string, username string, password string) {
-	Config = QbitConfig{
+func SetQbit(baseurl string, username string, password string) {
+	Config = TypeQbitConfig{
 		Base_url: baseurl,
 		Username: username,
 		Password: password,

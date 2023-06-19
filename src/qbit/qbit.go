@@ -80,10 +80,8 @@ func Handlerequest(uri string, method string) (string, error) {
 			if !models.GetPromptError() {
 				log.Debug("Error : ", err)
 			}
-
 		}
 		return "", err
-
 	} else {
 		if models.GetPromptError() {
 			models.SetPromptError(false)
@@ -145,7 +143,6 @@ func Allrequests(r *prometheus.Registry) error {
 	}
 	wg.Wait()
 	return nil
-
 }
 
 func Apirequest(uri string, method string) (*http.Response, error) {
@@ -164,15 +161,11 @@ func Apirequest(uri string, method string) (*http.Response, error) {
 			log.Debug(err.Error())
 			models.SetPromptError(true)
 		}
-
 		return resp, err
-
 	} else {
 		models.SetPromptError(false)
 		if resp.StatusCode == 200 {
-
 			return resp, nil
-
 		} else {
 			err := fmt.Errorf("%d", resp.StatusCode)
 			if !models.GetPromptError() {

@@ -8,6 +8,7 @@ import (
 	"os"
 	"qbit-exp/src/models"
 	qbit "qbit-exp/src/qbit"
+	"strconv"
 	"strings"
 
 	"github.com/joho/godotenv"
@@ -23,7 +24,9 @@ func main() {
 	log.Info("password :", models.Getpasswordmasked())
 	log.Info("Started")
 	http.HandleFunc("/metrics", metrics)
-	http.ListenAndServe(":8090", nil)
+	addr := ":" + strconv.Itoa(models.GetPort())
+	log.Info("Listening on port %d...", models.GetPort())
+	http.ListenAndServe(addr, nil)
 }
 
 func metrics(w http.ResponseWriter, req *http.Request) {
@@ -80,10 +83,20 @@ func loadenv() {
 	qbitUsername := getEnv("QBITTORRENT_USERNAME", "admin", true, "Qbittorrent username is not set. Using default username")
 	qbitPassword := getEnv("QBITTORRENT_PASSWORD", "adminadmin", true, "Qbittorrent password is not set. Using default password")
 	qbitURL := getEnv("QBITTORRENT_BASE_URL", "http://localhost:8080", true, "Qbittorrent base_url is not set. Using default base_url")
+	exporterPort := getEnv("EXPORTER_PORT", "8090", false, "")
+
+	num, err := strconv.Atoi(exporterPort)
+
+	if err != nil {
+		panic("EXPORTER_PORT must be an integer")
+	}
+	if num < 0 || num > 65353 {
+		panic("EXPORTER_PORT must be < 0 and > 65353")
+	}
 
 	setLogLevel(getEnv("LOG_LEVEL", "INFO", false, ""))
-
-	models.Init(qbitURL, qbitUsername, qbitPassword)
+	models.SetApp(num)
+	models.SetQbit(qbitURL, qbitUsername, qbitPassword)
 }
 
 func setLogLevel(logLevel string) {
@@ -107,13 +120,12 @@ func setLogLevel(logLevel string) {
 }
 
 func getEnv(key string, fallback string, printLog bool, logPrinted string) string {
-	if value, ok := os.LookupEnv(key); ok {
-		return value
+	value, ok := os.LookupEnv(key)
+	if !ok || value == "" {
+		if printLog {
+			log.Warn(logPrinted)
+		}
+		return fallback
 	}
-
-	if printLog {
-		log.Warn(logPrinted)
-	}
-
-	return fallback
+	return value
 }
