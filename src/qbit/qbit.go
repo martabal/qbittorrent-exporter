@@ -11,27 +11,16 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	"sync"
-
 	"github.com/prometheus/client_golang/prometheus"
 )
 
 type Dict map[string]interface{}
 
-var wg sync.WaitGroup
+func getData(r *prometheus.Registry, url string, httpmethod string, data string) bool {
 
-func getData(r *prometheus.Registry, url string, httpmethod string, data string) {
-	defer wg.Done()
 	resp, err := Apirequest(url, httpmethod)
-	if err != nil {
-		if err.Error() == "403" {
-			log.Debug("Cookie changed, try to reconnect ...")
-
-		} else {
-			if !models.GetPromptError() {
-				log.Debug("Error : ", err)
-			}
-		}
+	if err == true {
+		return err
 	} else {
 		if models.GetPromptError() {
 			models.SetPromptError(false)
@@ -65,23 +54,14 @@ func getData(r *prometheus.Registry, url string, httpmethod string, data string)
 
 		}
 	}
-
+	return false
 }
 
-func Handlerequest(uri string, method string) (string, error) {
+func qbitversion(r *prometheus.Registry, url string, httpmethod string) bool {
 
-	resp, err := Apirequest(uri, method)
-	if err != nil {
-
-		if err.Error() == "403" {
-			log.Debug("Cookie changed, try to reconnect ...")
-			Auth()
-		} else {
-			if !models.GetPromptError() {
-				log.Debug("Error : ", err)
-			}
-		}
-		return "", err
+	resp, err := Apirequest(url, httpmethod)
+	if err == true {
+		return err
 	} else {
 		if models.GetPromptError() {
 			models.SetPromptError(false)
@@ -89,63 +69,49 @@ func Handlerequest(uri string, method string) (string, error) {
 		body, err := io.ReadAll(resp.Body)
 		if err != nil {
 			log.Fatalln(err)
-			return "", err
+			return false
 		} else {
-			sb := string(body)
-
-			return sb, nil
+			qbittorrent_app_version := prometheus.NewGauge(prometheus.GaugeOpts{
+				Name: "qbittorrent_app_version",
+				Help: "The current qBittorrent version",
+				ConstLabels: map[string]string{
+					"version": string(body),
+				},
+			})
+			r.MustRegister(qbittorrent_app_version)
+			qbittorrent_app_version.Set(1)
 		}
 	}
+	return false
 }
 
-func qbitversion(r *prometheus.Registry) {
-	defer wg.Done()
-	version, err := Handlerequest("/api/v2/app/version", "GET")
-	if err != nil {
-		if err.Error() == "403" {
-			log.Debug("Cookie changed, try to reconnect ...")
-
-		} else {
-			if !models.GetPromptError() {
-				log.Debug("Error : ", err)
-			}
-		}
-	} else {
-		qbittorrent_app_version := prometheus.NewGauge(prometheus.GaugeOpts{
-			Name: "qbittorrent_app_version",
-			Help: "The current qBittorrent version",
-			ConstLabels: map[string]string{
-				"version": version,
-			},
-		})
-		r.MustRegister(qbittorrent_app_version)
-		qbittorrent_app_version.Set(1)
-	}
-}
-
-func Allrequests(r *prometheus.Registry) error {
-
-	wg.Add(1)
-	go qbitversion(r)
-
+func Allrequests(r *prometheus.Registry) {
 	array := []Dict{
 		{"url": "/api/v2/app/preferences", "httpmethod": "GET", "structuretype": "preference"},
 		{"url": "/api/v2/torrents/info", "httpmethod": "GET", "structuretype": "response"},
 		{"url": "/api/v2/sync/maindata", "httpmethod": "GET", "structuretype": "maindata"},
+		{"url": "/api/v2/app/version", "httpmethod": "GET", "structuretype": "qbitversion"},
 	}
 
 	for i := 0; i < len(array); i++ {
 		url := array[i]["url"].(string)
 		httpmethod := array[i]["httpmethod"].(string)
 		structuretype := array[i]["structuretype"].(string)
-		wg.Add(1)
-		go getData(r, url, httpmethod, structuretype)
+		if structuretype == "qbitversion" {
+			err := qbitversion(r, url, httpmethod)
+			if err == true {
+				qbitversion(r, url, httpmethod)
+			}
+		} else {
+			err := getData(r, url, httpmethod, structuretype)
+			if err == true {
+				getData(r, url, httpmethod, structuretype)
+			}
+		}
 	}
-	wg.Wait()
-	return nil
 }
 
-func Apirequest(uri string, method string) (*http.Response, error) {
+func Apirequest(uri string, method string) (*http.Response, bool) {
 
 	req, err := http.NewRequest(method, models.Getbaseurl()+uri, nil)
 	if err != nil {
@@ -156,25 +122,31 @@ func Apirequest(uri string, method string) (*http.Response, error) {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		err := fmt.Errorf("can't connect to server")
+		err := fmt.Errorf("Can't connect to server")
 		if !models.GetPromptError() {
 			log.Debug(err.Error())
 			models.SetPromptError(true)
 		}
-		return resp, err
+		return resp, false
 	} else {
 		models.SetPromptError(false)
 		if resp.StatusCode == 200 {
-			return resp, nil
+			return resp, false
+		} else if resp.StatusCode == 403 {
+
+			if !models.GetPromptError() {
+				models.SetPromptError(true)
+				log.Warn("Cookie changed, try to reconnect ...")
+			}
+			Auth()
+			return resp, true
 		} else {
-			err := fmt.Errorf("%d", resp.StatusCode)
 			if !models.GetPromptError() {
 				models.SetPromptError(true)
 
-				log.Debug("Error code", err.Error())
-
+				log.Debug("Error code ", err.Error())
 			}
-			return resp, err
+			return resp, false
 		}
 	}
 }

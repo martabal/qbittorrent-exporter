@@ -26,8 +26,11 @@ func Auth() {
 		}
 		if resp.StatusCode == 200 {
 			if string(body) == "Fails." {
-				log.Warn("Authentication Error")
+				log.Error("Authentication Error")
 			} else {
+				if models.GetPromptError() {
+					log.Info("New cookie stored")
+				}
 				models.Setcookie(strings.Split(strings.Split(resp.Header["Set-Cookie"][0], ";")[0], "=")[1])
 			}
 		}
