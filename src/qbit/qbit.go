@@ -48,38 +48,19 @@ func getData(r *prometheus.Registry, url string, httpmethod string, data string)
 					log.Debug("Can not unmarshal JSON")
 				}
 				prom.Sendbackmessagemaindata(&result, r)
+			case "qbitversion":
+				qbittorrent_app_version := prometheus.NewGauge(prometheus.GaugeOpts{
+					Name: "qbittorrent_app_version",
+					Help: "The current qBittorrent version",
+					ConstLabels: map[string]string{
+						"version": string(body),
+					},
+				})
+				r.MustRegister(qbittorrent_app_version)
+				qbittorrent_app_version.Set(1)
 			default:
 				log.Panicln("Unknown type: ", data)
 			}
-
-		}
-	}
-	return false
-}
-
-func qbitversion(r *prometheus.Registry, url string, httpmethod string) bool {
-
-	resp, err := Apirequest(url, httpmethod)
-	if err == true {
-		return err
-	} else {
-		if models.GetPromptError() {
-			models.SetPromptError(false)
-		}
-		body, err := io.ReadAll(resp.Body)
-		if err != nil {
-			log.Fatalln(err)
-			return false
-		} else {
-			qbittorrent_app_version := prometheus.NewGauge(prometheus.GaugeOpts{
-				Name: "qbittorrent_app_version",
-				Help: "The current qBittorrent version",
-				ConstLabels: map[string]string{
-					"version": string(body),
-				},
-			})
-			r.MustRegister(qbittorrent_app_version)
-			qbittorrent_app_version.Set(1)
 		}
 	}
 	return false
@@ -97,16 +78,9 @@ func Allrequests(r *prometheus.Registry) {
 		url := array[i]["url"].(string)
 		httpmethod := array[i]["httpmethod"].(string)
 		structuretype := array[i]["structuretype"].(string)
-		if structuretype == "qbitversion" {
-			err := qbitversion(r, url, httpmethod)
-			if err == true {
-				qbitversion(r, url, httpmethod)
-			}
-		} else {
-			err := getData(r, url, httpmethod, structuretype)
-			if err == true {
-				getData(r, url, httpmethod, structuretype)
-			}
+		err := getData(r, url, httpmethod, structuretype)
+		if err == true {
+			getData(r, url, httpmethod, structuretype)
 		}
 	}
 }
@@ -138,7 +112,10 @@ func Apirequest(uri string, method string) (*http.Response, bool) {
 				models.SetPromptError(true)
 				log.Warn("Cookie changed, try to reconnect ...")
 			}
-			Auth()
+			cookie, newerr := Auth(false)
+			if newerr == nil {
+				models.Setcookie(cookie)
+			}
 			return resp, true
 		} else {
 			if !models.GetPromptError() {

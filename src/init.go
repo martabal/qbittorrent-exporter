@@ -46,7 +46,10 @@ func startup() {
 	projectinfo()
 	models.SetPromptError(false)
 
-	qbit.Auth()
+	cookie, err := qbit.Auth(false)
+	if err == nil {
+		models.Setcookie(cookie)
+	}
 }
 
 func projectinfo() {
