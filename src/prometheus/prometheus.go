@@ -1,12 +1,12 @@
 package prom
 
 import (
-	"fmt"
 	"qbit-exp/src/models"
 	"strconv"
 	"strings"
 
 	"github.com/prometheus/client_golang/prometheus"
+	log "github.com/sirupsen/logrus"
 )
 
 func Sendbackmessagetorrent(result *models.TypeResponse, r *prometheus.Registry) {
@@ -195,7 +195,7 @@ func Sendbackmessagemaindata(result *models.TypeMaindata, r *prometheus.Registry
 	globalratio, err := strconv.ParseFloat((*result).ServerState.GlobalRatio, 64)
 
 	if err != nil {
-		fmt.Println("error to convert ratio")
+		log.Warn("error to convert ratio")
 	} else {
 		qbittorrent_global_ratio := prometheus.NewGauge(prometheus.GaugeOpts{
 			Name: "qbittorrent_global_ratio",

@@ -17,24 +17,25 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+const DEFAULTPORT = 8090
+
 func main() {
 	startup()
-	log.Info("qbittorrent URL :", models.Getbaseurl())
-	log.Info("username :", models.GetUsername())
-	log.Info("password :", models.Getpasswordmasked())
+	log.Info("qbittorrent URL: ", models.Getbaseurl())
+	log.Info("username: ", models.GetUsername())
+	log.Info("password: ", models.Getpasswordmasked())
 	log.Info("Started")
 	http.HandleFunc("/metrics", metrics)
 	addr := ":" + strconv.Itoa(models.GetPort())
-	log.Info("Listening on port %d...", models.GetPort())
+	if models.GetPort() != DEFAULTPORT {
+		log.Info("Listening on port", models.GetPort())
+	}
 	http.ListenAndServe(addr, nil)
 }
 
 func metrics(w http.ResponseWriter, req *http.Request) {
 	registry := prometheus.NewRegistry()
-	err := qbit.Allrequests(registry)
-	if err != nil {
-		qbit.Allrequests(registry)
-	}
+	qbit.Allrequests(registry)
 
 	h := promhttp.HandlerFor(registry, promhttp.HandlerOpts{})
 	h.ServeHTTP(w, req)
@@ -45,7 +46,10 @@ func startup() {
 	projectinfo()
 	models.SetPromptError(false)
 
-	qbit.Auth()
+	cookie, err := qbit.Auth(false)
+	if err == nil {
+		models.Setcookie(cookie)
+	}
 }
 
 func projectinfo() {
@@ -88,10 +92,10 @@ func loadenv() {
 	num, err := strconv.Atoi(exporterPort)
 
 	if err != nil {
-		panic("EXPORTER_PORT must be an integer")
+		log.Panic("EXPORTER_PORT must be an integer")
 	}
 	if num < 0 || num > 65353 {
-		panic("EXPORTER_PORT must be < 0 and > 65353")
+		log.Panic("EXPORTER_PORT must be < 0 and > 65353")
 	}
 
 	setLogLevel(getEnv("LOG_LEVEL", "INFO", false, ""))
@@ -101,6 +105,7 @@ func loadenv() {
 
 func setLogLevel(logLevel string) {
 	logLevels := map[string]log.Level{
+		"TRACE": log.TraceLevel,
 		"DEBUG": log.DebugLevel,
 		"INFO":  log.InfoLevel,
 		"WARN":  log.WarnLevel,
