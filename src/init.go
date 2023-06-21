@@ -34,9 +34,9 @@ func main() {
 }
 
 func metrics(w http.ResponseWriter, req *http.Request) {
+	log.Trace("New request")
 	registry := prometheus.NewRegistry()
 	qbit.Allrequests(registry)
-
 	h := promhttp.HandlerFor(registry, promhttp.HandlerOpts{})
 	h.ServeHTTP(w, req)
 }
@@ -94,7 +94,7 @@ func loadenv() {
 		log.Panic("EXPORTER_PORT must be an integer")
 	}
 	if num < 0 || num > 65353 {
-		log.Panic("EXPORTER_PORT must be < 0 and > 65353")
+		log.Panic("EXPORTER_PORT must be > 0 and < 65353")
 	}
 
 	setLogLevel(getEnv("LOG_LEVEL", "INFO", false, ""))

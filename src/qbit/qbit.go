@@ -38,19 +38,19 @@ func getData(r *prometheus.Registry, url string, httpmethod string, ref string, 
 			case "preference":
 				var result models.TypePreferences
 				if err := json.Unmarshal(body, &result); err != nil {
-					log.Debug("Can not unmarshal JSON for preferences")
+					log.Error("Can not unmarshal JSON for preferences")
 				}
 				prom.Sendbackmessagepreference(&result, r)
 			case "torrents":
 				var result models.TypeTorrents
 				if err := json.Unmarshal(body, &result); err != nil {
-					log.Debug("Can not unmarshal JSON for torrents info")
+					log.Error("Can not unmarshal JSON for torrents info")
 				}
 				prom.Sendbackmessagetorrent(&result, r)
 			case "maindata":
 				var result models.TypeMaindata
 				if err := json.Unmarshal(body, &result); err != nil {
-					log.Debug("Can not unmarshal JSON for maindata")
+					log.Error("Can not unmarshal JSON for maindata")
 				}
 				prom.Sendbackmessagemaindata(&result, r)
 			case "qbitversion":
@@ -74,6 +74,7 @@ func getData(r *prometheus.Registry, url string, httpmethod string, ref string, 
 func Allrequests(r *prometheus.Registry) {
 	err := getData(r, "/api/v2/app/version", "GET", "qbitversion", false)
 	if err == true {
+		log.Debug("Retrying ...")
 		getData(r, "/api/v2/app/version", "GET", "qbitversion", false)
 	}
 	array := []Dict{

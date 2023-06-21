@@ -140,7 +140,6 @@ func Sendbackmessagetorrent(result *models.TypeTorrents, r *prometheus.Registry)
 
 	qbittorrent_torrent_states.With(prometheus.Labels{"name": "stalledUP"}).Set(float64(count_stelledup))
 	qbittorrent_torrent_states.With(prometheus.Labels{"name": "uploading"}).Set(float64(count_uploading))
-
 	qbittorrent_global_torrents.Set(float64(count_stelledup + count_uploading))
 
 }
