@@ -1,15 +1,16 @@
 package models
 
 type TypeAppConfig struct {
-	Port int
+	Port  int
+	Error bool
 }
 
 var AppConfig TypeAppConfig
-var myerr bool
 
-func SetApp(port int) {
+func SetApp(setport int, seterror bool) {
 	AppConfig = TypeAppConfig{
-		Port: port,
+		Port:  setport,
+		Error: seterror,
 	}
 }
 
@@ -18,9 +19,9 @@ func GetPort() int {
 }
 
 func SetPromptError(prompt bool) {
-	myerr = prompt
+	AppConfig.Error = prompt
 }
 
 func GetPromptError() bool {
-	return myerr
+	return AppConfig.Error
 }

@@ -16,12 +16,12 @@ import (
 
 type Dict map[string]interface{}
 
-func getData(r *prometheus.Registry, url string, httpmethod string, data string) bool {
+func getData(r *prometheus.Registry, url string, httpmethod string, ref string) bool {
 
-	resp, err := Apirequest(url, httpmethod)
-	if err == true {
-		return err
-	} else {
+	resp, retry, err := Apirequest(url, httpmethod)
+	if retry == true {
+		return retry
+	} else if err == nil {
 		if models.GetPromptError() {
 			models.SetPromptError(false)
 		}
@@ -29,23 +29,23 @@ func getData(r *prometheus.Registry, url string, httpmethod string, data string)
 		if err != nil {
 			log.Fatalln(err)
 		} else {
-			switch data {
+			switch ref {
 			case "preference":
 				var result models.TypePreferences
 				if err := json.Unmarshal(body, &result); err != nil {
-					log.Debug("Can not unmarshal JSON")
+					log.Debug("Can not unmarshal JSON for preferences")
 				}
 				prom.Sendbackmessagepreference(&result, r)
-			case "response":
-				var result models.TypeResponse
+			case "torrents":
+				var result models.TypeTorrents
 				if err := json.Unmarshal(body, &result); err != nil {
-					log.Debug("Can not unmarshal JSON")
+					log.Debug("Can not unmarshal JSON for torrents info")
 				}
 				prom.Sendbackmessagetorrent(&result, r)
 			case "maindata":
 				var result models.TypeMaindata
 				if err := json.Unmarshal(body, &result); err != nil {
-					log.Debug("Can not unmarshal JSON")
+					log.Debug("Can not unmarshal JSON for maindata")
 				}
 				prom.Sendbackmessagemaindata(&result, r)
 			case "qbitversion":
@@ -59,7 +59,7 @@ func getData(r *prometheus.Registry, url string, httpmethod string, data string)
 				r.MustRegister(qbittorrent_app_version)
 				qbittorrent_app_version.Set(1)
 			default:
-				log.Panicln("Unknown type: ", data)
+				log.Panicln("Unknown type: ", ref)
 			}
 		}
 	}
@@ -68,16 +68,16 @@ func getData(r *prometheus.Registry, url string, httpmethod string, data string)
 
 func Allrequests(r *prometheus.Registry) {
 	array := []Dict{
-		{"url": "/api/v2/app/preferences", "httpmethod": "GET", "structuretype": "preference"},
-		{"url": "/api/v2/torrents/info", "httpmethod": "GET", "structuretype": "response"},
-		{"url": "/api/v2/sync/maindata", "httpmethod": "GET", "structuretype": "maindata"},
-		{"url": "/api/v2/app/version", "httpmethod": "GET", "structuretype": "qbitversion"},
+		{"url": "/api/v2/app/preferences", "httpmethod": "GET", "ref": "preference"},
+		{"url": "/api/v2/torrents/info", "httpmethod": "GET", "ref": "torrents"},
+		{"url": "/api/v2/sync/maindata", "httpmethod": "GET", "ref": "maindata"},
+		{"url": "/api/v2/app/version", "httpmethod": "GET", "ref": "qbitversion"},
 	}
 
 	for i := 0; i < len(array); i++ {
 		url := array[i]["url"].(string)
 		httpmethod := array[i]["httpmethod"].(string)
-		structuretype := array[i]["structuretype"].(string)
+		structuretype := array[i]["ref"].(string)
 		err := getData(r, url, httpmethod, structuretype)
 		if err == true {
 			getData(r, url, httpmethod, structuretype)
@@ -85,7 +85,7 @@ func Allrequests(r *prometheus.Registry) {
 	}
 }
 
-func Apirequest(uri string, method string) (*http.Response, bool) {
+func Apirequest(uri string, method string) (*http.Response, bool, error) {
 
 	req, err := http.NewRequest(method, models.Getbaseurl()+uri, nil)
 	if err != nil {
@@ -101,13 +101,14 @@ func Apirequest(uri string, method string) (*http.Response, bool) {
 			log.Debug(err.Error())
 			models.SetPromptError(true)
 		}
-		return resp, false
+		return resp, false, err
 	} else {
 		models.SetPromptError(false)
-		if resp.StatusCode == 200 {
-			return resp, false
-		} else if resp.StatusCode == 403 {
-
+		switch resp.StatusCode {
+		case 200:
+			return resp, false, nil
+		case 403:
+			err := fmt.Errorf("%d", resp.StatusCode)
 			if !models.GetPromptError() {
 				models.SetPromptError(true)
 				log.Warn("Cookie changed, try to reconnect ...")
@@ -116,14 +117,14 @@ func Apirequest(uri string, method string) (*http.Response, bool) {
 			if newerr == nil {
 				models.Setcookie(cookie)
 			}
-			return resp, true
-		} else {
+			return resp, true, err
+		default:
+			err := fmt.Errorf("%d", resp.StatusCode)
 			if !models.GetPromptError() {
 				models.SetPromptError(true)
-
-				log.Debug("Error code ", err.Error())
+				log.Debug("Error code ", resp.StatusCode)
 			}
-			return resp, false
+			return resp, false, err
 		}
 	}
 }
