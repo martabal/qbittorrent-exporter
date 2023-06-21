@@ -19,17 +19,14 @@ var wg sync.WaitGroup
 
 type Dict map[string]interface{}
 
-func getData(r *prometheus.Registry, url string, httpmethod string, ref string, routine bool) bool {
-	if routine {
+func getData(r *prometheus.Registry, url string, httpmethod string, ref string, goroutine bool) bool {
+	if goroutine {
 		defer wg.Done()
 	}
 	resp, retry, err := Apirequest(url, httpmethod)
 	if retry == true {
 		return retry
 	} else if err == nil {
-		if models.GetPromptError() {
-			models.SetPromptError(false)
-		}
 		body, err := io.ReadAll(resp.Body)
 		if err != nil {
 			log.Fatalln(err)
@@ -39,20 +36,23 @@ func getData(r *prometheus.Registry, url string, httpmethod string, ref string, 
 				var result models.TypePreferences
 				if err := json.Unmarshal(body, &result); err != nil {
 					log.Error("Can not unmarshal JSON for preferences")
+				} else {
+					prom.Sendbackmessagepreference(&result, r)
 				}
-				prom.Sendbackmessagepreference(&result, r)
 			case "torrents":
 				var result models.TypeTorrents
 				if err := json.Unmarshal(body, &result); err != nil {
 					log.Error("Can not unmarshal JSON for torrents info")
+				} else {
+					prom.Sendbackmessagetorrent(&result, r)
 				}
-				prom.Sendbackmessagetorrent(&result, r)
 			case "maindata":
 				var result models.TypeMaindata
 				if err := json.Unmarshal(body, &result); err != nil {
 					log.Error("Can not unmarshal JSON for maindata")
+				} else {
+					prom.Sendbackmessagemaindata(&result, r)
 				}
-				prom.Sendbackmessagemaindata(&result, r)
 			case "qbitversion":
 				qbittorrent_app_version := prometheus.NewGauge(prometheus.GaugeOpts{
 					Name: "qbittorrent_app_version",
@@ -72,8 +72,8 @@ func getData(r *prometheus.Registry, url string, httpmethod string, ref string, 
 }
 
 func Allrequests(r *prometheus.Registry) {
-	err := getData(r, "/api/v2/app/version", "GET", "qbitversion", false)
-	if err == true {
+	retry := getData(r, "/api/v2/app/version", "GET", "qbitversion", false)
+	if retry == true {
 		log.Debug("Retrying ...")
 		getData(r, "/api/v2/app/version", "GET", "qbitversion", false)
 	}
@@ -111,9 +111,9 @@ func Apirequest(uri string, method string) (*http.Response, bool, error) {
 		}
 		return resp, false, err
 	} else {
-		models.SetPromptError(false)
 		switch resp.StatusCode {
 		case 200:
+			models.SetPromptError(false)
 			return resp, false, nil
 		case 403:
 			err := fmt.Errorf("%d", resp.StatusCode)
