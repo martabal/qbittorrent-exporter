@@ -99,7 +99,7 @@ go run ./src -e
 | `-e QBITTORRENT_PASSWORD` | qBittorrent password | `adminadmin` |
 | `-e QBITTORRENT_BASE_URL` | qBittorrent base URL | `http://localhost:8090` |
 | `-e EXPORTER_PORT` | qbittorrent export port (optional) | `8090` |
-| `-e LOG_LEVEL` | App log level (`DEBUG`, `INFO`, `WARN` and `ERROR`) | `INFO` |
+| `-e LOG_LEVEL` | App log level (`TRACE`, `DEBUG`, `INFO`, `WARN` and `ERROR`) | `INFO` |
 
 ### Arguments
 
