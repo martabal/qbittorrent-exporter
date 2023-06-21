@@ -23,7 +23,7 @@ func main() {
 	startup()
 	log.Info("qbittorrent URL: ", models.Getbaseurl())
 	log.Info("username: ", models.GetUsername())
-	log.Info("password: 	", models.Getpasswordmasked())
+	log.Info("password: ", models.Getpasswordmasked())
 	log.Info("Started")
 	http.HandleFunc("/metrics", metrics)
 	addr := ":" + strconv.Itoa(models.GetPort())
