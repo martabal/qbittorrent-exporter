@@ -9,7 +9,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func Sendbackmessagetorrent(result *models.TypeResponse, r *prometheus.Registry) {
+func Sendbackmessagetorrent(result *models.TypeTorrents, r *prometheus.Registry) {
 
 	qbittorrent_eta := prometheus.NewGaugeVec(prometheus.GaugeOpts{
 		Name: "qbittorrent_torrent_eta",

@@ -44,7 +44,6 @@ func metrics(w http.ResponseWriter, req *http.Request) {
 func startup() {
 	loadenv()
 	projectinfo()
-	models.SetPromptError(false)
 
 	cookie, err := qbit.Auth(false)
 	if err == nil {
@@ -99,7 +98,7 @@ func loadenv() {
 	}
 
 	setLogLevel(getEnv("LOG_LEVEL", "INFO", false, ""))
-	models.SetApp(num)
+	models.SetApp(num, false)
 	models.SetQbit(qbitURL, qbitUsername, qbitPassword)
 }
 
