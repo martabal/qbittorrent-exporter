@@ -115,5 +115,5 @@ Add the target to your `scrape_configs` in your `prometheus.yml` file of your Pr
 scrape_configs:
   - job_name: 'qbittorrent'
     static_configs:
-      - targets: [ '<your_ip_adress>:8090' ]
+      - targets: [ '<your_ip_address>:8090' ]
 ```

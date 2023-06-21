@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"sync"
 
 	"net/http"
 	"qbit-exp/src/models"
@@ -14,10 +15,14 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 )
 
+var wg sync.WaitGroup
+
 type Dict map[string]interface{}
 
-func getData(r *prometheus.Registry, url string, httpmethod string, ref string) bool {
-
+func getData(r *prometheus.Registry, url string, httpmethod string, ref string, routine bool) bool {
+	if routine {
+		defer wg.Done()
+	}
 	resp, retry, err := Apirequest(url, httpmethod)
 	if retry == true {
 		return retry
@@ -67,22 +72,24 @@ func getData(r *prometheus.Registry, url string, httpmethod string, ref string) 
 }
 
 func Allrequests(r *prometheus.Registry) {
+	err := getData(r, "/api/v2/app/version", "GET", "qbitversion", false)
+	if err == true {
+		getData(r, "/api/v2/app/version", "GET", "qbitversion", false)
+	}
 	array := []Dict{
 		{"url": "/api/v2/app/preferences", "httpmethod": "GET", "ref": "preference"},
 		{"url": "/api/v2/torrents/info", "httpmethod": "GET", "ref": "torrents"},
 		{"url": "/api/v2/sync/maindata", "httpmethod": "GET", "ref": "maindata"},
-		{"url": "/api/v2/app/version", "httpmethod": "GET", "ref": "qbitversion"},
 	}
 
 	for i := 0; i < len(array); i++ {
 		url := array[i]["url"].(string)
 		httpmethod := array[i]["httpmethod"].(string)
 		structuretype := array[i]["ref"].(string)
-		err := getData(r, url, httpmethod, structuretype)
-		if err == true {
-			getData(r, url, httpmethod, structuretype)
-		}
+		wg.Add(1)
+		go getData(r, url, httpmethod, structuretype, true)
 	}
+	wg.Wait()
 }
 
 func Apirequest(uri string, method string) (*http.Response, bool, error) {
