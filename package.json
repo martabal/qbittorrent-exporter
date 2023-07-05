@@ -4,12 +4,13 @@
   "description": "Export your qbittorrent data to prometheus",
   "main": "src/init.go",
   "scripts": {
-    "test": "go test -v ./src/tests",
-    "dev" : "go run ./src",
-    "dev:env" : "go run ./src -e",
     "build" : "go build -o ./qbittorrent-exporter.out ./src && ./qbittorrent-exporter.out -e",
     "build:env" : "go build -o ./qbittorrent-exporter.out ./src && ./qbittorrent-exporter.out -e",
-    "format" : "go fmt ./src"
+    "dev" : "go run ./src",
+    "dev:env" : "go run ./src -e",
+    "format" : "go fmt ./src",
+    "test": "go test -v ./src/tests",
+    "update": "go get -u ./src && go mod tidy"
   },
   "keywords": [
     "golang",
