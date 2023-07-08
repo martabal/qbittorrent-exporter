@@ -31,7 +31,9 @@ jobs:
         languages: ${{ matrix.language }}
 
     - name: Autobuild
-      uses: github/codeql-action/autobuild@v1
+      uses: github/codeql-action/autobuild@v2
 
-    - name: CodeQL Analysis
+    - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v2
+      with:
+        category: "/language:${{matrix.language}}"
