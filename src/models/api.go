@@ -1,6 +1,6 @@
 package models
 
-type TypeTorrents []struct {
+type TypeInfo []struct {
 	AmountLeft        int     `json:"amount_left"`
 	Category          string  `json:"category"`
 	Dlspeed           int     `json:"dlspeed"`

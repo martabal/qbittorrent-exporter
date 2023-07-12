@@ -20,9 +20,9 @@ func Auth(init bool) (string, error) {
 	resp, err := http.PostForm(qbit_url+"/api/v2/auth/login", params)
 	if err != nil {
 		if init {
-			log.Panicln("Can't connect to qbittorrent with url", models.Getbaseurl())
+			log.Panicln("Can't connect to qbittorrent with url : ", models.Getbaseurl())
 		} else {
-			log.Warn("Can't connect to qbittorrent with url", models.Getbaseurl())
+			log.Warn("Can't connect to qbittorrent with url : ", models.Getbaseurl())
 		}
 		return "", err
 	} else {
