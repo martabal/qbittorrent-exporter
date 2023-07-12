@@ -39,8 +39,8 @@ func getData(r *prometheus.Registry, url string, httpmethod string, ref string, 
 				} else {
 					prom.Sendbackmessagepreference(&result, r)
 				}
-			case "torrents":
-				var result models.TypeTorrents
+			case "info":
+				var result models.TypeInfo
 				if err := json.Unmarshal(body, &result); err != nil {
 					log.Error("Can not unmarshal JSON for torrents info")
 				} else {
@@ -79,7 +79,7 @@ func Allrequests(r *prometheus.Registry) {
 	}
 	array := []Dict{
 		{"url": "/api/v2/app/preferences", "httpmethod": "GET", "ref": "preference"},
-		{"url": "/api/v2/torrents/info", "httpmethod": "GET", "ref": "torrents"},
+		{"url": "/api/v2/torrents/info", "httpmethod": "GET", "ref": "info"},
 		{"url": "/api/v2/sync/maindata", "httpmethod": "GET", "ref": "maindata"},
 	}
 
