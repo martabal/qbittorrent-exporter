@@ -18,7 +18,7 @@ This app is made to be integrated with the [qbittorrent-grafana-dashboard](https
 
 I was using an excellent [exporter](https://github.com/caseyscarborough/qbittorrent-exporter) written in Java and I wanted to learn Go, that's how I got the idea to rewrite the exporter in Go.
 
-However, this project adds support for tags and categories. It tracks the categories and tags of each torrent and the global categories and tags.
+Additionally, this project adds support for tags and categories. It tracks the categories and tags of each torrent and the global categories and tags.
 
 ### Resources
 
