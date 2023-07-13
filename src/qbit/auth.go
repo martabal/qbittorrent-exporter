@@ -12,8 +12,7 @@ import (
 )
 
 func Auth(init bool) error {
-	username, password := models.Getuser()
-	qbit_url := models.Getbaseurl()
+	qbit_url, username, password := models.GetQbit()
 	params := url.Values{}
 	params.Add("username", username)
 	params.Add("password", password)
@@ -26,11 +25,11 @@ func Auth(init bool) error {
 		}
 		return err
 	} else {
-		body, err := io.ReadAll(resp.Body)
-		if err != nil {
-			log.Fatalln(err)
-		}
 		if resp.StatusCode == 200 {
+			body, err := io.ReadAll(resp.Body)
+			if err != nil {
+				log.Fatalln(err)
+			}
 			if string(body) == "Fails." {
 				log.Panicln("Authentication Error, check your qBittorrent username / password")
 				return fmt.Errorf("Authentication Error")

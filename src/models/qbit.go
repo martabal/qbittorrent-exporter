@@ -1,5 +1,7 @@
 package models
 
+import "strings"
+
 type TypeQbitConfig struct {
 	Base_url string
 	Cookie   string
@@ -30,11 +32,7 @@ func Getcookie() string {
 }
 
 func mask(input string) string {
-	hide := ""
-	for i := 0; i < len(input); i++ {
-		hide += "*"
-	}
-	return hide
+	return strings.Repeat("*", len(input))
 }
 
 func Getuser() (string, string) {
@@ -43,6 +41,10 @@ func Getuser() (string, string) {
 
 func GetUsername() string {
 	return Config.Username
+}
+
+func GetQbit() (string, string, string) {
+	return Config.Base_url, Config.Username, Config.Password
 }
 
 func Getpasswordmasked() string {
