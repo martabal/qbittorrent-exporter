@@ -121,10 +121,7 @@ func Apirequest(uri string, method string) (*http.Response, bool, error) {
 				models.SetPromptError(true)
 				log.Warn("Cookie changed, try to reconnect ...")
 			}
-			cookie, newerr := Auth(false)
-			if newerr == nil {
-				models.Setcookie(cookie)
-			}
+			Auth(false)
 			return resp, true, err
 		default:
 			err := fmt.Errorf("%d", resp.StatusCode)

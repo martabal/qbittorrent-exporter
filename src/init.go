@@ -45,10 +45,7 @@ func startup() {
 	loadenv()
 	projectinfo()
 
-	cookie, err := qbit.Auth(true)
-	if err == nil {
-		models.Setcookie(cookie)
-	}
+	qbit.Auth(true)
 }
 
 func projectinfo() {
