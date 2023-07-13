@@ -31,22 +31,14 @@ func Getcookie() string {
 	return Config.Cookie
 }
 
-func mask(input string) string {
-	return strings.Repeat("*", len(input))
-}
-
-func Getuser() (string, string) {
-	return Config.Username, Config.Password
-}
-
 func GetUsername() string {
 	return Config.Username
 }
 
-func GetQbit() (string, string, string) {
-	return Config.Base_url, Config.Username, Config.Password
+func Getpassword() string {
+	return Config.Password
 }
 
 func Getpasswordmasked() string {
-	return mask(Config.Password)
+	return strings.Repeat("*", len(Config.Password))
 }
