@@ -28,7 +28,10 @@ var logLevels = map[string]log.Level{
 }
 
 func main() {
-	startup()
+	loadenv()
+	projectinfo()
+
+	qbit.Auth(true)
 	log.Info("qbittorrent URL: ", models.Getbaseurl())
 	log.Info("username: ", models.GetUsername())
 	log.Info("password: ", models.Getpasswordmasked())
@@ -47,13 +50,6 @@ func metrics(w http.ResponseWriter, req *http.Request) {
 	qbit.Allrequests(registry)
 	h := promhttp.HandlerFor(registry, promhttp.HandlerOpts{})
 	h.ServeHTTP(w, req)
-}
-
-func startup() {
-	loadenv()
-	projectinfo()
-
-	qbit.Auth(true)
 }
 
 func projectinfo() {
