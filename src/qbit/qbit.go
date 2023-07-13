@@ -133,7 +133,9 @@ func Apirequest(uri string, method string) (*http.Response, bool, error) {
 
 	switch resp.StatusCode {
 	case http.StatusOK:
-		models.SetPromptError(false)
+		if models.GetPromptError() {
+			models.SetPromptError(false)
+		}
 		return resp, false, nil
 	case http.StatusForbidden:
 		err := fmt.Errorf("%d", resp.StatusCode)

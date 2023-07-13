@@ -32,10 +32,10 @@ func main() {
 	projectinfo()
 
 	qbit.Auth(true)
-	log.Info("qbittorrent URL: ", models.Getbaseurl())
-	log.Info("username: ", models.GetUsername())
-	log.Info("password: ", models.Getpasswordmasked())
-	log.Info("Started")
+	fmt.Println("qbittorrent URL: ", models.Getbaseurl())
+	fmt.Println("username: ", models.GetUsername())
+	fmt.Println("password: ", models.Getpasswordmasked())
+	fmt.Println("Started")
 	http.HandleFunc("/metrics", metrics)
 	addr := ":" + strconv.Itoa(models.GetPort())
 	if models.GetPort() != DEFAULTPORT {
