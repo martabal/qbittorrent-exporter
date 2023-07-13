@@ -104,32 +104,50 @@ func Sendbackmessagetorrent(result *models.TypeInfo, r *prometheus.Registry) {
 
 	count_stelledup := 0
 	count_uploading := 0
-	for i := 0; i < len(*result); i++ {
-		qbittorrent_eta.With(prometheus.Labels{"name": (*result)[i].Name}).Set(float64((*result)[i].Eta))
-		qbittorrent_torrent_download_speed_bytes.With(prometheus.Labels{"name": (*result)[i].Name}).Set(float64((*result)[i].Dlspeed))
-		qbittorrent_torrent_upload_speed_bytes.With(prometheus.Labels{"name": (*result)[i].Name}).Set(float64((*result)[i].Upspeed))
-		qbittorrent_torrent_progress.With(prometheus.Labels{"name": (*result)[i].Name}).Set(float64((*result)[i].Progress))
-		qbittorrent_torrent_time_active.With(prometheus.Labels{"name": (*result)[i].Name}).Set(float64((*result)[i].TimeActive))
-		qbittorrent_torrent_seeders.With(prometheus.Labels{"name": (*result)[i].Name}).Set(float64((*result)[i].NumSeeds))
-		qbittorrent_torrent_leechers.With(prometheus.Labels{"name": (*result)[i].Name}).Set(float64((*result)[i].NumLeechs))
-		qbittorrent_torrent_ratio.With(prometheus.Labels{"name": (*result)[i].Name}).Set(float64((*result)[i].Ratio))
-		qbittorrent_torrent_amount_left_bytes.With(prometheus.Labels{"name": (*result)[i].Name}).Set(float64((*result)[i].AmountLeft))
-		qbittorrent_torrent_size_bytes.With(prometheus.Labels{"name": (*result)[i].Name}).Set(float64((*result)[i].Size))
-		qbittorrent_torrent_session_downloaded_bytes.With(prometheus.Labels{"name": (*result)[i].Name}).Set(float64((*result)[i].DownloadedSession))
-		qbittorrent_torrent_session_uploaded_bytes.With(prometheus.Labels{"name": (*result)[i].Name}).Set(float64((*result)[i].UploadedSession))
-		qbittorrent_torrent_total_downloaded_bytes.With(prometheus.Labels{"name": (*result)[i].Name}).Set(float64((*result)[i].Downloaded))
-		qbittorrent_torrent_total_uploaded_bytes.With(prometheus.Labels{"name": (*result)[i].Name}).Set(float64((*result)[i].Uploaded))
-		if (*result)[i].State == "stalledUP" {
+	for _, torrent := range *result {
+		qbittorrent_eta.With(prometheus.Labels{"name": torrent.Name}).Set(float64(torrent.Eta))
+		qbittorrent_torrent_download_speed_bytes.With(prometheus.Labels{"name": torrent.Name}).Set(float64(torrent.Dlspeed))
+		qbittorrent_torrent_upload_speed_bytes.With(prometheus.Labels{"name": torrent.Name}).Set(float64(torrent.Upspeed))
+		qbittorrent_torrent_progress.With(prometheus.Labels{"name": torrent.Name}).Set(float64(torrent.Progress))
+		qbittorrent_torrent_time_active.With(prometheus.Labels{"name": torrent.Name}).Set(float64(torrent.TimeActive))
+		qbittorrent_torrent_seeders.With(prometheus.Labels{"name": torrent.Name}).Set(float64(torrent.NumSeeds))
+		qbittorrent_torrent_leechers.With(prometheus.Labels{"name": torrent.Name}).Set(float64(torrent.NumLeechs))
+		qbittorrent_torrent_ratio.With(prometheus.Labels{"name": torrent.Name}).Set(float64(torrent.Ratio))
+		qbittorrent_torrent_amount_left_bytes.With(prometheus.Labels{"name": torrent.Name}).Set(float64(torrent.AmountLeft))
+		qbittorrent_torrent_size_bytes.With(prometheus.Labels{"name": torrent.Name}).Set(float64(torrent.Size))
+		qbittorrent_torrent_session_downloaded_bytes.With(prometheus.Labels{"name": torrent.Name}).Set(float64(torrent.DownloadedSession))
+		qbittorrent_torrent_session_uploaded_bytes.With(prometheus.Labels{"name": torrent.Name}).Set(float64(torrent.UploadedSession))
+		qbittorrent_torrent_total_downloaded_bytes.With(prometheus.Labels{"name": torrent.Name}).Set(float64(torrent.Downloaded))
+		qbittorrent_torrent_total_uploaded_bytes.With(prometheus.Labels{"name": torrent.Name}).Set(float64(torrent.Uploaded))
+		if torrent.State == "stalledUP" {
 			count_stelledup += 1
 		} else {
 			count_uploading += 1
 		}
-		qbittorrent_torrent_info.With(prometheus.Labels{"name": (*result)[i].Name, "category": (*result)[i].Category, "state": (*result)[i].State, "size": strconv.Itoa((*result)[i].Size), "progress": strconv.Itoa(int((*result)[i].Progress)), "seeders": strconv.Itoa(int((*result)[i].NumSeeds)), "leechers": strconv.Itoa(int((*result)[i].NumLeechs)), "dl_speed": strconv.Itoa(int((*result)[i].Dlspeed)), "up_speed": strconv.Itoa(int((*result)[i].Upspeed)), "amount_left": strconv.Itoa(int((*result)[i].AmountLeft)), "time_active": strconv.Itoa(int((*result)[i].TimeActive)), "eta": strconv.Itoa(int((*result)[i].Eta)), "uploaded": strconv.Itoa(int((*result)[i].Uploaded)), "uploaded_session": strconv.Itoa(int((*result)[i].UploadedSession)), "downloaded": strconv.Itoa(int((*result)[i].Downloaded)), "downloaded_session": strconv.Itoa(int((*result)[i].DownloadedSession)), "max_ratio": strconv.Itoa(int((*result)[i].MaxRatio)), "ratio": strconv.Itoa(int((*result)[i].Ratio))}).Set(1)
-		if (*result)[i].Tags != "" {
-			separated_list := strings.Split((*result)[i].Tags, ", ")
+		qbittorrent_torrent_info.With(prometheus.Labels{
+			"name":               torrent.Name,
+			"category":           torrent.Category,
+			"state":              torrent.State,
+			"size":               strconv.Itoa(torrent.Size),
+			"progress":           strconv.Itoa(int(torrent.Progress)),
+			"seeders":            strconv.Itoa((torrent.NumSeeds)),
+			"leechers":           strconv.Itoa((torrent.NumLeechs)),
+			"dl_speed":           strconv.Itoa((torrent.Dlspeed)),
+			"up_speed":           strconv.Itoa((torrent.Upspeed)),
+			"amount_left":        strconv.Itoa((torrent.AmountLeft)),
+			"time_active":        strconv.Itoa((torrent.TimeActive)),
+			"eta":                strconv.Itoa((torrent.Eta)),
+			"uploaded":           strconv.Itoa((torrent.Uploaded)),
+			"uploaded_session":   strconv.Itoa((torrent.UploadedSession)),
+			"downloaded":         strconv.Itoa((torrent.Downloaded)),
+			"downloaded_session": strconv.Itoa((torrent.DownloadedSession)),
+			"max_ratio":          strconv.FormatFloat((torrent.MaxRatio), 'f', 3, 64),
+			"ratio":              strconv.FormatFloat((torrent.Ratio), 'f', 3, 64)}).Set(1)
+		if torrent.Tags != "" {
+			separated_list := strings.Split(torrent.Tags, ", ")
 			for j := 0; j < len(separated_list); j++ {
 				labels := prometheus.Labels{
-					"name": (*result)[i].Name,
+					"name": torrent.Name,
 					"tag":  separated_list[j],
 				}
 				qbittorrent_torrent_tags.With(labels).Set(1)
@@ -257,9 +275,9 @@ func Sendbackmessagemaindata(result *models.TypeMaindata, r *prometheus.Registry
 
 	if len((*result).Tags) > 0 {
 
-		for j := 0; j < len((*result).Tags); j++ {
+		for _, tags := range *&result.Tags {
 			labels := prometheus.Labels{
-				"tag": (*result).Tags[j],
+				"tag": tags,
 			}
 			qbittorrent_global_tags.With(labels).Set(1)
 		}
