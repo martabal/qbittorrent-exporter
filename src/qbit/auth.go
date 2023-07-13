@@ -11,7 +11,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func Auth(init bool) (string, error) {
+func Auth(init bool) error {
 	username, password := models.Getuser()
 	qbit_url := models.Getbaseurl()
 	params := url.Values{}
@@ -24,7 +24,7 @@ func Auth(init bool) (string, error) {
 		} else {
 			log.Warn("Can't connect to qbittorrent with url : ", models.Getbaseurl())
 		}
-		return "", err
+		return err
 	} else {
 		body, err := io.ReadAll(resp.Body)
 		if err != nil {
@@ -32,17 +32,17 @@ func Auth(init bool) (string, error) {
 		}
 		if resp.StatusCode == 200 {
 			if string(body) == "Fails." {
-				autherror := fmt.Errorf("Authentication Error")
 				log.Panicln("Authentication Error, check your qBittorrent username / password")
-				return "", autherror
+				return fmt.Errorf("Authentication Error")
 			} else {
 				if models.GetPromptError() {
 					log.Info("New cookie stored")
 				}
-				return strings.Split(strings.Split(resp.Header["Set-Cookie"][0], ";")[0], "=")[1], nil
+				models.Setcookie(strings.Split(strings.Split(resp.Header["Set-Cookie"][0], ";")[0], "=")[1])
+				return nil
 			}
 		} else {
-			return "", fmt.Errorf("Unknown error")
+			return fmt.Errorf("Unknown error")
 		}
 	}
 }
