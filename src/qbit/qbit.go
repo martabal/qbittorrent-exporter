@@ -15,80 +15,99 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 )
 
-var wg sync.WaitGroup
+var (
+	wg sync.WaitGroup
+)
 
-type Dict map[string]interface{}
+type Data struct {
+	URL        string
+	HTTPMethod string
+	Ref        string
+}
 
-func getData(r *prometheus.Registry, url string, httpmethod string, ref string, goroutine bool) bool {
+var info = []Data{
+	{
+		URL:        "/api/v2/app/version",
+		HTTPMethod: "GET",
+		Ref:        "qbitversion",
+	},
+	{
+		URL:        "/api/v2/app/preferences",
+		HTTPMethod: "GET",
+		Ref:        "preference",
+	},
+	{
+		URL:        "/api/v2/torrents/info",
+		HTTPMethod: "GET",
+		Ref:        "info",
+	},
+	{
+		URL:        "/api/v2/sync/maindata",
+		HTTPMethod: "GET",
+		Ref:        "maindata",
+	},
+}
+
+func getData(r *prometheus.Registry, data Data, goroutine bool) bool {
 	if goroutine {
 		defer wg.Done()
 	}
-	resp, retry, err := Apirequest(url, httpmethod)
+	resp, retry, err := Apirequest(data.URL, data.HTTPMethod)
 	if retry == true {
 		return retry
-	} else if err == nil {
-		body, err := io.ReadAll(resp.Body)
-		if err != nil {
-			log.Fatalln(err)
+	}
+	if err != nil {
+		return false
+	}
+	body, err := io.ReadAll(resp.Body)
+
+	switch data.Ref {
+	case "preference":
+		var result models.TypePreferences
+		if err := json.Unmarshal(body, &result); err != nil {
+			log.Error("Can not unmarshal JSON for preferences")
 		} else {
-			switch ref {
-			case "preference":
-				var result models.TypePreferences
-				if err := json.Unmarshal(body, &result); err != nil {
-					log.Error("Can not unmarshal JSON for preferences")
-				} else {
-					prom.Sendbackmessagepreference(&result, r)
-				}
-			case "info":
-				var result models.TypeInfo
-				if err := json.Unmarshal(body, &result); err != nil {
-					log.Error("Can not unmarshal JSON for torrents info")
-				} else {
-					prom.Sendbackmessagetorrent(&result, r)
-				}
-			case "maindata":
-				var result models.TypeMaindata
-				if err := json.Unmarshal(body, &result); err != nil {
-					log.Error("Can not unmarshal JSON for maindata")
-				} else {
-					prom.Sendbackmessagemaindata(&result, r)
-				}
-			case "qbitversion":
-				qbittorrent_app_version := prometheus.NewGauge(prometheus.GaugeOpts{
-					Name: "qbittorrent_app_version",
-					Help: "The current qBittorrent version",
-					ConstLabels: map[string]string{
-						"version": string(body),
-					},
-				})
-				r.MustRegister(qbittorrent_app_version)
-				qbittorrent_app_version.Set(1)
-			default:
-				log.Panicln("Unknown type: ", ref)
-			}
+			prom.Sendbackmessagepreference(&result, r)
 		}
+	case "info":
+		var result models.TypeInfo
+		if err := json.Unmarshal(body, &result); err != nil {
+			log.Error("Can not unmarshal JSON for torrents info")
+		} else {
+			prom.Sendbackmessagetorrent(&result, r)
+		}
+	case "maindata":
+		var result models.TypeMaindata
+		if err := json.Unmarshal(body, &result); err != nil {
+			log.Error("Can not unmarshal JSON for maindata")
+		} else {
+			prom.Sendbackmessagemaindata(&result, r)
+		}
+	case "qbitversion":
+		qbittorrent_app_version := prometheus.NewGauge(prometheus.GaugeOpts{
+			Name: "qbittorrent_app_version",
+			Help: "The current qBittorrent version",
+			ConstLabels: map[string]string{
+				"version": string(body),
+			},
+		})
+		r.MustRegister(qbittorrent_app_version)
+		qbittorrent_app_version.Set(1)
+	default:
+		log.Panicln("Unknown reference: ", data.Ref)
 	}
 	return false
 }
 
 func Allrequests(r *prometheus.Registry) {
-	retry := getData(r, "/api/v2/app/version", "GET", "qbitversion", false)
+	retry := getData(r, info[0], false)
 	if retry == true {
 		log.Debug("Retrying ...")
-		getData(r, "/api/v2/app/version", "GET", "qbitversion", false)
+		getData(r, info[0], false)
 	}
-	array := []Dict{
-		{"url": "/api/v2/app/preferences", "httpmethod": "GET", "ref": "preference"},
-		{"url": "/api/v2/torrents/info", "httpmethod": "GET", "ref": "info"},
-		{"url": "/api/v2/sync/maindata", "httpmethod": "GET", "ref": "maindata"},
-	}
-
-	for i := 0; i < len(array); i++ {
-		url := array[i]["url"].(string)
-		httpmethod := array[i]["httpmethod"].(string)
-		structuretype := array[i]["ref"].(string)
-		wg.Add(1)
-		go getData(r, url, httpmethod, structuretype, true)
+	wg.Add(len(info) - 1)
+	for i := 1; i < len(info); i++ {
+		go getData(r, info[i], true)
 	}
 	wg.Wait()
 }
@@ -110,26 +129,26 @@ func Apirequest(uri string, method string) (*http.Response, bool, error) {
 			models.SetPromptError(true)
 		}
 		return resp, false, err
-	} else {
-		switch resp.StatusCode {
-		case 200:
-			models.SetPromptError(false)
-			return resp, false, nil
-		case 403:
-			err := fmt.Errorf("%d", resp.StatusCode)
-			if !models.GetPromptError() {
-				models.SetPromptError(true)
-				log.Warn("Cookie changed, try to reconnect ...")
-			}
-			Auth(false)
-			return resp, true, err
-		default:
-			err := fmt.Errorf("%d", resp.StatusCode)
-			if !models.GetPromptError() {
-				models.SetPromptError(true)
-				log.Debug("Error code ", resp.StatusCode)
-			}
-			return resp, false, err
+	}
+
+	switch resp.StatusCode {
+	case http.StatusOK:
+		models.SetPromptError(false)
+		return resp, false, nil
+	case http.StatusForbidden:
+		err := fmt.Errorf("%d", resp.StatusCode)
+		if !models.GetPromptError() {
+			models.SetPromptError(true)
+			log.Warn("Cookie changed, try to reconnect ...")
 		}
+		Auth(false)
+		return resp, true, err
+	default:
+		err := fmt.Errorf("%d", resp.StatusCode)
+		if !models.GetPromptError() {
+			models.SetPromptError(true)
+			log.Debug("Error code ", resp.StatusCode)
+		}
+		return resp, false, err
 	}
 }

@@ -19,6 +19,14 @@ import (
 
 const DEFAULTPORT = 8090
 
+var logLevels = map[string]log.Level{
+	"TRACE": log.TraceLevel,
+	"DEBUG": log.DebugLevel,
+	"INFO":  log.InfoLevel,
+	"WARN":  log.WarnLevel,
+	"ERROR": log.ErrorLevel,
+}
+
 func main() {
 	startup()
 	log.Info("qbittorrent URL: ", models.Getbaseurl())
@@ -100,15 +108,8 @@ func loadenv() {
 }
 
 func setLogLevel(logLevel string) {
-	logLevels := map[string]log.Level{
-		"TRACE": log.TraceLevel,
-		"DEBUG": log.DebugLevel,
-		"INFO":  log.InfoLevel,
-		"WARN":  log.WarnLevel,
-		"ERROR": log.ErrorLevel,
-	}
-
-	level, found := logLevels[strings.ToUpper(logLevel)]
+	upperLogLevel := strings.ToUpper(logLevel)
+	level, found := logLevels[upperLogLevel]
 	if !found {
 		level = log.InfoLevel
 	}
