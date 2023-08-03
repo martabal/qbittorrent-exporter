@@ -18,11 +18,9 @@ func Auth(init bool) error {
 	}
 	resp, err := http.PostForm(models.Getbaseurl()+"/api/v2/auth/login", params)
 	if err != nil {
-		logMsg := "Can't connect to qbittorrent with url : " + models.Getbaseurl()
-		if init {
-			log.Panicln(logMsg)
-		} else {
-			log.Warn(logMsg)
+		if !models.GetPromptError() {
+			models.SetPromptError(true)
+			log.Warn("Can't connect to qbittorrent with url : " + models.Getbaseurl())
 		}
 		return err
 	}
