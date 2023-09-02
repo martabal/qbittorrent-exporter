@@ -2,11 +2,11 @@ name: Test
 on:
   workflow_dispatch:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
-jobs:
+    branches: ["main"]
 
+jobs:
   test:
     name: Run tests
     runs-on: ubuntu-latest
