@@ -9,6 +9,20 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+type Unit string
+
+const (
+	Bytes   Unit = "bytes"
+	Seconds Unit = "seconds"
+)
+
+type Gauge []struct {
+	name  string
+	unit  Unit
+	help  string
+	value float64
+}
+
 func Sendbackmessagetorrent(result *models.TypeInfo, r *prometheus.Registry) {
 
 	qbittorrent_eta := prometheus.NewGaugeVec(prometheus.GaugeOpts{
@@ -163,48 +177,17 @@ func Sendbackmessagetorrent(result *models.TypeInfo, r *prometheus.Registry) {
 }
 
 func Sendbackmessagepreference(result *models.TypePreferences, r *prometheus.Registry) {
-	qbittorrent_app_max_active_downloads := prometheus.NewGauge(prometheus.GaugeOpts{
-		Name: "qbittorrent_app_max_active_downloads",
-		Help: "The max number of downloads allowed",
-	})
-	qbittorrent_app_max_active_uploads := prometheus.NewGauge(prometheus.GaugeOpts{
-		Name: "qbittorrent_app_max_active_uploads",
-		Help: "The max number of active uploads allowed",
-	})
-	qbittorrent_app_max_active_torrents := prometheus.NewGauge(prometheus.GaugeOpts{
-		Name: "qbittorrent_app_max_active_torrents",
-		Help: "The max number of active torrents allowed",
-	})
-	qbittorrent_app_download_rate_limit_bytes := prometheus.NewGauge(prometheus.GaugeOpts{
-		Name: "qbittorrent_app_download_rate_limit_bytes",
-		Help: "The global download rate limit (in bytes)",
-	})
-	qbittorrent_app_upload_rate_limit_bytes := prometheus.NewGauge(prometheus.GaugeOpts{
-		Name: "qbittorrent_app_upload_rate_limit_bytes",
-		Help: "The global upload rate limit (in bytes)",
-	})
-	qbittorrent_app_alt_download_rate_limit_bytes := prometheus.NewGauge(prometheus.GaugeOpts{
-		Name: "qbittorrent_app_alt_download_rate_limit_bytes",
-		Help: "The alternate download rate limit (in bytes)",
-	})
-	qbittorrent_app_alt_upload_rate_limit_bytes := prometheus.NewGauge(prometheus.GaugeOpts{
-		Name: "qbittorrent_app_alt_upload_rate_limit_bytes",
-		Help: "The alternate upload rate limit (in bytes)",
-	})
-	r.MustRegister(qbittorrent_app_max_active_downloads)
-	r.MustRegister(qbittorrent_app_max_active_uploads)
-	r.MustRegister(qbittorrent_app_max_active_torrents)
-	r.MustRegister(qbittorrent_app_download_rate_limit_bytes)
-	r.MustRegister(qbittorrent_app_upload_rate_limit_bytes)
-	r.MustRegister(qbittorrent_app_alt_download_rate_limit_bytes)
-	r.MustRegister(qbittorrent_app_alt_upload_rate_limit_bytes)
-	qbittorrent_app_max_active_downloads.Set(float64((*result).MaxActiveDownloads))
-	qbittorrent_app_max_active_uploads.Set(float64((*result).MaxActiveDownloads))
-	qbittorrent_app_max_active_torrents.Set(float64((*result).MaxActiveTorrents))
-	qbittorrent_app_download_rate_limit_bytes.Set(float64((*result).DlLimit))
-	qbittorrent_app_upload_rate_limit_bytes.Set(float64((*result).UpLimit))
-	qbittorrent_app_alt_download_rate_limit_bytes.Set(float64((*result).AltDlLimit))
-	qbittorrent_app_alt_upload_rate_limit_bytes.Set(float64((*result).AltUpLimit))
+	gauges := Gauge{
+		{"max active downloads", "", "The max number of downloads allowed", float64((*result).MaxActiveDownloads)},
+		{"max active uploads", "", "The max number of active uploads allowed", float64((*result).MaxActiveDownloads)},
+		{"max active torrents", "", "The max number of active torrents allowed", float64((*result).MaxActiveTorrents)},
+		{"download rate limit", Bytes, "The global download rate limit", float64((*result).DlLimit)},
+		{"upload rate limite", Bytes, "The global upload rate limit", float64((*result).UpLimit)},
+		{"alt download rate limit", Bytes, "The alternate download rate limit", float64((*result).AltDlLimit)},
+		{"alt upload rate limit", Bytes, "The alternate upload rate limit", float64((*result).AltUpLimit)},
+	}
+
+	register(gauges, r)
 
 }
 
@@ -230,72 +213,62 @@ func Sendbackmessagemaindata(result *models.TypeMaindata, r *prometheus.Registry
 		Name: "qbittorrent_app_alt_rate_limits_enabled",
 		Help: "If alternate rate limits are enabled",
 	})
-	qbittorrent_global_alltime_downloaded_bytes := prometheus.NewGauge(prometheus.GaugeOpts{
-		Name: "qbittorrent_global_alltime_downloaded_bytes",
-		Help: "The all-time total download amount of torrents (in bytes)",
-	})
-	qbittorrent_global_alltime_uploaded_bytes := prometheus.NewGauge(prometheus.GaugeOpts{
-		Name: "qbittorrent_global_alltime_uploaded_bytes",
-		Help: "The all-time total upload amount of torrents (in bytes)",
-	})
-	qbittorrent_global_session_downloaded_bytes := prometheus.NewGauge(prometheus.GaugeOpts{
-		Name: "qbittorrent_global_session_downloaded_bytes",
-		Help: "The total download amount of torrents for this session (in bytes)",
-	})
-	qbittorrent_global_session_uploaded_bytes := prometheus.NewGauge(prometheus.GaugeOpts{
-		Name: "qbittorrent_global_session_uploaded_bytes",
-		Help: "The total upload amount of torrents for this session (in bytes)",
-	})
-	qbittorrent_global_download_speed_bytes := prometheus.NewGauge(prometheus.GaugeOpts{
-		Name: "qbittorrent_global_download_speed_bytes",
-		Help: "The current download speed of all torrents (in bytes)",
-	})
-	qbittorrent_global_upload_speed_bytes := prometheus.NewGauge(prometheus.GaugeOpts{
-		Name: "qbittorrent_global_upload_speed_bytes",
-		Help: "The total current upload speed of all torrents (in bytes)",
-	})
+	r.MustRegister(qbittorrent_app_alt_rate_limits_enabled)
+	qbittorrent_app_alt_rate_limits_enabled.Set(float64(UseAltSpeedLimits))
+
+	gauges := Gauge{
+		{"alltime downloaded", Bytes, "The all-time total download amount of torrents", float64((*result).ServerState.AlltimeDl)},
+		{"alltime uploaded", Bytes, "The all-time total upload amount of torrents", float64((*result).ServerState.AlltimeUl)},
+		{"session downloaded", Bytes, "The total download amount of torrents for this session", float64((*result).ServerState.DlInfoData)},
+		{"session uploaded", Bytes, "The total upload amount of torrents for this session", float64((*result).ServerState.UpInfoData)},
+		{"download speed", Bytes, "The current download speed of all torrents", float64((*result).ServerState.DlInfoSpeed)},
+		{"upload speed", Bytes, "The total current upload speed of all torrents", float64((*result).ServerState.UpInfoSpeed)},
+	}
+
+	register(gauges, r)
+
 	qbittorrent_global_tags := prometheus.NewGaugeVec(prometheus.GaugeOpts{
 		Name: "qbittorrent_global_tags",
 		Help: "All tags used in qbittorrent",
 	}, []string{"tag"})
+	r.MustRegister(qbittorrent_global_tags)
+	if len((*result).Tags) > 0 {
+		for _, tag := range result.Tags {
+			labels := prometheus.Labels{
+				"tag": tag,
+			}
+
+			qbittorrent_global_tags.With(labels).Set(1)
+		}
+	}
 	qbittorrent_global_categories := prometheus.NewGaugeVec(prometheus.GaugeOpts{
 		Name: "qbittorrent_global_categories",
 		Help: "All categories used in qbittorrent",
 	}, []string{"category"})
-
-	r.MustRegister(qbittorrent_app_alt_rate_limits_enabled)
-	r.MustRegister(qbittorrent_global_alltime_downloaded_bytes)
-	r.MustRegister(qbittorrent_global_alltime_uploaded_bytes)
-	r.MustRegister(qbittorrent_global_session_downloaded_bytes)
-	r.MustRegister(qbittorrent_global_session_uploaded_bytes)
-	r.MustRegister(qbittorrent_global_download_speed_bytes)
-	r.MustRegister(qbittorrent_global_upload_speed_bytes)
-	r.MustRegister(qbittorrent_global_tags)
 	r.MustRegister(qbittorrent_global_categories)
-
-	if len((*result).Tags) > 0 {
-
-		for _, tags := range *&result.Tags {
-			labels := prometheus.Labels{
-				"tag": tags,
-			}
-			qbittorrent_global_tags.With(labels).Set(1)
-		}
-
-	}
 	for _, category := range result.CategoryMap {
 		labels := prometheus.Labels{
 			"category": category.Name,
 		}
 		qbittorrent_global_categories.With(labels).Set(1)
 	}
+}
 
-	qbittorrent_app_alt_rate_limits_enabled.Set(float64(UseAltSpeedLimits))
-	qbittorrent_global_alltime_downloaded_bytes.Set(float64((*result).ServerState.AlltimeDl))
-	qbittorrent_global_alltime_uploaded_bytes.Set(float64((*result).ServerState.AlltimeUl))
-	qbittorrent_global_session_downloaded_bytes.Set(float64((*result).ServerState.DlInfoData))
-	qbittorrent_global_session_uploaded_bytes.Set(float64((*result).ServerState.UpInfoData))
-	qbittorrent_global_download_speed_bytes.Set(float64((*result).ServerState.DlInfoSpeed))
-	qbittorrent_global_upload_speed_bytes.Set(float64((*result).ServerState.UpInfoSpeed))
-
+func register(gauges Gauge, r *prometheus.Registry) {
+	for _, gauge := range gauges {
+		name := "qbittorrent_global_" + strings.Replace(gauge.name, " ", "_", -1)
+		help := gauge.help
+		if gauge.unit != "" {
+			if gauge.unit == Bytes {
+				name += "_" + string(gauge.unit)
+			}
+			help += " (in " + string(gauge.unit) + ")"
+		}
+		g := prometheus.NewGauge(prometheus.GaugeOpts{
+			Name: name,
+			Help: help,
+		})
+		r.MustRegister(g)
+		g.Set(gauge.value)
+	}
 }
