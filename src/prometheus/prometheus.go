@@ -9,7 +9,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-type Gauge struct {
+type Gauge []struct {
 	name  string
 	unit  string
 	help  string
@@ -170,7 +170,7 @@ func Sendbackmessagetorrent(result *models.TypeInfo, r *prometheus.Registry) {
 }
 
 func Sendbackmessagepreference(result *models.TypePreferences, r *prometheus.Registry) {
-	gauges := []Gauge{
+	gauges := Gauge{
 		{"max active downloads", "", "The max number of downloads allowed", float64((*result).MaxActiveDownloads)},
 		{"max active uploads", "", "The max number of active uploads allowed", float64((*result).MaxActiveDownloads)},
 		{"max active torrents", "", "The max number of active torrents allowed", float64((*result).MaxActiveTorrents)},
@@ -179,9 +179,8 @@ func Sendbackmessagepreference(result *models.TypePreferences, r *prometheus.Reg
 		{"alt download rate limit", "bytes", "The alternate download rate limit", float64((*result).AltDlLimit)},
 		{"alt upload rate limit", "bytes", "The alternate upload rate limit", float64((*result).AltUpLimit)},
 	}
-	for _, gauge := range gauges {
-		register(gauge, r)
-	}
+
+	register(gauges, r)
 
 }
 
@@ -210,7 +209,7 @@ func Sendbackmessagemaindata(result *models.TypeMaindata, r *prometheus.Registry
 	r.MustRegister(qbittorrent_app_alt_rate_limits_enabled)
 	qbittorrent_app_alt_rate_limits_enabled.Set(float64(UseAltSpeedLimits))
 
-	gauges := []Gauge{
+	gauges := Gauge{
 		{"alltime downloaded", "bytes", "The all-time total download amount of torrents", float64((*result).ServerState.AlltimeDl)},
 		{"alltime uploaded", "bytes", "The all-time total upload amount of torrents", float64((*result).ServerState.AlltimeUl)},
 		{"session downloaded", "bytes", "The total download amount of torrents for this session", float64((*result).ServerState.DlInfoData)},
@@ -219,16 +218,14 @@ func Sendbackmessagemaindata(result *models.TypeMaindata, r *prometheus.Registry
 		{"upload speed", "bytes", "The total current upload speed of all torrents", float64((*result).ServerState.UpInfoSpeed)},
 	}
 
-	for _, gauge := range gauges {
-		register(gauge, r)
-	}
+	register(gauges, r)
 
 	qbittorrent_global_tags := prometheus.NewGaugeVec(prometheus.GaugeOpts{
 		Name: "qbittorrent_global_tags",
 		Help: "All tags used in qbittorrent",
 	}, []string{"tag"})
 	r.MustRegister(qbittorrent_global_tags)
-	if len(result.Tags) > 0 {
+	if len((*result).Tags) > 0 {
 		for _, tag := range result.Tags {
 			labels := prometheus.Labels{
 				"tag": tag,
@@ -250,17 +247,19 @@ func Sendbackmessagemaindata(result *models.TypeMaindata, r *prometheus.Registry
 	}
 }
 
-func register(data Gauge, r *prometheus.Registry) {
-	name := "qbittorrent_global_" + strings.Replace(data.name, " ", "_", -1)
-	help := data.help
-	if data.unit != "" {
-		name += "_" + data.unit
-		help += " (in " + data.unit + ")"
+func register(gauges Gauge, r *prometheus.Registry) {
+	for _, gauge := range gauges {
+		name := "qbittorrent_global_" + strings.Replace(gauge.name, " ", "_", -1)
+		help := gauge.help
+		if gauge.unit != "" {
+			name += "_" + gauge.unit
+			help += " (in " + gauge.unit + ")"
+		}
+		g := prometheus.NewGauge(prometheus.GaugeOpts{
+			Name: name,
+			Help: help,
+		})
+		r.MustRegister(g)
+		g.Set(gauge.value)
 	}
-	g := prometheus.NewGauge(prometheus.GaugeOpts{
-		Name: name,
-		Help: help,
-	})
-	r.MustRegister(g)
-	g.Set(data.value)
 }
