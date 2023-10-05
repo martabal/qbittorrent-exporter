@@ -9,9 +9,16 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+type Unit string
+
+const (
+	Bytes   Unit = "bytes"
+	Seconds Unit = "seconds"
+)
+
 type Gauge []struct {
 	name  string
-	unit  string
+	unit  Unit
 	help  string
 	value float64
 }
@@ -174,10 +181,10 @@ func Sendbackmessagepreference(result *models.TypePreferences, r *prometheus.Reg
 		{"max active downloads", "", "The max number of downloads allowed", float64((*result).MaxActiveDownloads)},
 		{"max active uploads", "", "The max number of active uploads allowed", float64((*result).MaxActiveDownloads)},
 		{"max active torrents", "", "The max number of active torrents allowed", float64((*result).MaxActiveTorrents)},
-		{"download rate limit", "bytes", "The global download rate limit", float64((*result).DlLimit)},
-		{"dupload rate limite", "bytes", "The global upload rate limit", float64((*result).UpLimit)},
-		{"alt download rate limit", "bytes", "The alternate download rate limit", float64((*result).AltDlLimit)},
-		{"alt upload rate limit", "bytes", "The alternate upload rate limit", float64((*result).AltUpLimit)},
+		{"download rate limit", Bytes, "The global download rate limit", float64((*result).DlLimit)},
+		{"dupload rate limite", Bytes, "The global upload rate limit", float64((*result).UpLimit)},
+		{"alt download rate limit", Bytes, "The alternate download rate limit", float64((*result).AltDlLimit)},
+		{"alt upload rate limit", Bytes, "The alternate upload rate limit", float64((*result).AltUpLimit)},
 	}
 
 	register(gauges, r)
@@ -210,12 +217,12 @@ func Sendbackmessagemaindata(result *models.TypeMaindata, r *prometheus.Registry
 	qbittorrent_app_alt_rate_limits_enabled.Set(float64(UseAltSpeedLimits))
 
 	gauges := Gauge{
-		{"alltime downloaded", "bytes", "The all-time total download amount of torrents", float64((*result).ServerState.AlltimeDl)},
-		{"alltime uploaded", "bytes", "The all-time total upload amount of torrents", float64((*result).ServerState.AlltimeUl)},
-		{"session downloaded", "bytes", "The total download amount of torrents for this session", float64((*result).ServerState.DlInfoData)},
-		{"session uploaded", "bytes", "The total upload amount of torrents for this session", float64((*result).ServerState.UpInfoData)},
-		{"download speed", "bytes", "The current download speed of all torrents", float64((*result).ServerState.DlInfoSpeed)},
-		{"upload speed", "bytes", "The total current upload speed of all torrents", float64((*result).ServerState.UpInfoSpeed)},
+		{"alltime downloaded", Bytes, "The all-time total download amount of torrents", float64((*result).ServerState.AlltimeDl)},
+		{"alltime uploaded", Bytes, "The all-time total upload amount of torrents", float64((*result).ServerState.AlltimeUl)},
+		{"session downloaded", Bytes, "The total download amount of torrents for this session", float64((*result).ServerState.DlInfoData)},
+		{"session uploaded", Bytes, "The total upload amount of torrents for this session", float64((*result).ServerState.UpInfoData)},
+		{"download speed", Bytes, "The current download speed of all torrents", float64((*result).ServerState.DlInfoSpeed)},
+		{"upload speed", Bytes, "The total current upload speed of all torrents", float64((*result).ServerState.UpInfoSpeed)},
 	}
 
 	register(gauges, r)
@@ -252,8 +259,10 @@ func register(gauges Gauge, r *prometheus.Registry) {
 		name := "qbittorrent_global_" + strings.Replace(gauge.name, " ", "_", -1)
 		help := gauge.help
 		if gauge.unit != "" {
-			name += "_" + gauge.unit
-			help += " (in " + gauge.unit + ")"
+			if gauge.unit == Bytes {
+				name += "_" + string(gauge.unit)
+			}
+			help += " (in " + string(gauge.unit) + ")"
 		}
 		g := prometheus.NewGauge(prometheus.GaugeOpts{
 			Name: name,
