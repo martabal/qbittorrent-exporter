@@ -182,7 +182,7 @@ func Sendbackmessagepreference(result *models.TypePreferences, r *prometheus.Reg
 		{"max active uploads", "", "The max number of active uploads allowed", float64((*result).MaxActiveDownloads)},
 		{"max active torrents", "", "The max number of active torrents allowed", float64((*result).MaxActiveTorrents)},
 		{"download rate limit", Bytes, "The global download rate limit", float64((*result).DlLimit)},
-		{"dupload rate limite", Bytes, "The global upload rate limit", float64((*result).UpLimit)},
+		{"upload rate limite", Bytes, "The global upload rate limit", float64((*result).UpLimit)},
 		{"alt download rate limit", Bytes, "The alternate download rate limit", float64((*result).AltDlLimit)},
 		{"alt upload rate limit", Bytes, "The alternate upload rate limit", float64((*result).AltUpLimit)},
 	}
