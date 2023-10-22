@@ -2,7 +2,8 @@ FROM golang:1.21.1-alpine3.18 AS builder
 
 WORKDIR /app
 
-COPY . .
+COPY go.* .
+COPY src src
 
 RUN go build -o /go/bin/qbittorrent-exporter ./src
 

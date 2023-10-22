@@ -8,22 +8,18 @@
 <img src="img/qbittorrent.png" width=100> <img src="img/prometheus.png" width=100><img src="img/golang.png" width=100>
 </p>
 
-This app is a Prometheus exporter for qBittorrent.  
-You must have version 4.1.0 of qBittorrent or higher.  
-This app is made to be integrated with the [qbittorrent-grafana-dashboard](https://github.com/caseyscarborough/qbittorrent-grafana-dashboard)  
+This app is a Prometheus exporter for qBittorrent.
+You must have version 4.1.0 of qBittorrent or higher.
 
-## About this App
-
-### Credits
+## Credits
 
 I was using an excellent [exporter](https://github.com/caseyscarborough/qbittorrent-exporter) written in Java and I wanted to learn Go, that's how I got the idea to rewrite the exporter in Go.
 
 Additionally, this project adds support for tags and categories. It tracks the categories and tags of each torrent and the global categories and tags.
 
-### Resources
+## About this App
 
-This app uses ~20 times less RAM compared to the [original exporter](https://github.com/caseyscarborough/qbittorrent-exporter) for the same amount of torrents.
-Docker compressed size is ~10 MB.
+This app is made to be integrated with the [qbittorrent-grafana-dashboard](https://raw.githubusercontent.com/martabal/qbittorrent-exporter/main/grafana/dashboard.json)
 
 ## Run it
 
@@ -87,6 +83,34 @@ or
 ```sh
 go run ./src -e
 ```
+
+## Metrics
+
+You can find in the dasboard the following metrics:
+
+- All time download/upload
+- Session download/upload
+- Cumulative upload/download speeds
+- Global ratio/download speed/upload speed
+- App version
+- Torrent list with statuses
+- Total torrents/seeders/leechers
+- Torrent state chart
+- Amount remaining by torrent
+- Incomplete torrent progress
+- Download/upload speed by torrent
+- List of categories
+- List of tags
+
+## Resources
+
+This app uses ~20 times less RAM compared to the [original exporter](https://github.com/caseyscarborough/qbittorrent-exporter) for the same amount of torrents.
+Docker compressed size is ~10 MB.
+
+## Dashboard
+
+![grafana-top](img/grafana-1.png)
+![grafana-bottom](img/grafana-2.png)
 
 ## Parameters
 
