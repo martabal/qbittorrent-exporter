@@ -4,7 +4,7 @@
   "description": "Export your qbittorrent data to prometheus",
   "main": "src/init.go",
   "scripts": {
-    "build" : "go build -o ./qbittorrent-exporter.out ./src && ./qbittorrent-exporter.out -e",
+    "build" : "go build -o ./qbittorrent-exporter.out ./src && ./qbittorrent-exporter.out",
     "build:env" : "go build -o ./qbittorrent-exporter.out ./src && ./qbittorrent-exporter.out -e",
     "dev" : "go run ./src",
     "dev:env" : "go run ./src -e",
