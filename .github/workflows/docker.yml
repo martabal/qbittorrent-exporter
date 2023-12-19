@@ -1,4 +1,4 @@
-name: Publish Release
+name: docker
 on:
   workflow_dispatch:
     inputs:
@@ -24,16 +24,6 @@ jobs:
           ref: "main"
           fetch-depth: 0
 
-      - name: Release tag
-        id: releasetag
-        run: |
-          if [ -z "${{ inputs.tag }}" ]; then
-            latest_release_tag=$(curl -s "https://api.github.com/repos/${{ github.repository_owner }}/${{ github.event.repository.name }}/releases/latest" | jq -r .tag_name)
-            echo "release_tag=${latest_release_tag}" >> $GITHUB_ENV
-          else
-            echo "release_tag=${{ inputs.tag }}" >> $GITHUB_ENV
-          fi
-
       - name: Docker meta
         id: meta
         uses: docker/metadata-action@v5
@@ -41,9 +31,11 @@ jobs:
           images: |
             ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}
           tags: |
-            type=raw,value=latest,enable=true
+            type=raw,value=latest,enable=${{ github.event_name == 'release' }}
             type=sha
-            type=raw,value=${{ steps.releasetag.outputs.release_tag }},enable=true
+            type=ref,event=branch
+            type=ref,event=pr
+            type=raw,value=${{ inputs.tags }},enable=${{ github.event_name == 'workflow_dispatch' }}
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -57,7 +49,6 @@ jobs:
         with:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-        if: ${{ github.event_name == 'release' || github.event_name == 'workflow_dispatch' }}
 
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
@@ -65,14 +56,12 @@ jobs:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GH_TOKEN }}
-        if: ${{ github.event_name == 'release' || github.event_name == 'workflow_dispatch' }}
 
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
           context: ./
           platforms: linux/arm/v7,linux/amd64,linux/arm64
-          push: ${{ github.event_name == 'release' || github.event_name == 'workflow_dispatch' }}
+          push: ${{ !github.event.pull_request.head.repo.fork }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-        if: ${{ github.event_name == 'release' || github.event_name == 'workflow_dispatch' }}
