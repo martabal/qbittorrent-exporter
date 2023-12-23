@@ -66,15 +66,12 @@ func getData(r *prometheus.Registry, data Data, goroutine bool) bool {
 	}
 	switch data.Ref {
 	case "preference":
-
 		var result models.TypePreferences
-
 		if err := json.Unmarshal(body, &result); err != nil {
 			log.Error("Can not unmarshal JSON for preferences")
 		} else {
 			prom.Sendbackmessagepreference(&result, r)
 		}
-		prom.Sendbackmessagepreference(&result, r)
 	case "info":
 		var result models.TypeInfo
 		if err := json.Unmarshal(body, &result); err != nil {
@@ -82,7 +79,6 @@ func getData(r *prometheus.Registry, data Data, goroutine bool) bool {
 		} else {
 			prom.Sendbackmessagetorrent(&result, r)
 		}
-		prom.Sendbackmessagetorrent(&result, r)
 	case "maindata":
 		var result models.TypeMaindata
 		if err := json.Unmarshal(body, &result); err != nil {
@@ -90,7 +86,6 @@ func getData(r *prometheus.Registry, data Data, goroutine bool) bool {
 		} else {
 			prom.Sendbackmessagemaindata(&result, r)
 		}
-		prom.Sendbackmessagemaindata(&result, r)
 	case "qbitversion":
 
 		qbittorrent_app_version := prometheus.NewGauge(prometheus.GaugeOpts{
