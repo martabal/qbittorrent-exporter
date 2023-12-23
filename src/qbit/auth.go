@@ -33,7 +33,7 @@ func Auth(init bool) error {
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		log.Fatalln(err)
+		return err
 	}
 
 	if string(body) == "Fails." {

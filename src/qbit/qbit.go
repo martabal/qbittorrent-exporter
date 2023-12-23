@@ -53,42 +53,48 @@ func getData(r *prometheus.Registry, data Data, goroutine bool) bool {
 		defer wg.Done()
 	}
 	resp, retry, err := Apirequest(data.URL, data.HTTPMethod)
-	if retry == true {
+	if retry {
 		return retry
 	}
 	if err != nil {
 		return false
 	}
-	body, err := io.ReadAll(resp.Body)
 
 	switch data.Ref {
 	case "preference":
+
 		var result models.TypePreferences
-		if err := json.Unmarshal(body, &result); err != nil {
-			log.Error("Can not unmarshal JSON for preferences")
-		} else {
-			prom.Sendbackmessagepreference(&result, r)
+
+		err := json.NewDecoder(resp.Body).Decode(&result)
+		if err != nil {
+			return false
 		}
+		prom.Sendbackmessagepreference(&result, r)
 	case "info":
 		var result models.TypeInfo
-		if err := json.Unmarshal(body, &result); err != nil {
-			log.Error("Can not unmarshal JSON for torrents info")
-		} else {
-			prom.Sendbackmessagetorrent(&result, r)
+		err := json.NewDecoder(resp.Body).Decode(&result)
+		if err != nil {
+			return false
 		}
+		prom.Sendbackmessagetorrent(&result, r)
 	case "maindata":
 		var result models.TypeMaindata
-		if err := json.Unmarshal(body, &result); err != nil {
-			log.Error("Can not unmarshal JSON for maindata")
-		} else {
-			prom.Sendbackmessagemaindata(&result, r)
+		err := json.NewDecoder(resp.Body).Decode(&result)
+		if err != nil {
+			return false
 		}
+		prom.Sendbackmessagemaindata(&result, r)
 	case "qbitversion":
+
+		result, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return false
+		}
 		qbittorrent_app_version := prometheus.NewGauge(prometheus.GaugeOpts{
 			Name: "qbittorrent_app_version",
 			Help: "The current qBittorrent version",
 			ConstLabels: map[string]string{
-				"version": string(body),
+				"version": string(result),
 			},
 		})
 		r.MustRegister(qbittorrent_app_version)
@@ -101,7 +107,7 @@ func getData(r *prometheus.Registry, data Data, goroutine bool) bool {
 
 func Allrequests(r *prometheus.Registry) {
 	retry := getData(r, info[0], false)
-	if retry == true {
+	if retry {
 		log.Debug("Retrying ...")
 		getData(r, info[0], false)
 	}
@@ -143,7 +149,7 @@ func Apirequest(uri string, method string) (*http.Response, bool, error) {
 			models.SetPromptError(true)
 			log.Warn("Cookie changed, try to reconnect ...")
 		}
-		Auth(false)
+		_ = Auth(false)
 		return resp, true, err
 	default:
 		err := fmt.Errorf("%d", resp.StatusCode)

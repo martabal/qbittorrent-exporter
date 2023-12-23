@@ -31,7 +31,11 @@ func main() {
 	loadenv()
 	projectinfo()
 
-	qbit.Auth(true)
+	err := qbit.Auth(true)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
 	fmt.Println("qbittorrent URL: ", models.Getbaseurl())
 	fmt.Println("username: ", models.GetUsername())
 	fmt.Println("password: ", models.Getpasswordmasked())
@@ -41,7 +45,10 @@ func main() {
 	if models.GetPort() != DEFAULTPORT {
 		log.Info("Listening on port", models.GetPort())
 	}
-	http.ListenAndServe(addr, nil)
+	err = http.ListenAndServe(addr, nil)
+	if err != nil {
+		log.Fatalln(err)
+	}
 }
 
 func metrics(w http.ResponseWriter, req *http.Request) {
