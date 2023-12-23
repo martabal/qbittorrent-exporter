@@ -60,41 +60,41 @@ func getData(r *prometheus.Registry, data Data, goroutine bool) bool {
 		return false
 	}
 
+	body, err := io.ReadAll(resp.Body)
 	switch data.Ref {
 	case "preference":
 
 		var result models.TypePreferences
 
-		err := json.NewDecoder(resp.Body).Decode(&result)
-		if err != nil {
-			return false
+		if err := json.Unmarshal(body, &result); err != nil {
+			log.Error("Can not unmarshal JSON for preferences")
+		} else {
+			prom.Sendbackmessagepreference(&result, r)
 		}
 		prom.Sendbackmessagepreference(&result, r)
 	case "info":
 		var result models.TypeInfo
-		err := json.NewDecoder(resp.Body).Decode(&result)
-		if err != nil {
-			return false
+		if err := json.Unmarshal(body, &result); err != nil {
+			log.Error("Can not unmarshal JSON for torrents info")
+		} else {
+			prom.Sendbackmessagetorrent(&result, r)
 		}
 		prom.Sendbackmessagetorrent(&result, r)
 	case "maindata":
 		var result models.TypeMaindata
-		err := json.NewDecoder(resp.Body).Decode(&result)
-		if err != nil {
-			return false
+		if err := json.Unmarshal(body, &result); err != nil {
+			log.Error("Can not unmarshal JSON for maindata")
+		} else {
+			prom.Sendbackmessagemaindata(&result, r)
 		}
 		prom.Sendbackmessagemaindata(&result, r)
 	case "qbitversion":
 
-		result, err := io.ReadAll(resp.Body)
-		if err != nil {
-			return false
-		}
 		qbittorrent_app_version := prometheus.NewGauge(prometheus.GaugeOpts{
 			Name: "qbittorrent_app_version",
 			Help: "The current qBittorrent version",
 			ConstLabels: map[string]string{
-				"version": string(result),
+				"version": string(body),
 			},
 		})
 		r.MustRegister(qbittorrent_app_version)
