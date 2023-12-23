@@ -13,7 +13,14 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
       - name: Run unit tests
         run: go test -v ./src/tests
+
       - name: Run formatter
         run: test -z $(gofmt -l ./src)
+
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v3
+        with:
+          version: v1.55.2
