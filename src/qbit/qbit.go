@@ -28,22 +28,22 @@ type Data struct {
 var info = []Data{
 	{
 		URL:        "/api/v2/app/version",
-		HTTPMethod: "GET",
+		HTTPMethod: http.MethodGet,
 		Ref:        "qbitversion",
 	},
 	{
 		URL:        "/api/v2/app/preferences",
-		HTTPMethod: "GET",
+		HTTPMethod: http.MethodGet,
 		Ref:        "preference",
 	},
 	{
 		URL:        "/api/v2/torrents/info",
-		HTTPMethod: "GET",
+		HTTPMethod: http.MethodGet,
 		Ref:        "info",
 	},
 	{
 		URL:        "/api/v2/sync/maindata",
-		HTTPMethod: "GET",
+		HTTPMethod: http.MethodGet,
 		Ref:        "maindata",
 	},
 }
@@ -53,14 +53,17 @@ func getData(r *prometheus.Registry, data Data, goroutine bool) bool {
 		defer wg.Done()
 	}
 	resp, retry, err := Apirequest(data.URL, data.HTTPMethod)
-	if retry == true {
+	if retry {
 		return retry
 	}
 	if err != nil {
 		return false
 	}
-	body, err := io.ReadAll(resp.Body)
 
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return false
+	}
 	switch data.Ref {
 	case "preference":
 		var result models.TypePreferences
@@ -84,6 +87,7 @@ func getData(r *prometheus.Registry, data Data, goroutine bool) bool {
 			prom.Sendbackmessagemaindata(&result, r)
 		}
 	case "qbitversion":
+
 		qbittorrent_app_version := prometheus.NewGauge(prometheus.GaugeOpts{
 			Name: "qbittorrent_app_version",
 			Help: "The current qBittorrent version",
@@ -101,7 +105,7 @@ func getData(r *prometheus.Registry, data Data, goroutine bool) bool {
 
 func Allrequests(r *prometheus.Registry) {
 	retry := getData(r, info[0], false)
-	if retry == true {
+	if retry {
 		log.Debug("Retrying ...")
 		getData(r, info[0], false)
 	}

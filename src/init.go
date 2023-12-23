@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"flag"
 	"fmt"
 	"net/http"
@@ -18,6 +17,9 @@ import (
 )
 
 const DEFAULTPORT = 8090
+const VERSION = "1.1.1"
+const AUTHOR = "martabal"
+const PROJECT_NAME = "qbittorrent-exporter"
 
 var logLevels = map[string]log.Level{
 	"TRACE": log.TraceLevel,
@@ -29,19 +31,25 @@ var logLevels = map[string]log.Level{
 
 func main() {
 	loadenv()
-	projectinfo()
+	fmt.Printf("%s (version %s)\n", PROJECT_NAME, VERSION)
+	fmt.Println("Author: ", AUTHOR)
+	fmt.Println("Using log level: ", log.GetLevel())
 
 	qbit.Auth(true)
-	fmt.Println("qbittorrent URL: ", models.Getbaseurl())
-	fmt.Println("username: ", models.GetUsername())
-	fmt.Println("password: ", models.Getpasswordmasked())
-	fmt.Println("Started")
+
+	log.Info("qbittorrent URL: ", models.Getbaseurl())
+	log.Info("username: ", models.GetUsername())
+	log.Info("password: ", models.Getpasswordmasked())
+	log.Info("Started")
 	http.HandleFunc("/metrics", metrics)
 	addr := ":" + strconv.Itoa(models.GetPort())
 	if models.GetPort() != DEFAULTPORT {
 		log.Info("Listening on port", models.GetPort())
 	}
-	http.ListenAndServe(addr, nil)
+	err := http.ListenAndServe(addr, nil)
+	if err != nil {
+		log.Fatalln(err)
+	}
 }
 
 func metrics(w http.ResponseWriter, req *http.Request) {
@@ -50,25 +58,6 @@ func metrics(w http.ResponseWriter, req *http.Request) {
 	qbit.Allrequests(registry)
 	h := promhttp.HandlerFor(registry, promhttp.HandlerOpts{})
 	h.ServeHTTP(w, req)
-}
-
-func projectinfo() {
-	fileContent, err := os.ReadFile("./package.json")
-	if err != nil {
-		log.Fatal(err)
-		return
-	}
-
-	var res map[string]interface{}
-	err = json.Unmarshal(fileContent, &res)
-	if err != nil {
-		log.Fatal(err)
-		return
-	}
-
-	fmt.Print(res["name"], " (version ", res["version"], ")\n")
-	fmt.Print("Author: ", res["author"], "\n")
-	fmt.Print("Using log level: ", log.GetLevel(), "\n")
 }
 
 func loadenv() {
