@@ -28,22 +28,22 @@ type Data struct {
 var info = []Data{
 	{
 		URL:        "/api/v2/app/version",
-		HTTPMethod: "GET",
+		HTTPMethod: http.MethodGet,
 		Ref:        "qbitversion",
 	},
 	{
 		URL:        "/api/v2/app/preferences",
-		HTTPMethod: "GET",
+		HTTPMethod: http.MethodGet,
 		Ref:        "preference",
 	},
 	{
 		URL:        "/api/v2/torrents/info",
-		HTTPMethod: "GET",
+		HTTPMethod: http.MethodGet,
 		Ref:        "info",
 	},
 	{
 		URL:        "/api/v2/sync/maindata",
-		HTTPMethod: "GET",
+		HTTPMethod: http.MethodGet,
 		Ref:        "maindata",
 	},
 }
