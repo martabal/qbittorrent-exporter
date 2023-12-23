@@ -61,6 +61,9 @@ func getData(r *prometheus.Registry, data Data, goroutine bool) bool {
 	}
 
 	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return false
+	}
 	switch data.Ref {
 	case "preference":
 
