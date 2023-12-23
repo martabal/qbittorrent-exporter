@@ -34,6 +34,7 @@ jobs:
             type=raw,value=latest,enable=${{ github.event_name == 'release' }}
             type=ref,event=branch
             type=ref,event=pr
+            type=ref,event=tag
             type=raw,value=${{ inputs.tags }},enable=${{ github.event_name == 'workflow_dispatch' }}
 
       - name: Set up QEMU
