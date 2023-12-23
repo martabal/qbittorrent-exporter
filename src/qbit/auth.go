@@ -27,12 +27,14 @@ func Auth(init bool) {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		log.Error("Unknown error")
+		log.Error("Unknown error, status code ", resp.StatusCode)
 		return
 	}
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
+		log.Panicln("Error reading the body", err.Error())
+		return
 	}
 
 	if string(body) == "Fails." {
@@ -48,5 +50,4 @@ func Auth(init bool) {
 	cookieValue := strings.Split(strings.Split(cookie, ";")[0], "=")[1]
 	models.Setcookie(cookieValue)
 
-	return
 }
