@@ -1,4 +1,4 @@
-FROM golang:1.21-alpine3.18 AS builder
+FROM golang:1.21-alpine3.19 AS builder
 
 WORKDIR /app
 
@@ -7,7 +7,7 @@ COPY src src
 
 RUN go build -o /go/bin/qbittorrent-exporter ./src
 
-FROM alpine:3.18
+FROM alpine:3.19
 
 COPY --from=builder /go/bin/qbittorrent-exporter /go/bin/qbittorrent-exporter
 
