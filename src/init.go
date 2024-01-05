@@ -17,9 +17,12 @@ import (
 )
 
 const DEFAULTPORT = 8090
-const VERSION = "1.1.1"
-const AUTHOR = "martabal"
-const PROJECT_NAME = "qbittorrent-exporter"
+
+var (
+	Version     = "dev"
+	Author      = "martabal"
+	ProjectName = "qbittorrent-exporter"
+)
 
 var logLevels = map[string]log.Level{
 	"TRACE": log.TraceLevel,
@@ -31,8 +34,8 @@ var logLevels = map[string]log.Level{
 
 func main() {
 	loadenv()
-	fmt.Printf("%s (version %s)\n", PROJECT_NAME, VERSION)
-	fmt.Println("Author: ", AUTHOR)
+	fmt.Printf("%s (version %s)\n", ProjectName, Version)
+	fmt.Println("Author: ", Author)
 	fmt.Println("Using log level: ", log.GetLevel())
 
 	qbit.Auth(true)

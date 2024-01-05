@@ -31,7 +31,7 @@ docker run --name=qbit \
     -e QBITTORRENT_PASSWORD='<your_password>' \
     -e QBITTORRENT_USERNAME=admin \
     -p 8090:8090 \
-    ghcr.io/martabal/qbittorrent-exporter:latest
+    qbittorrent-exporter
 ```
 
 ### Docker-compose
@@ -43,7 +43,7 @@ services:
     image: ghcr.io/martabal/qbittorrent-exporter:latest
     container_name: qbittorrent-exporter
     environment:
-      - QBITTORRENT_URL=http://192.168.1.10:8080
+      - QBITTORRENT_BASE_URL=http://192.168.1.10:8080
       - QBITTORRENT_PASSWORD='<your_password>'
       - QBITTORRENT_USERNAME=admin
     ports:
