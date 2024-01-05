@@ -31,7 +31,7 @@ docker run --name=qbit \
     -e QBITTORRENT_PASSWORD='<your_password>' \
     -e QBITTORRENT_USERNAME=admin \
     -p 8090:8090 \
-    qbittorrent-exporter
+    ghcr.io/martabal/qbittorrent-exporter:latest
 ```
 
 ### Docker-compose
