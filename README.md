@@ -43,7 +43,7 @@ services:
     image: ghcr.io/martabal/qbittorrent-exporter:latest
     container_name: qbittorrent-exporter
     environment:
-      - QBITTORRENT_URL=http://192.168.1.10:8080
+      - QBITTORRENT_BASE_URL=http://192.168.1.10:8080
       - QBITTORRENT_PASSWORD='<your_password>'
       - QBITTORRENT_USERNAME=admin
     ports:
