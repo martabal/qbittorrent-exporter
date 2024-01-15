@@ -30,6 +30,7 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: |
+            ${{ github.repository_owner }}/${{ github.event.repository.name }}
             ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}
           tags: |
             type=raw,value=latest,enable=${{ github.event_name == 'release' }}
