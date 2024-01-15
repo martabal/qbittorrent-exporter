@@ -1,7 +1,7 @@
 package main
 
 import (
-	"qbit-exp/src/models"
+	"qbit-exp/models"
 	"testing"
 )
 

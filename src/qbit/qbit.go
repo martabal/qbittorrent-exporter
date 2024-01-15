@@ -7,8 +7,8 @@ import (
 	"sync"
 
 	"net/http"
-	"qbit-exp/src/models"
-	prom "qbit-exp/src/prometheus"
+	"qbit-exp/models"
+	prom "qbit-exp/prometheus"
 
 	log "github.com/sirupsen/logrus"
 

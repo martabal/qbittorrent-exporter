@@ -1,16 +1,16 @@
 FROM golang:1.21-alpine3.19 AS builder
 
-ARG PROJECT_VERSION
+ARG BUILD_VERSION
 
 WORKDIR /app
 
-COPY go.* .
 COPY src src
 
-RUN if [ -n "${PROJECT_VERSION}" ]; then \
-        go build -o /go/bin/qbittorrent-exporter -ldflags="-X 'main.Version=${PROJECT_VERSION}'" ./src; \
+RUN cd src && \
+    if [ -n "${BUILD_VERSION}" ]; then \
+        go build -o /go/bin/qbittorrent-exporter -ldflags="-X 'main.Version=${BUILD_VERSION}'" . ; \
     else \
-        go build -o /go/bin/qbittorrent-exporter ./src; \
+        go build -o /go/bin/qbittorrent-exporter . ; \
     fi
 
 FROM alpine:3.19

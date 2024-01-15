@@ -4,7 +4,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"qbit-exp/src/models"
+	"qbit-exp/models"
 	"strings"
 
 	log "github.com/sirupsen/logrus"

@@ -1,7 +1,7 @@
 package prom
 
 import (
-	"qbit-exp/src/models"
+	"qbit-exp/models"
 	"strconv"
 	"strings"
 
