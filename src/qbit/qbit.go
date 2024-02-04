@@ -22,7 +22,7 @@ var (
 
 type QueryParams struct {
 	Key   string
-	Value *string
+	Value string
 }
 
 type Data struct {
@@ -167,7 +167,7 @@ func getTrackers(torrentList *models.TypeInfo, r *prometheus.Registry) {
 			QueryParams: &[]QueryParams{
 				{
 					Key:   "hash",
-					Value: &uniqueObjects[i].Hash,
+					Value: uniqueObjects[i].Hash,
 				},
 			},
 		}
@@ -207,10 +207,7 @@ func Apirequest(uri string, method string, queryParams *[]QueryParams) (*http.Re
 	if queryParams != nil {
 		q := req.URL.Query()
 		for _, obj := range *queryParams {
-			if obj.Value != nil {
-				q.Add(obj.Key, *obj.Value)
-			}
-
+			q.Add(obj.Key, obj.Value)
 		}
 		req.URL.RawQuery = q.Encode()
 	}
