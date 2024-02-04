@@ -3,16 +3,18 @@ package models
 type TypeAppConfig struct {
 	Port           int
 	Error          bool
+	LogLevel       string
 	DisableTracker bool
 }
 
 var AppConfig TypeAppConfig
 
-func SetApp(setport int, seterror bool, setdisableTracker bool) {
+func SetApp(setport int, seterror bool, setdisableTracker bool, setloglevel string) {
 	AppConfig = TypeAppConfig{
 		Port:           setport,
 		Error:          seterror,
 		DisableTracker: setdisableTracker,
+		LogLevel:       setloglevel,
 	}
 }
 
@@ -26,6 +28,10 @@ func GetPort() int {
 
 func SetPromptError(prompt bool) {
 	AppConfig.Error = prompt
+}
+
+func GetLogLevel() string {
+	return AppConfig.LogLevel
 }
 
 func GetPromptError() bool {

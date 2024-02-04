@@ -27,6 +27,14 @@ func TestIsValidURL(t *testing.T) {
 		{"www.example.com", false},
 		{"file:///path/to/file", false},
 		{"", false},
+		{"http://invalid..url", true},
+		{"https://[::1]", true},
+		{"http://user:pass@www.example.com", true},
+		{"https://www.example.com:8080/path", true},
+		{"https://www.example.com?query=value", true},
+		{"https://www.example.com#fragment", true},
+		{"http://www.ex ample.com", false},
+		{"http://www.example.com:10000", true},
 	}
 
 	for _, tc := range testCases {

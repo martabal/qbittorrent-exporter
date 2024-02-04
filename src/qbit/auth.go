@@ -4,10 +4,10 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"qbit-exp/logger"
 	"qbit-exp/models"
+	"strconv"
 	"strings"
-
-	log "github.com/sirupsen/logrus"
 )
 
 func Auth(init bool) {
@@ -19,7 +19,7 @@ func Auth(init bool) {
 	if err != nil {
 		if !models.GetPromptError() {
 			models.SetPromptError(true)
-			log.Warn("Can't connect to qbittorrent with url : " + models.Getbaseurl())
+			logger.Log.Warn("Can't connect to qbittorrent with url : " + models.Getbaseurl())
 		}
 		return
 	}
@@ -27,23 +27,22 @@ func Auth(init bool) {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		log.Error("Unknown error, status code ", resp.StatusCode)
+		logger.Log.Error("Unknown error, status code " + strconv.Itoa(resp.StatusCode))
 		return
 	}
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		log.Panicln("Error reading the body", err.Error())
-		return
+		errormessage := "Error reading the body" + err.Error()
+		panic(errormessage)
 	}
 
 	if string(body) == "Fails." {
-		log.Panicln("Authentication Error, check your qBittorrent username / password")
-		return
+		panic("Authentication Error, check your qBittorrent username / password")
 	}
 
 	if models.GetPromptError() {
-		log.Info("New cookie stored")
+		logger.Log.Info("New cookie stored")
 	}
 
 	cookie := resp.Header.Get("Set-Cookie")

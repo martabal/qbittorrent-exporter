@@ -4,13 +4,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"strconv"
 	"sync"
 
 	"net/http"
+	API "qbit-exp/api"
+	"qbit-exp/logger"
 	"qbit-exp/models"
 	prom "qbit-exp/prometheus"
-
-	log "github.com/sirupsen/logrus"
 
 	"github.com/prometheus/client_golang/prometheus"
 )
@@ -31,6 +32,8 @@ type Data struct {
 	Ref         string
 	QueryParams *[]QueryParams
 }
+
+const UnmarshError = "Can not unmarshal JSON for preferences"
 
 var info = []Data{
 	{
@@ -57,6 +60,12 @@ var info = []Data{
 		Ref:         "maindata",
 		QueryParams: nil,
 	},
+	{
+		URL:         "/api/v2/transfer/info",
+		HTTPMethod:  http.MethodGet,
+		Ref:         "transfer",
+		QueryParams: nil,
+	},
 }
 
 func getData(r *prometheus.Registry, data Data, goroutine bool) bool {
@@ -77,32 +86,31 @@ func getData(r *prometheus.Registry, data Data, goroutine bool) bool {
 	}
 	switch data.Ref {
 	case "info":
-		var result models.TypeInfo
+		result := new(API.Info)
 		if err := json.Unmarshal(body, &result); err != nil {
-			log.Error("Can not unmarshal JSON for torrents info")
+			logger.Log.Error(UnmarshError)
 		} else {
-			prom.Sendbackmessagetorrent(&result, r)
+			prom.Sendbackmessagetorrent(result, r)
 			if !models.GetFeatureFlag() {
-				getTrackers(&result, r)
+				getTrackers(result, r)
 			}
 
 		}
 	case "maindata":
-		var result models.TypeMaindata
+		result := new(API.Maindata)
 		if err := json.Unmarshal(body, &result); err != nil {
-			log.Error("Can not unmarshal JSON for maindata")
+			logger.Log.Error(UnmarshError)
 		} else {
-			prom.Sendbackmessagemaindata(&result, r)
+			prom.Sendbackmessagemaindata(result, r)
 		}
 	case "preference":
-		var result models.TypePreferences
+		result := new(API.Preferences)
 		if err := json.Unmarshal(body, &result); err != nil {
-			log.Error("Can not unmarshal JSON for preferences")
+			logger.Log.Error(UnmarshError)
 		} else {
-			prom.Sendbackmessagepreference(&result, r)
+			prom.Sendbackmessagepreference(result, r)
 		}
 	case "qbitversion":
-
 		qbittorrent_app_version := prometheus.NewGauge(prometheus.GaugeOpts{
 			Name: "qbittorrent_app_version",
 			Help: "The current qBittorrent version",
@@ -112,29 +120,37 @@ func getData(r *prometheus.Registry, data Data, goroutine bool) bool {
 		})
 		r.MustRegister(qbittorrent_app_version)
 		qbittorrent_app_version.Set(1)
+	case "transfer":
+		result := new(API.Transfer)
+		if err := json.Unmarshal(body, &result); err != nil {
+			logger.Log.Error(UnmarshError)
+		} else {
+			prom.Sendbackmessagetransfer(result, r)
+		}
 	default:
-		log.Panicln("Unknown reference: ", data.Ref)
+		errormessage := "Unknown reference: " + data.Ref
+		panic(errormessage)
 	}
 	return false
 }
 
-func getTrackersInfo(data Data, c chan func() (*models.TypeTrackers, error)) {
+func getTrackersInfo(data Data, c chan func() (*API.Trackers, error)) {
 	defer wgTracker.Done()
 	resp, _, err := Apirequest(data.URL, data.HTTPMethod, data.QueryParams)
 
 	if err != nil {
-		c <- (func() (*models.TypeTrackers, error) { return nil, err })
+		c <- (func() (*API.Trackers, error) { return nil, err })
 	}
 	body, err := io.ReadAll(resp.Body)
 
 	if err != nil {
-		c <- (func() (*models.TypeTrackers, error) { return nil, err })
+		c <- (func() (*API.Trackers, error) { return nil, err })
 	}
-	result := new(models.TypeTrackers)
+	result := new(API.Trackers)
 	if err := json.Unmarshal(body, &result); err != nil {
-		log.Error("Can not unmarshal JSON for preferences")
+		logger.Log.Error("Can not unmarshal JSON for preferences")
 	} else {
-		c <- (func() (*models.TypeTrackers, error) { return result, err })
+		c <- (func() (*API.Trackers, error) { return result, err })
 	}
 
 }
@@ -144,7 +160,7 @@ type UniqueObject struct {
 	Hash    string
 }
 
-func getTrackers(torrentList *models.TypeInfo, r *prometheus.Registry) {
+func getTrackers(torrentList *API.Info, r *prometheus.Registry) {
 	uniqueValues := make(map[string]struct{})
 	var uniqueObjects []UniqueObject
 	for _, obj := range *torrentList {
@@ -156,9 +172,9 @@ func getTrackers(torrentList *models.TypeInfo, r *prometheus.Registry) {
 		}
 	}
 
-	responses := new([]*models.TypeTrackers)
+	responses := new([]*API.Trackers)
 	for i := 1; i < len(uniqueObjects); i++ {
-		tracker := make(chan func() (*models.TypeTrackers, error))
+		tracker := make(chan func() (*API.Trackers, error))
 		var trackerInfo = Data{
 			URL:        "/api/v2/torrents/trackers",
 			HTTPMethod: http.MethodGet,
@@ -187,7 +203,7 @@ func getTrackers(torrentList *models.TypeInfo, r *prometheus.Registry) {
 func Allrequests(r *prometheus.Registry) {
 	retry := getData(r, info[0], false)
 	if retry {
-		log.Debug("Retrying ...")
+		logger.Log.Debug("Retrying ...")
 		getData(r, info[0], false)
 	}
 	wg.Add(len(info) - 1)
@@ -201,7 +217,7 @@ func Apirequest(uri string, method string, queryParams *[]QueryParams) (*http.Re
 
 	req, err := http.NewRequest(method, models.Getbaseurl()+uri, nil)
 	if err != nil {
-		log.Fatalln("Error with url")
+		panic("Error with url")
 	}
 	if queryParams != nil {
 		q := req.URL.Query()
@@ -217,7 +233,7 @@ func Apirequest(uri string, method string, queryParams *[]QueryParams) (*http.Re
 	if err != nil {
 		err := fmt.Errorf("Can't connect to server")
 		if !models.GetPromptError() {
-			log.Debug(err.Error())
+			logger.Log.Debug(err.Error())
 			models.SetPromptError(true)
 		}
 		return resp, false, err
@@ -233,7 +249,7 @@ func Apirequest(uri string, method string, queryParams *[]QueryParams) (*http.Re
 		err := fmt.Errorf("%d", resp.StatusCode)
 		if !models.GetPromptError() {
 			models.SetPromptError(true)
-			log.Warn("Cookie changed, try to reconnect ...")
+			logger.Log.Warn("Cookie changed, try to reconnect ...")
 		}
 		Auth(false)
 		return resp, true, err
@@ -241,7 +257,7 @@ func Apirequest(uri string, method string, queryParams *[]QueryParams) (*http.Re
 		err := fmt.Errorf("%d", resp.StatusCode)
 		if !models.GetPromptError() {
 			models.SetPromptError(true)
-			log.Debug("Error code ", resp.StatusCode)
+			logger.Log.Debug("Error code " + strconv.Itoa(resp.StatusCode))
 		}
 		return resp, false, err
 	}
