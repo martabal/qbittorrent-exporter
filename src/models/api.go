@@ -7,6 +7,7 @@ type TypeInfo []struct {
 	Downloaded        int     `json:"downloaded"`
 	DownloadedSession int     `json:"downloaded_session"`
 	Eta               int     `json:"eta"`
+	Hash              string  `json:"hash"`
 	MaxRatio          float64 `json:"max_ratio"`
 	Name              string  `json:"name"`
 	NumLeechs         int     `json:"num_leechs"`
@@ -16,6 +17,7 @@ type TypeInfo []struct {
 	Size              int     `json:"size"`
 	State             string  `json:"state"`
 	Tags              string  `json:"tags"`
+	Tracker           string  `json:"tracker"`
 	TimeActive        int     `json:"time_active"`
 	Uploaded          int     `json:"uploaded"`
 	UploadedSession   int     `json:"uploaded_session"`
@@ -50,4 +52,15 @@ type TypeMaindata struct {
 type TypeCategory struct {
 	Name     string `json:"name"`
 	SavePath string `json:"savePath"`
+}
+
+type TypeTrackers []struct {
+	Message       string `json:"msg"`
+	NumDownloaded int    `json:"num_downloaded"`
+	NumLeeches    int    `json:"num_leeches"`
+	NumPeers      int    `json:"num_peers"`
+	NumSeeds      int    `json:"num_seeds"`
+	Status        int    `json:"status"`
+	Tier          int    `json:"tier"`
+	URL           string `json:"url"`
 }
