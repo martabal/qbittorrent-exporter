@@ -205,7 +205,7 @@ func Sendbackmessagetrackers(result []*models.TypeTrackers, r *prometheus.Regist
 	}
 	qbittorrent_tracker_info := prometheus.NewGaugeVec(prometheus.GaugeOpts{
 		Name: "qbittorrent_tracker_info",
-		Help: "All info for tracker",
+		Help: "All info for trackers",
 	}, []string{"message", "downloaded", "leeches", "peers", "seeders", "status", "tier", "url"})
 
 	r.MustRegister(qbittorrent_tracker_info)

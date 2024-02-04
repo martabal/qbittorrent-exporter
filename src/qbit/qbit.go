@@ -145,7 +145,6 @@ type UniqueObject struct {
 }
 
 func getTrackers(torrentList *models.TypeInfo, r *prometheus.Registry) {
-	fmt.Println("test")
 	uniqueValues := make(map[string]struct{})
 	var uniqueObjects []UniqueObject
 	for _, obj := range *torrentList {
