@@ -1,6 +1,7 @@
 package prom
 
 import (
+	"net/url"
 	"qbit-exp/models"
 	"strconv"
 	"strings"
@@ -21,6 +22,11 @@ type Gauge []struct {
 	unit  Unit
 	help  string
 	value float64
+}
+
+func IsValidURL(input string) bool {
+	u, err := url.Parse(input)
+	return err == nil && u.Scheme != "" && u.Host != ""
 }
 
 func Sendbackmessagetorrent(result *models.TypeInfo, r *prometheus.Registry) {
@@ -92,7 +98,7 @@ func Sendbackmessagetorrent(result *models.TypeInfo, r *prometheus.Registry) {
 	qbittorrent_torrent_info := prometheus.NewGaugeVec(prometheus.GaugeOpts{
 		Name: "qbittorrent_torrent_info",
 		Help: "All info for torrents",
-	}, []string{"name", "category", "state", "size", "progress", "seeders", "leechers", "dl_speed", "up_speed", "amount_left", "time_active", "eta", "uploaded", "uploaded_session", "downloaded", "downloaded_session", "max_ratio", "ratio"})
+	}, []string{"name", "category", "state", "size", "progress", "seeders", "leechers", "dl_speed", "up_speed", "amount_left", "time_active", "eta", "uploaded", "uploaded_session", "downloaded", "downloaded_session", "max_ratio", "ratio", "tracker"})
 	qbittorrent_torrent_tags := prometheus.NewGaugeVec(prometheus.GaugeOpts{
 		Name: "qbittorrent_tags",
 		Help: "All tags associated to this torrent",
@@ -156,7 +162,8 @@ func Sendbackmessagetorrent(result *models.TypeInfo, r *prometheus.Registry) {
 			"downloaded":         strconv.Itoa((torrent.Downloaded)),
 			"downloaded_session": strconv.Itoa((torrent.DownloadedSession)),
 			"max_ratio":          strconv.FormatFloat((torrent.MaxRatio), 'f', 3, 64),
-			"ratio":              strconv.FormatFloat((torrent.Ratio), 'f', 3, 64)}).Set(1)
+			"ratio":              strconv.FormatFloat((torrent.Ratio), 'f', 3, 64),
+			"tracker":            torrent.Tracker}).Set(1)
 		if torrent.Tags != "" {
 			separated_list := strings.Split(torrent.Tags, ", ")
 			for j := 0; j < len(separated_list); j++ {
@@ -188,6 +195,36 @@ func Sendbackmessagepreference(result *models.TypePreferences, r *prometheus.Reg
 	}
 
 	register(gauges, r)
+
+}
+
+func Sendbackmessagetrackers(result []*models.TypeTrackers, r *prometheus.Registry) {
+	if len(result) == 0 {
+		log.Debug("No tracker")
+		return
+	}
+	qbittorrent_tracker_info := prometheus.NewGaugeVec(prometheus.GaugeOpts{
+		Name: "qbittorrent_tracker_info",
+		Help: "All info for trackers",
+	}, []string{"message", "downloaded", "leeches", "peers", "seeders", "status", "tier", "url"})
+
+	r.MustRegister(qbittorrent_tracker_info)
+	for _, listOfTracker := range result {
+		for _, tracker := range *listOfTracker {
+			if IsValidURL(tracker.URL) {
+				qbittorrent_tracker_info.With(prometheus.Labels{
+					"message":    tracker.Message,
+					"downloaded": strconv.Itoa(tracker.NumDownloaded),
+					"leeches":    strconv.Itoa(tracker.NumLeeches),
+					"peers":      strconv.Itoa(tracker.NumPeers),
+					"seeders":    strconv.Itoa(int(tracker.NumSeeds)),
+					"status":     strconv.Itoa((tracker.Status)),
+					"tier":       strconv.Itoa((tracker.Tier)),
+					"url":        tracker.URL}).Set(1)
+			}
+		}
+
+	}
 
 }
 

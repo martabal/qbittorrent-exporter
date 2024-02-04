@@ -2,6 +2,7 @@ package main
 
 import (
 	"qbit-exp/models"
+	prom "qbit-exp/prometheus"
 	"testing"
 )
 
@@ -11,6 +12,30 @@ func TestMain(t *testing.T) {
 
 	if !isValidMaskedPassword(result) {
 		t.Errorf("Invalid masked password. Expected only asterisks, got: %s", result)
+	}
+}
+
+func TestIsValidURL(t *testing.T) {
+	testCases := []struct {
+		input    string
+		expected bool
+	}{
+		{"https://www.example.com", true},
+		{"http://localhost:8080", true},
+		{"ftp://ftp.example.com", true},
+		{"not_a_url", false},
+		{"www.example.com", false},
+		{"file:///path/to/file", false},
+		{"", false},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.input, func(t *testing.T) {
+			result := prom.IsValidURL(tc.input)
+			if result != tc.expected {
+				t.Errorf("Expected %s to be %v, but got %v", tc.input, tc.expected, result)
+			}
+		})
 	}
 }
 

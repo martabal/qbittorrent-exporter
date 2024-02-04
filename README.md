@@ -123,6 +123,7 @@ Docker compressed size is ~10 MB.
 | `-e QBITTORRENT_PASSWORD` | qBittorrent password | `adminadmin` |
 | `-e QBITTORRENT_BASE_URL` | qBittorrent base URL | `http://localhost:8090` |
 | `-e EXPORTER_PORT` | qbittorrent export port (optional) | `8090` |
+| `-e DISABLE_TRACKER` | get tracker infos (need an API request for each tracker) | `false` |
 | `-e LOG_LEVEL` | App log level (`TRACE`, `DEBUG`, `INFO`, `WARN` and `ERROR`) | `INFO` |
 
 ### Arguments
