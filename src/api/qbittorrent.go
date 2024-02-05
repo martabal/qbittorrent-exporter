@@ -1,6 +1,6 @@
-package models
+package API
 
-type TypeInfo []struct {
+type Info []struct {
 	AmountLeft        int     `json:"amount_left"`
 	Category          string  `json:"category"`
 	Dlspeed           int     `json:"dlspeed"`
@@ -24,7 +24,7 @@ type TypeInfo []struct {
 	Upspeed           int     `json:"upspeed"`
 }
 
-type TypePreferences struct {
+type Preferences struct {
 	AltDlLimit         int `json:"alt_dl_limit"`
 	AltUpLimit         int `json:"alt_up_limit"`
 	DlLimit            int `json:"dl_limit"`
@@ -34,8 +34,8 @@ type TypePreferences struct {
 	UpLimit            int `json:"up_limit"`
 }
 
-type TypeMaindata struct {
-	CategoryMap map[string]TypeCategory `json:"categories"`
+type Maindata struct {
+	CategoryMap map[string]Category `json:"categories"`
 	ServerState struct {
 		AlltimeDl         int    `json:"alltime_dl"`
 		AlltimeUl         int    `json:"alltime_ul"`
@@ -49,12 +49,12 @@ type TypeMaindata struct {
 	Tags []string `json:"tags"`
 }
 
-type TypeCategory struct {
+type Category struct {
 	Name     string `json:"name"`
 	SavePath string `json:"savePath"`
 }
 
-type TypeTrackers []struct {
+type Trackers []struct {
 	Message       string `json:"msg"`
 	NumDownloaded int    `json:"num_downloaded"`
 	NumLeeches    int    `json:"num_leeches"`
@@ -63,4 +63,9 @@ type TypeTrackers []struct {
 	Status        int    `json:"status"`
 	Tier          int    `json:"tier"`
 	URL           string `json:"url"`
+}
+
+type Transfer struct {
+	ConnectionStatus string `json:"connection_status"`
+	DhtNodes         int    `json:"dht_nodes"`
 }

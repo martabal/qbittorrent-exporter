@@ -2,12 +2,12 @@ package prom
 
 import (
 	"net/url"
-	"qbit-exp/models"
+	API "qbit-exp/api"
+	"qbit-exp/logger"
 	"strconv"
 	"strings"
 
 	"github.com/prometheus/client_golang/prometheus"
-	log "github.com/sirupsen/logrus"
 )
 
 type Unit string
@@ -29,7 +29,7 @@ func IsValidURL(input string) bool {
 	return err == nil && u.Scheme != "" && u.Host != ""
 }
 
-func Sendbackmessagetorrent(result *models.TypeInfo, r *prometheus.Registry) {
+func Sendbackmessagetorrent(result *API.Info, r *prometheus.Registry) {
 
 	qbittorrent_eta := prometheus.NewGaugeVec(prometheus.GaugeOpts{
 		Name: "qbittorrent_torrent_eta",
@@ -183,7 +183,7 @@ func Sendbackmessagetorrent(result *models.TypeInfo, r *prometheus.Registry) {
 
 }
 
-func Sendbackmessagepreference(result *models.TypePreferences, r *prometheus.Registry) {
+func Sendbackmessagepreference(result *API.Preferences, r *prometheus.Registry) {
 	gauges := Gauge{
 		{"max active downloads", "", "The max number of downloads allowed", float64((*result).MaxActiveDownloads)},
 		{"max active uploads", "", "The max number of active uploads allowed", float64((*result).MaxActiveDownloads)},
@@ -198,9 +198,27 @@ func Sendbackmessagepreference(result *models.TypePreferences, r *prometheus.Reg
 
 }
 
-func Sendbackmessagetrackers(result []*models.TypeTrackers, r *prometheus.Registry) {
+func Sendbackmessagetransfer(result *API.Transfer, r *prometheus.Registry) {
+	gauges := Gauge{
+		{"dht nodes", "", "The DHT nodes connected to", float64(result.DhtNodes)},
+	}
+	qbittorrent_tracker_info := prometheus.NewGaugeVec(prometheus.GaugeOpts{
+		Name: "qbittorrent_transfer_connection_status",
+		Help: "Connection status (connected, firewalled or disconnected)",
+	}, []string{"connection_status"})
+
+	r.MustRegister(qbittorrent_tracker_info)
+	qbittorrent_tracker_info.With(prometheus.Labels{
+		"connection_status": result.ConnectionStatus,
+	}).Set(1)
+
+	register(gauges, r)
+
+}
+
+func Sendbackmessagetrackers(result []*API.Trackers, r *prometheus.Registry) {
 	if len(result) == 0 {
-		log.Debug("No tracker")
+		logger.Log.Debug("No tracker")
 		return
 	}
 	qbittorrent_tracker_info := prometheus.NewGaugeVec(prometheus.GaugeOpts{
@@ -228,11 +246,11 @@ func Sendbackmessagetrackers(result []*models.TypeTrackers, r *prometheus.Regist
 
 }
 
-func Sendbackmessagemaindata(result *models.TypeMaindata, r *prometheus.Registry) {
+func Sendbackmessagemaindata(result *API.Maindata, r *prometheus.Registry) {
 	globalratio, err := strconv.ParseFloat((*result).ServerState.GlobalRatio, 64)
 
 	if err != nil {
-		log.Warn("error to convert ratio")
+		logger.Log.Warn("error to convert ratio")
 	} else {
 		qbittorrent_global_ratio := prometheus.NewGauge(prometheus.GaugeOpts{
 			Name: "qbittorrent_global_ratio",

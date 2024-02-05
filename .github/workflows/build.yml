@@ -9,8 +9,18 @@ jobs:
   build:
     name: Run build
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./src
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.21"
+
       - name: Build
-        run: make build
+        run: go build .

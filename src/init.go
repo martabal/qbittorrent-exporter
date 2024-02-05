@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"os"
 	"qbit-exp/models"
@@ -10,10 +11,11 @@ import (
 	"strconv"
 	"strings"
 
+	logger "qbit-exp/logger"
+
 	"github.com/joho/godotenv"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	log "github.com/sirupsen/logrus"
 )
 
 const DEFAULTPORT = 8090
@@ -24,39 +26,31 @@ var (
 	ProjectName = "qbittorrent-exporter"
 )
 
-var logLevels = map[string]log.Level{
-	"TRACE": log.TraceLevel,
-	"DEBUG": log.DebugLevel,
-	"INFO":  log.InfoLevel,
-	"WARN":  log.WarnLevel,
-	"ERROR": log.ErrorLevel,
-}
-
 func main() {
 	loadenv()
 	fmt.Printf("%s (version %s)\n", ProjectName, Version)
 	fmt.Println("Author: ", Author)
-	fmt.Println("Using log level: ", log.GetLevel())
+	fmt.Println("Using log level: " + models.GetLogLevel())
 
 	qbit.Auth(true)
 
-	log.Info("qbittorrent URL: ", models.Getbaseurl())
-	log.Info("username: ", models.GetUsername())
-	log.Info("password: ", models.Getpasswordmasked())
-	log.Info("Started")
+	logger.Log.Info("qbittorrent URL: " + models.Getbaseurl())
+	logger.Log.Info("username: " + models.GetUsername())
+	logger.Log.Info("password: " + models.Getpasswordmasked())
+	logger.Log.Info("Started")
 	http.HandleFunc("/metrics", metrics)
 	addr := ":" + strconv.Itoa(models.GetPort())
 	if models.GetPort() != DEFAULTPORT {
-		log.Info("Listening on port", models.GetPort())
+		logger.Log.Info("Listening on port" + strconv.Itoa(models.GetPort()))
 	}
 	err := http.ListenAndServe(addr, nil)
 	if err != nil {
-		log.Fatalln(err)
+		panic(err)
 	}
 }
 
 func metrics(w http.ResponseWriter, req *http.Request) {
-	log.Trace("New request")
+	logger.Log.Debug("New request")
 	registry := prometheus.NewRegistry()
 	qbit.Allrequests(registry)
 	h := promhttp.HandlerFor(registry, promhttp.HandlerOpts{})
@@ -71,7 +65,8 @@ func loadenv() {
 	if !os.IsNotExist(err) && !envfile {
 		err := godotenv.Load(".env")
 		if err != nil {
-			log.Panic("Error loading .env file:", err)
+			errormessage := "Error loading .env file:" + err.Error()
+			panic(errormessage)
 		}
 		// fmt.Println("Using .env file")
 	}
@@ -85,36 +80,40 @@ func loadenv() {
 	num, err := strconv.Atoi(exporterPort)
 
 	if err != nil {
-		log.Panic("EXPORTER_PORT must be an integer")
+		panic("EXPORTER_PORT must be an integer")
 	}
 	if num < 0 || num > 65353 {
-		log.Panic("EXPORTER_PORT must be > 0 and < 65353")
+		panic("EXPORTER_PORT must be > 0 and < 65353")
 	}
 
-	setLogLevel(getEnv("LOG_LEVEL", "INFO", false, ""))
-	models.SetApp(num, false, strings.ToLower(disableTracker) == "true")
+	loglevel := setLogLevel(getEnv("LOG_LEVEL", "INFO", false, ""))
+	models.SetApp(num, false, strings.ToLower(disableTracker) == "true", loglevel)
 	models.SetQbit(qbitURL, qbitUsername, qbitPassword)
 }
 
-func setLogLevel(logLevel string) {
+func setLogLevel(logLevel string) string {
 	upperLogLevel := strings.ToUpper(logLevel)
-	level, found := logLevels[upperLogLevel]
+	level, found := logger.LogLevels[upperLogLevel]
 	if !found {
-		level = log.InfoLevel
+		upperLogLevel = "INFO"
+		level = logger.LogLevels[upperLogLevel]
 	}
 
-	log.SetLevel(level)
-	log.SetFormatter(&log.TextFormatter{
-		DisableColors: false,
-		FullTimestamp: true,
-	})
+	opts := logger.PrettyHandlerOptions{
+		SlogOpts: slog.HandlerOptions{
+			Level: slog.Level(level),
+		},
+	}
+	handler := logger.NewPrettyHandler(os.Stdout, opts)
+	logger.Log = slog.New(handler)
+	return upperLogLevel
 }
 
 func getEnv(key string, fallback string, printLog bool, logPrinted string) string {
 	value, ok := os.LookupEnv(key)
 	if !ok || value == "" {
 		if printLog {
-			log.Warn(logPrinted)
+			logger.Log.Warn(logPrinted)
 		}
 		return fallback
 	}
