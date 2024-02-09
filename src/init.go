@@ -29,7 +29,7 @@ var (
 func main() {
 	loadenv()
 	fmt.Printf("%s (version %s)\n", ProjectName, Version)
-	fmt.Println("Author: ", Author)
+	fmt.Println("Author:", Author)
 	fmt.Println("Using log level: " + models.GetLogLevel())
 
 	qbit.Auth(true)
