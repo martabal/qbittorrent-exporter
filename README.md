@@ -116,21 +116,21 @@ Docker compressed size is ~10 MB.
 
 ### Environment variables
 
-| Parameters | Function | Default Value |
-| :-----: | ----- | ----- |
-| `-p 8090` | Webservice port |  |
-| `-e QBITTORRENT_USERNAME` | qBittorrent username | `admin` |
-| `-e QBITTORRENT_PASSWORD` | qBittorrent password | `adminadmin` |
-| `-e QBITTORRENT_BASE_URL` | qBittorrent base URL | `http://localhost:8090` |
-| `-e EXPORTER_PORT` | qbittorrent export port (optional) | `8090` |
-| `-e DISABLE_TRACKER` | get tracker infos (need an API request for each tracker) | `false` |
-| `-e LOG_LEVEL` | App log level (`DEBUG`, `INFO`, `WARN` and `ERROR`) | `INFO` |
+|        Parameters         | Function                                                 | Default Value           |
+| :-----------------------: | -------------------------------------------------------- | ----------------------- |
+|         `-p 8090`         | Webservice port                                          |                         |
+| `-e QBITTORRENT_USERNAME` | qBittorrent username                                     | `admin`                 |
+| `-e QBITTORRENT_PASSWORD` | qBittorrent password                                     | `adminadmin`            |
+| `-e QBITTORRENT_BASE_URL` | qBittorrent base URL                                     | `http://localhost:8090` |
+|    `-e EXPORTER_PORT`     | qbittorrent export port (optional)                       | `8090`                  |
+|   `-e DISABLE_TRACKER`    | get tracker infos (need an API request for each tracker) | `false`                 |
+|      `-e LOG_LEVEL`       | App log level (`DEBUG`, `INFO`, `WARN` and `ERROR`)      | `INFO`                  |
 
 ### Arguments
 
-| Arguments | Function |
-| :-----: | ----- |
-| -e | If qbittorrent-exporter detects a .env file in the same directory, the values in the .env will be used, `-e` forces the usage of environment variables |
+| Arguments | Function                                                                                                                                               |
+| :-------: | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+|    -e     | If qbittorrent-exporter detects a .env file in the same directory, the values in the .env will be used, `-e` forces the usage of environment variables |
 
 ### Setup
 
