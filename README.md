@@ -92,15 +92,16 @@ You can find in the dasboard the following metrics:
 - Session download/upload
 - Cumulative upload/download speeds
 - Global ratio/download speed/upload speed
-- App version
+- Qbittorrent version
 - Torrent list with statuses
 - Total torrents/seeders/leechers
 - Torrent state chart
 - Amount remaining by torrent
 - Incomplete torrent progress
 - Download/upload speed by torrent
-- List of categories
-- List of tags
+- Categories
+- Tags
+- Trackers
 
 ## Resources
 
