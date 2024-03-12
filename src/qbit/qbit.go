@@ -33,7 +33,7 @@ type Data struct {
 	QueryParams *[]QueryParams
 }
 
-const UnmarshError = "Can not unmarshal JSON for preferences"
+const UnmarshError = "Can not unmarshal JSON for "
 
 var info = []Data{
 	{
@@ -84,11 +84,12 @@ func getData(r *prometheus.Registry, data Data, goroutine bool) bool {
 	if err != nil {
 		return false
 	}
+	unmarshErr := UnmarshError + data.Ref
 	switch data.Ref {
 	case "info":
 		result := new(API.Info)
 		if err := json.Unmarshal(body, &result); err != nil {
-			logger.Log.Error(UnmarshError)
+			logger.Log.Error(unmarshErr)
 		} else {
 			prom.Sendbackmessagetorrent(result, r)
 			if !models.GetFeatureFlag() {
@@ -99,14 +100,14 @@ func getData(r *prometheus.Registry, data Data, goroutine bool) bool {
 	case "maindata":
 		result := new(API.Maindata)
 		if err := json.Unmarshal(body, &result); err != nil {
-			logger.Log.Error(UnmarshError)
+			logger.Log.Error(unmarshErr)
 		} else {
 			prom.Sendbackmessagemaindata(result, r)
 		}
 	case "preference":
 		result := new(API.Preferences)
 		if err := json.Unmarshal(body, &result); err != nil {
-			logger.Log.Error(UnmarshError)
+			logger.Log.Error(unmarshErr)
 		} else {
 			prom.Sendbackmessagepreference(result, r)
 		}
@@ -123,7 +124,7 @@ func getData(r *prometheus.Registry, data Data, goroutine bool) bool {
 	case "transfer":
 		result := new(API.Transfer)
 		if err := json.Unmarshal(body, &result); err != nil {
-			logger.Log.Error(UnmarshError)
+			logger.Log.Error(unmarshErr)
 		} else {
 			prom.Sendbackmessagetransfer(result, r)
 		}
@@ -147,8 +148,9 @@ func getTrackersInfo(data Data, c chan func() (*API.Trackers, error)) {
 		c <- (func() (*API.Trackers, error) { return nil, err })
 	}
 	result := new(API.Trackers)
+	unmarshErr := UnmarshError + "tracker"
 	if err := json.Unmarshal(body, &result); err != nil {
-		logger.Log.Error("Can not unmarshal JSON for preferences")
+		logger.Log.Error(unmarshErr)
 	} else {
 		c <- (func() (*API.Trackers, error) { return result, err })
 	}
