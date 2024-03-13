@@ -89,6 +89,8 @@ func getData(r *prometheus.Registry, data Data, goroutine bool) bool {
 	case "info":
 		result := new(API.Info)
 		if err := json.Unmarshal(body, &result); err != nil {
+			logger.Log.Debug(string(body))
+			logger.Log.Debug(err.Error())
 			logger.Log.Error(unmarshErr)
 		} else {
 			prom.Sendbackmessagetorrent(result, r)
@@ -100,6 +102,8 @@ func getData(r *prometheus.Registry, data Data, goroutine bool) bool {
 	case "maindata":
 		result := new(API.Maindata)
 		if err := json.Unmarshal(body, &result); err != nil {
+			logger.Log.Debug(string(body))
+			logger.Log.Debug(err.Error())
 			logger.Log.Error(unmarshErr)
 		} else {
 			prom.Sendbackmessagemaindata(result, r)
@@ -107,6 +111,8 @@ func getData(r *prometheus.Registry, data Data, goroutine bool) bool {
 	case "preference":
 		result := new(API.Preferences)
 		if err := json.Unmarshal(body, &result); err != nil {
+			logger.Log.Debug(string(body))
+			logger.Log.Debug(err.Error())
 			logger.Log.Error(unmarshErr)
 		} else {
 			prom.Sendbackmessagepreference(result, r)
@@ -124,6 +130,8 @@ func getData(r *prometheus.Registry, data Data, goroutine bool) bool {
 	case "transfer":
 		result := new(API.Transfer)
 		if err := json.Unmarshal(body, &result); err != nil {
+			logger.Log.Debug(string(body))
+			logger.Log.Debug(err.Error())
 			logger.Log.Error(unmarshErr)
 		} else {
 			prom.Sendbackmessagetransfer(result, r)
@@ -150,6 +158,8 @@ func getTrackersInfo(data Data, c chan func() (*API.Trackers, error)) {
 	result := new(API.Trackers)
 	unmarshErr := UnmarshError + "tracker"
 	if err := json.Unmarshal(body, &result); err != nil {
+		logger.Log.Debug(string(body))
+		logger.Log.Debug(err.Error())
 		logger.Log.Error(unmarshErr)
 	} else {
 		c <- (func() (*API.Trackers, error) { return result, err })
@@ -233,9 +243,8 @@ func Apirequest(uri string, method string, queryParams *[]QueryParams) (*http.Re
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		err := fmt.Errorf("Can't connect to server")
+		err := fmt.Errorf("can't connect to server")
 		if !models.GetPromptError() {
-			logger.Log.Debug(err.Error())
 			models.SetPromptError(true)
 		}
 		return resp, false, err

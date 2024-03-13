@@ -230,6 +230,10 @@ func Sendbackmessagetrackers(result []*API.Trackers, r *prometheus.Registry) {
 	for _, listOfTracker := range result {
 		for _, tracker := range *listOfTracker {
 			if IsValidURL(tracker.URL) {
+				tier, err := strconv.Atoi(string(tracker.Tier))
+				if err != nil {
+					tier = 0
+				}
 				qbittorrent_tracker_info.With(prometheus.Labels{
 					"message":    tracker.Message,
 					"downloaded": strconv.Itoa(tracker.NumDownloaded),
@@ -237,8 +241,9 @@ func Sendbackmessagetrackers(result []*API.Trackers, r *prometheus.Registry) {
 					"peers":      strconv.Itoa(tracker.NumPeers),
 					"seeders":    strconv.Itoa(int(tracker.NumSeeds)),
 					"status":     strconv.Itoa((tracker.Status)),
-					"tier":       strconv.Itoa((tracker.Tier)),
+					"tier":       strconv.Itoa(tier),
 					"url":        tracker.URL}).Set(1)
+
 			}
 		}
 

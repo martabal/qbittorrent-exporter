@@ -1,5 +1,7 @@
 package API
 
+import "encoding/json"
+
 type Info []struct {
 	AmountLeft        int     `json:"amount_left"`
 	Category          string  `json:"category"`
@@ -55,14 +57,14 @@ type Category struct {
 }
 
 type Trackers []struct {
-	Message       string `json:"msg"`
-	NumDownloaded int    `json:"num_downloaded"`
-	NumLeeches    int    `json:"num_leeches"`
-	NumPeers      int    `json:"num_peers"`
-	NumSeeds      int    `json:"num_seeds"`
-	Status        int    `json:"status"`
-	Tier          int    `json:"tier"`
-	URL           string `json:"url"`
+	Message       string          `json:"msg"`
+	NumDownloaded int             `json:"num_downloaded"`
+	NumLeeches    int             `json:"num_leeches"`
+	NumPeers      int             `json:"num_peers"`
+	NumSeeds      int             `json:"num_seeds"`
+	Status        int             `json:"status"`
+	Tier          json.RawMessage `json:"tier"`
+	URL           string          `json:"url"`
 }
 
 type Transfer struct {
