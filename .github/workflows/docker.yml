@@ -15,15 +15,15 @@ on:
   pull_request:
     branches: ["main"]
 
+permissions:
+  packages: write
+
 jobs:
   build_and_push:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          ref: "main"
-          fetch-depth: 0
 
       - name: Docker meta
         id: meta
@@ -57,7 +57,7 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
-          password: ${{ secrets.GH_TOKEN }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push
         uses: docker/build-push-action@v5
