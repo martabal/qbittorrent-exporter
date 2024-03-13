@@ -243,7 +243,6 @@ func Sendbackmessagetrackers(result []*API.Trackers, r *prometheus.Registry) {
 					"status":     strconv.Itoa((tracker.Status)),
 					"tier":       strconv.Itoa(tier),
 					"url":        tracker.URL}).Set(1)
-
 			}
 		}
 

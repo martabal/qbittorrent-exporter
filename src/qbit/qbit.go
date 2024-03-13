@@ -245,6 +245,7 @@ func Apirequest(uri string, method string, queryParams *[]QueryParams) (*http.Re
 	if err != nil {
 		err := fmt.Errorf("can't connect to server")
 		if !models.GetPromptError() {
+			logger.Log.Debug(err.Error())
 			models.SetPromptError(true)
 		}
 		return resp, false, err
