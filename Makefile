@@ -14,7 +14,7 @@ lint:
 	docker run --rm -v ./src:/app -w /app golangci/golangci-lint:latest golangci-lint run -v
 
 test: 
-	cd src && go test -v ./tests
+	cd src && go test -v ./...
 
 update: 
 	cd src && go get -u . && go mod tidy
