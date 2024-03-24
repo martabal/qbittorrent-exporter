@@ -1,8 +1,7 @@
-package main
+package prom
 
 import (
 	"qbit-exp/models"
-	prom "qbit-exp/prometheus"
 	"testing"
 )
 
@@ -39,7 +38,7 @@ func TestIsValidURL(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.input, func(t *testing.T) {
-			result := prom.IsValidURL(tc.input)
+			result := IsValidURL(tc.input)
 			if result != tc.expected {
 				t.Errorf("Expected %s to be %v, but got %v", tc.input, tc.expected, result)
 			}

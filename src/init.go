@@ -71,11 +71,12 @@ func loadenv() {
 		// fmt.Println("Using .env file")
 	}
 
-	qbitUsername := getEnv("QBITTORRENT_USERNAME", "admin", true, "Qbittorrent username is not set. Using default username")
-	qbitPassword := getEnv("QBITTORRENT_PASSWORD", "adminadmin", true, "Qbittorrent password is not set. Using default password")
-	qbitURL := strings.TrimSuffix(getEnv("QBITTORRENT_BASE_URL", "http://localhost:8080", true, "Qbittorrent base_url is not set. Using default base_url"), "/")
-	exporterPort := getEnv("EXPORTER_PORT", strconv.Itoa(DEFAULTPORT), false, "")
-	disableTracker := getEnv("DISABLE_TRACKER", "false", false, "")
+	loglevel := setLogLevel(getEnv("LOG_LEVEL", "INFO", ""))
+	qbitUsername := getEnv("QBITTORRENT_USERNAME", "admin", "Qbittorrent username is not set. Using default username")
+	qbitPassword := getEnv("QBITTORRENT_PASSWORD", "adminadmin", "Qbittorrent password is not set. Using default password")
+	qbitURL := strings.TrimSuffix(getEnv("QBITTORRENT_BASE_URL", "http://localhost:8080", "Qbittorrent base_url is not set. Using default base_url"), "/")
+	exporterPort := getEnv("EXPORTER_PORT", strconv.Itoa(DEFAULTPORT), "")
+	disableTracker := getEnv("DISABLE_TRACKER", "false", "")
 
 	num, err := strconv.Atoi(exporterPort)
 
@@ -86,7 +87,6 @@ func loadenv() {
 		panic("EXPORTER_PORT must be > 0 and < 65353")
 	}
 
-	loglevel := setLogLevel(getEnv("LOG_LEVEL", "INFO", false, ""))
 	models.SetApp(num, false, strings.ToLower(disableTracker) == "true", loglevel)
 	models.SetQbit(qbitURL, qbitUsername, qbitPassword)
 }
@@ -109,11 +109,11 @@ func setLogLevel(logLevel string) string {
 	return upperLogLevel
 }
 
-func getEnv(key string, fallback string, printLog bool, logPrinted string) string {
+func getEnv(key string, fallback string, logMessage string) string {
 	value, ok := os.LookupEnv(key)
 	if !ok || value == "" {
-		if printLog {
-			logger.Log.Warn(logPrinted)
+		if logMessage != "" {
+			logger.Log.Warn(logMessage)
 		}
 		return fallback
 	}
