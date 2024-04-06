@@ -41,7 +41,7 @@ func main() {
 	http.HandleFunc("/metrics", metrics)
 	addr := ":" + strconv.Itoa(models.GetPort())
 	if models.GetPort() != DEFAULTPORT {
-		logger.Log.Info("Listening on port" + strconv.Itoa(models.GetPort()))
+		logger.Log.Info("Listening on port " + strconv.Itoa(models.GetPort()))
 	}
 	err := http.ListenAndServe(addr, nil)
 	if err != nil {
