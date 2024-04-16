@@ -45,7 +45,7 @@ type PrettyHandler struct {
 
 func (h *PrettyHandler) Handle(ctx context.Context, r slog.Record) error {
 	level := r.Level.String()
-	timeStr := fmt.Sprintf("[%02d-%02d-%04d %02d:%02d:%02d]", r.Time.Year(), r.Time.Month(), r.Time.Day(), r.Time.Hour(), r.Time.Minute(), r.Time.Second())
+	timeStr := fmt.Sprintf("[%02d-%02d-%02d %02d:%02d:%02d]", r.Time.Year(), r.Time.Month(), r.Time.Day(), r.Time.Hour(), r.Time.Minute(), r.Time.Second())
 
 	switch r.Level {
 	case slog.LevelDebug:

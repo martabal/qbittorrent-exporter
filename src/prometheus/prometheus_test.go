@@ -38,7 +38,7 @@ func TestIsValidURL(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.input, func(t *testing.T) {
-			result := IsValidURL(tc.input)
+			result := isValidURL(tc.input)
 			if result != tc.expected {
 				t.Errorf("Expected %s to be %v, but got %v", tc.input, tc.expected, result)
 			}

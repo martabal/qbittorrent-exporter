@@ -68,7 +68,6 @@ func loadenv() {
 			errormessage := "Error loading .env file:" + err.Error()
 			panic(errormessage)
 		}
-		// fmt.Println("Using .env file")
 	}
 
 	loglevel := setLogLevel(getEnv("LOG_LEVEL", "INFO", ""))

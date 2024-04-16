@@ -27,7 +27,7 @@ This app is a lightweight and fast prometheus exporter for qBittorrent, made to 
 
 ```sh
 docker run --name=qbit \
-    -e QBITTORRENT_URL=http://192.168.1.10:8080 \
+    -e QBITTORRENT_BASE_URL=http://192.168.1.10:8080 \
     -e QBITTORRENT_PASSWORD='<your_password>' \
     -e QBITTORRENT_USERNAME=admin \
     -p 8090:8090 \
