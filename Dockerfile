@@ -4,10 +4,9 @@ ARG BUILD_VERSION
 
 WORKDIR /app
 
-COPY src src
+COPY src .
 
-RUN cd src && \
-    if [ -n "${BUILD_VERSION}" ]; then \
+RUN if [ -n "${BUILD_VERSION}" ]; then \
         go build -o /go/bin/qbittorrent-exporter -ldflags="-X 'main.Version=${BUILD_VERSION}'" . ; \
     else \
         go build -o /go/bin/qbittorrent-exporter . ; \
@@ -15,8 +14,8 @@ RUN cd src && \
 
 FROM alpine:3.19
 
-COPY --from=builder /go/bin/qbittorrent-exporter /go/bin/qbittorrent-exporter
-
 WORKDIR /go/bin
+
+COPY --from=builder /go/bin/qbittorrent-exporter .
 
 CMD ["/go/bin/qbittorrent-exporter"]

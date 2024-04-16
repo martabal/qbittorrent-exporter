@@ -24,12 +24,12 @@ type Gauge []struct {
 	value float64
 }
 
-func IsValidURL(input string) bool {
+func isValidURL(input string) bool {
 	u, err := url.Parse(input)
 	return err == nil && u.Scheme != "" && u.Host != ""
 }
 
-func Sendbackmessagetorrent(result *API.Info, r *prometheus.Registry) {
+func Torrent(result *API.Info, r *prometheus.Registry) {
 
 	qbittorrent_eta := prometheus.NewGaugeVec(prometheus.GaugeOpts{
 		Name: "qbittorrent_torrent_eta",
@@ -183,7 +183,7 @@ func Sendbackmessagetorrent(result *API.Info, r *prometheus.Registry) {
 
 }
 
-func Sendbackmessagepreference(result *API.Preferences, r *prometheus.Registry) {
+func Preference(result *API.Preferences, r *prometheus.Registry) {
 	gauges := Gauge{
 		{"max active downloads", "", "The max number of downloads allowed", float64((*result).MaxActiveDownloads)},
 		{"max active uploads", "", "The max number of active uploads allowed", float64((*result).MaxActiveDownloads)},
@@ -198,7 +198,7 @@ func Sendbackmessagepreference(result *API.Preferences, r *prometheus.Registry) 
 
 }
 
-func Sendbackmessagetransfer(result *API.Transfer, r *prometheus.Registry) {
+func Transfer(result *API.Transfer, r *prometheus.Registry) {
 	gauges := Gauge{
 		{"dht nodes", "", "The DHT nodes connected to", float64(result.DhtNodes)},
 	}
@@ -216,7 +216,7 @@ func Sendbackmessagetransfer(result *API.Transfer, r *prometheus.Registry) {
 
 }
 
-func Sendbackmessagetrackers(result []*API.Trackers, r *prometheus.Registry) {
+func Trackers(result []*API.Trackers, r *prometheus.Registry) {
 	if len(result) == 0 {
 		logger.Log.Debug("No tracker")
 		return
@@ -229,7 +229,7 @@ func Sendbackmessagetrackers(result []*API.Trackers, r *prometheus.Registry) {
 	r.MustRegister(qbittorrent_tracker_info)
 	for _, listOfTracker := range result {
 		for _, tracker := range *listOfTracker {
-			if IsValidURL(tracker.URL) {
+			if isValidURL(tracker.URL) {
 				tier, err := strconv.Atoi(string(tracker.Tier))
 				if err != nil {
 					tier = 0
@@ -250,7 +250,7 @@ func Sendbackmessagetrackers(result []*API.Trackers, r *prometheus.Registry) {
 
 }
 
-func Sendbackmessagemaindata(result *API.Maindata, r *prometheus.Registry) {
+func MainData(result *API.Maindata, r *prometheus.Registry) {
 	globalratio, err := strconv.ParseFloat((*result).ServerState.GlobalRatio, 64)
 
 	if err != nil {

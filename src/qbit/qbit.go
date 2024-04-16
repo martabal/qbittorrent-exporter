@@ -72,7 +72,7 @@ func getData(r *prometheus.Registry, data Data, goroutine bool) bool {
 	if goroutine {
 		defer wg.Done()
 	}
-	resp, retry, err := Apirequest(data.URL, data.HTTPMethod, data.QueryParams)
+	resp, retry, err := apiRequest(data.URL, data.HTTPMethod, data.QueryParams)
 	if retry {
 		return retry
 	}
@@ -93,7 +93,7 @@ func getData(r *prometheus.Registry, data Data, goroutine bool) bool {
 			logger.Log.Debug(err.Error())
 			logger.Log.Error(unmarshErr)
 		} else {
-			prom.Sendbackmessagetorrent(result, r)
+			prom.Torrent(result, r)
 			if !models.GetFeatureFlag() {
 				getTrackers(result, r)
 			}
@@ -106,7 +106,7 @@ func getData(r *prometheus.Registry, data Data, goroutine bool) bool {
 			logger.Log.Debug(err.Error())
 			logger.Log.Error(unmarshErr)
 		} else {
-			prom.Sendbackmessagemaindata(result, r)
+			prom.MainData(result, r)
 		}
 	case "preference":
 		result := new(API.Preferences)
@@ -115,7 +115,7 @@ func getData(r *prometheus.Registry, data Data, goroutine bool) bool {
 			logger.Log.Debug(err.Error())
 			logger.Log.Error(unmarshErr)
 		} else {
-			prom.Sendbackmessagepreference(result, r)
+			prom.Preference(result, r)
 		}
 	case "qbitversion":
 		qbittorrent_app_version := prometheus.NewGauge(prometheus.GaugeOpts{
@@ -134,7 +134,7 @@ func getData(r *prometheus.Registry, data Data, goroutine bool) bool {
 			logger.Log.Debug(err.Error())
 			logger.Log.Error(unmarshErr)
 		} else {
-			prom.Sendbackmessagetransfer(result, r)
+			prom.Transfer(result, r)
 		}
 	default:
 		errormessage := "Unknown reference: " + data.Ref
@@ -145,7 +145,7 @@ func getData(r *prometheus.Registry, data Data, goroutine bool) bool {
 
 func getTrackersInfo(data Data, c chan func() (*API.Trackers, error)) {
 	defer wgTracker.Done()
-	resp, _, err := Apirequest(data.URL, data.HTTPMethod, data.QueryParams)
+	resp, _, err := apiRequest(data.URL, data.HTTPMethod, data.QueryParams)
 
 	if err != nil {
 		c <- (func() (*API.Trackers, error) { return nil, err })
@@ -208,7 +208,7 @@ func getTrackers(torrentList *API.Info, r *prometheus.Registry) {
 	}
 	wgTracker.Wait()
 
-	prom.Sendbackmessagetrackers(*responses, r)
+	prom.Trackers(*responses, r)
 
 }
 
@@ -225,7 +225,7 @@ func Allrequests(r *prometheus.Registry) {
 	wg.Wait()
 }
 
-func Apirequest(uri string, method string, queryParams *[]QueryParams) (*http.Response, bool, error) {
+func apiRequest(uri string, method string, queryParams *[]QueryParams) (*http.Response, bool, error) {
 
 	req, err := http.NewRequest(method, models.Getbaseurl()+uri, nil)
 	if err != nil {
