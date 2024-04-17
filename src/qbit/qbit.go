@@ -9,16 +9,12 @@ import (
 
 	"net/http"
 	API "qbit-exp/api"
+	"qbit-exp/app"
 	"qbit-exp/logger"
-	"qbit-exp/models"
+
 	prom "qbit-exp/prometheus"
 
 	"github.com/prometheus/client_golang/prometheus"
-)
-
-var (
-	wg        sync.WaitGroup
-	wgTracker sync.WaitGroup
 )
 
 type QueryParams struct {
@@ -33,7 +29,17 @@ type Data struct {
 	QueryParams *[]QueryParams
 }
 
+type UniqueTracker struct {
+	Tracker string
+	Hash    string
+}
+
 const UnmarshError = "Can not unmarshal JSON for "
+
+var (
+	wg        sync.WaitGroup
+	wgTracker sync.WaitGroup
+)
 
 var info = []Data{
 	{
@@ -89,31 +95,25 @@ func getData(r *prometheus.Registry, data Data, goroutine bool) bool {
 	case "info":
 		result := new(API.Info)
 		if err := json.Unmarshal(body, &result); err != nil {
-			logger.Log.Debug(string(body))
-			logger.Log.Debug(err.Error())
-			logger.Log.Error(unmarshErr)
+			errorHelper(body, err, unmarshErr)
 		} else {
 			prom.Torrent(result, r)
-			if !models.GetFeatureFlag() {
+			if !app.DisableTracker {
 				getTrackers(result, r)
 			}
 
 		}
 	case "maindata":
-		result := new(API.Maindata)
+		result := new(API.MainData)
 		if err := json.Unmarshal(body, &result); err != nil {
-			logger.Log.Debug(string(body))
-			logger.Log.Debug(err.Error())
-			logger.Log.Error(unmarshErr)
+			errorHelper(body, err, unmarshErr)
 		} else {
 			prom.MainData(result, r)
 		}
 	case "preference":
 		result := new(API.Preferences)
 		if err := json.Unmarshal(body, &result); err != nil {
-			logger.Log.Debug(string(body))
-			logger.Log.Debug(err.Error())
-			logger.Log.Error(unmarshErr)
+			errorHelper(body, err, unmarshErr)
 		} else {
 			prom.Preference(result, r)
 		}
@@ -130,9 +130,7 @@ func getData(r *prometheus.Registry, data Data, goroutine bool) bool {
 	case "transfer":
 		result := new(API.Transfer)
 		if err := json.Unmarshal(body, &result); err != nil {
-			logger.Log.Debug(string(body))
-			logger.Log.Debug(err.Error())
-			logger.Log.Error(unmarshErr)
+			errorHelper(body, err, unmarshErr)
 		} else {
 			prom.Transfer(result, r)
 		}
@@ -158,35 +156,26 @@ func getTrackersInfo(data Data, c chan func() (*API.Trackers, error)) {
 	result := new(API.Trackers)
 	unmarshErr := UnmarshError + "tracker"
 	if err := json.Unmarshal(body, &result); err != nil {
-		logger.Log.Debug(string(body))
-		logger.Log.Debug(err.Error())
-		logger.Log.Error(unmarshErr)
+		errorHelper(body, err, unmarshErr)
 	} else {
 		c <- (func() (*API.Trackers, error) { return result, err })
 	}
 
 }
 
-type UniqueObject struct {
-	Tracker string
-	Hash    string
-}
-
 func getTrackers(torrentList *API.Info, r *prometheus.Registry) {
 	uniqueValues := make(map[string]struct{})
-	var uniqueObjects []UniqueObject
+	var uniqueTrackers []UniqueTracker
 	for _, obj := range *torrentList {
-
 		if _, exists := uniqueValues[obj.Tracker]; !exists {
-
 			uniqueValues[obj.Tracker] = struct{}{}
-			uniqueObjects = append(uniqueObjects, UniqueObject{Tracker: obj.Tracker, Hash: obj.Hash})
+			uniqueTrackers = append(uniqueTrackers, UniqueTracker{Tracker: obj.Tracker, Hash: obj.Hash})
 		}
 	}
 
 	responses := new([]*API.Trackers)
-	for i := 1; i < len(uniqueObjects); i++ {
-		tracker := make(chan func() (*API.Trackers, error))
+	tracker := make(chan func() (*API.Trackers, error))
+	for i := 0; i < len(uniqueTrackers); i++ {
 		var trackerInfo = Data{
 			URL:        "/api/v2/torrents/trackers",
 			HTTPMethod: http.MethodGet,
@@ -194,25 +183,29 @@ func getTrackers(torrentList *API.Info, r *prometheus.Registry) {
 			QueryParams: &[]QueryParams{
 				{
 					Key:   "hash",
-					Value: uniqueObjects[i].Hash,
+					Value: uniqueTrackers[i].Hash,
 				},
 			},
 		}
 		wgTracker.Add(1)
 		go getTrackersInfo(trackerInfo, tracker)
-		res, err := (<-tracker)()
+	}
+	go func() {
+		wgTracker.Wait()
+		close(tracker)
+	}()
+	for respFunc := range tracker {
+		res, err := respFunc()
 		if err == nil {
 			*responses = append(*responses, res)
 		}
 
 	}
-	wgTracker.Wait()
 
 	prom.Trackers(*responses, r)
-
 }
 
-func Allrequests(r *prometheus.Registry) {
+func AllRequests(r *prometheus.Registry) {
 	retry := getData(r, info[0], false)
 	if retry {
 		logger.Log.Debug("Retrying ...")
@@ -225,9 +218,14 @@ func Allrequests(r *prometheus.Registry) {
 	wg.Wait()
 }
 
-func apiRequest(uri string, method string, queryParams *[]QueryParams) (*http.Response, bool, error) {
+func errorHelper(body []byte, err error, unmarshErr string) {
+	logger.Log.Debug(string(body))
+	logger.Log.Debug(err.Error())
+	logger.Log.Error(unmarshErr)
+}
 
-	req, err := http.NewRequest(method, models.Getbaseurl()+uri, nil)
+func apiRequest(uri string, method string, queryParams *[]QueryParams) (*http.Response, bool, error) {
+	req, err := http.NewRequest(method, app.BaseUrl+uri, nil)
 	if err != nil {
 		panic("Error with url")
 	}
@@ -239,36 +237,36 @@ func apiRequest(uri string, method string, queryParams *[]QueryParams) (*http.Re
 		req.URL.RawQuery = q.Encode()
 	}
 
-	req.AddCookie(&http.Cookie{Name: "SID", Value: models.Getcookie()})
+	req.AddCookie(&http.Cookie{Name: "SID", Value: app.Cookie})
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
 		err := fmt.Errorf("can't connect to server")
-		if !models.GetPromptError() {
+		if !app.ShouldShowError {
 			logger.Log.Debug(err.Error())
-			models.SetPromptError(true)
+			app.ShouldShowError = true
 		}
 		return resp, false, err
 	}
 
 	switch resp.StatusCode {
 	case http.StatusOK:
-		if models.GetPromptError() {
-			models.SetPromptError(false)
+		if app.ShouldShowError {
+			app.ShouldShowError = false
 		}
 		return resp, false, nil
 	case http.StatusForbidden:
 		err := fmt.Errorf("%d", resp.StatusCode)
-		if !models.GetPromptError() {
-			models.SetPromptError(true)
+		if !app.ShouldShowError {
+			app.ShouldShowError = true
 			logger.Log.Warn("Cookie changed, try to reconnect ...")
 		}
 		Auth(false)
 		return resp, true, err
 	default:
 		err := fmt.Errorf("%d", resp.StatusCode)
-		if !models.GetPromptError() {
-			models.SetPromptError(true)
+		if !app.ShouldShowError {
+			app.ShouldShowError = true
 			logger.Log.Debug("Error code " + strconv.Itoa(resp.StatusCode))
 		}
 		return resp, false, err

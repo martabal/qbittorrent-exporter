@@ -4,14 +4,16 @@ import (
 	"flag"
 	"fmt"
 	"log/slog"
+	"net"
 	"net/http"
 	"os"
-	"qbit-exp/models"
-	qbit "qbit-exp/qbit"
+
+	"qbit-exp/qbit"
+
+	app "qbit-exp/app"
+	logger "qbit-exp/logger"
 	"strconv"
 	"strings"
-
-	logger "qbit-exp/logger"
 
 	"github.com/joho/godotenv"
 	"github.com/prometheus/client_golang/prometheus"
@@ -30,18 +32,18 @@ func main() {
 	loadenv()
 	fmt.Printf("%s (version %s)\n", ProjectName, Version)
 	fmt.Println("Author:", Author)
-	fmt.Println("Using log level: " + models.GetLogLevel())
+	fmt.Println("Using log level: " + app.LogLevel)
 
 	qbit.Auth(true)
 
-	logger.Log.Info("qbittorrent URL: " + models.Getbaseurl())
-	logger.Log.Info("username: " + models.GetUsername())
-	logger.Log.Info("password: " + models.Getpasswordmasked())
+	logger.Log.Info("qbittorrent URL: " + app.BaseUrl)
+	logger.Log.Info("username: " + app.Username)
+	logger.Log.Info("password: " + app.GetPasswordMasked())
 	logger.Log.Info("Started")
 	http.HandleFunc("/metrics", metrics)
-	addr := ":" + strconv.Itoa(models.GetPort())
-	if models.GetPort() != DEFAULTPORT {
-		logger.Log.Info("Listening on port " + strconv.Itoa(models.GetPort()))
+	addr := ":" + strconv.Itoa(app.Port)
+	if app.Port != DEFAULTPORT {
+		logger.Log.Info("Listening on port " + strconv.Itoa(app.Port))
 	}
 	err := http.ListenAndServe(addr, nil)
 	if err != nil {
@@ -50,9 +52,15 @@ func main() {
 }
 
 func metrics(w http.ResponseWriter, req *http.Request) {
-	logger.Log.Debug("New request")
+	ip, _, err := net.SplitHostPort(req.RemoteAddr)
+	if err == nil {
+		logger.Log.Debug("New request from " + ip)
+	} else {
+		logger.Log.Debug("New request from")
+	}
+
 	registry := prometheus.NewRegistry()
-	qbit.Allrequests(registry)
+	qbit.AllRequests(registry)
 	h := promhttp.HandlerFor(registry, promhttp.HandlerOpts{})
 	h.ServeHTTP(w, req)
 }
@@ -86,8 +94,8 @@ func loadenv() {
 		panic("EXPORTER_PORT must be > 0 and < 65353")
 	}
 
-	models.SetApp(num, false, strings.ToLower(disableTracker) == "true", loglevel)
-	models.SetQbit(qbitURL, qbitUsername, qbitPassword)
+	app.SetApp(num, strings.ToLower(disableTracker) == "true", loglevel)
+	app.SetQbit(qbitURL, qbitUsername, qbitPassword)
 }
 
 func setLogLevel(logLevel string) string {
@@ -98,11 +106,10 @@ func setLogLevel(logLevel string) string {
 		level = logger.LogLevels[upperLogLevel]
 	}
 
-	opts := logger.PrettyHandlerOptions{
-		SlogOpts: slog.HandlerOptions{
-			Level: slog.Level(level),
-		},
+	opts := slog.HandlerOptions{
+		Level: slog.Level(level),
 	}
+
 	handler := logger.NewPrettyHandler(os.Stdout, opts)
 	logger.Log = slog.New(handler)
 	return upperLogLevel
