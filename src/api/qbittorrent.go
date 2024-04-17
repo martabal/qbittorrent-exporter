@@ -36,7 +36,7 @@ type Preferences struct {
 	UpLimit            int `json:"up_limit"`
 }
 
-type Maindata struct {
+type MainData struct {
 	CategoryMap map[string]Category `json:"categories"`
 	ServerState struct {
 		AlltimeDl         int    `json:"alltime_dl"`

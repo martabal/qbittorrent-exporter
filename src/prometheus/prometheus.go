@@ -30,7 +30,6 @@ func isValidURL(input string) bool {
 }
 
 func Torrent(result *API.Info, r *prometheus.Registry) {
-
 	qbittorrent_eta := prometheus.NewGaugeVec(prometheus.GaugeOpts{
 		Name: "qbittorrent_torrent_eta",
 		Help: "The current ETA for each torrent (in seconds)",
@@ -250,7 +249,7 @@ func Trackers(result []*API.Trackers, r *prometheus.Registry) {
 
 }
 
-func MainData(result *API.Maindata, r *prometheus.Registry) {
+func MainData(result *API.MainData, r *prometheus.Registry) {
 	globalratio, err := strconv.ParseFloat((*result).ServerState.GlobalRatio, 64)
 
 	if err != nil {

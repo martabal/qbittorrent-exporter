@@ -1,13 +1,13 @@
 package prom
 
 import (
-	"qbit-exp/models"
+	app "qbit-exp/app"
 	"testing"
 )
 
 func TestMain(t *testing.T) {
-	models.SetQbit("http://localhost:8080", "admin", "adminadmin")
-	result := models.Getpasswordmasked()
+	app.SetQbit("http://localhost:8080", "admin", "adminadmin")
+	result := app.GetPasswordMasked()
 
 	if !isValidMaskedPassword(result) {
 		t.Errorf("Invalid masked password. Expected only asterisks, got: %s", result)

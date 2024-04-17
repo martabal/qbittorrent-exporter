@@ -4,22 +4,22 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	app "qbit-exp/app"
 	"qbit-exp/logger"
-	"qbit-exp/models"
 	"strconv"
 	"strings"
 )
 
 func Auth(init bool) {
 	params := url.Values{
-		"username": {models.GetUsername()},
-		"password": {models.Getpassword()},
+		"username": {app.Username},
+		"password": {app.Password},
 	}
-	resp, err := http.PostForm(models.Getbaseurl()+"/api/v2/auth/login", params)
+	resp, err := http.PostForm(app.BaseUrl+"/api/v2/auth/login", params)
 	if err != nil {
-		if !models.GetPromptError() {
-			models.SetPromptError(true)
-			logger.Log.Warn("Can't connect to qbittorrent with url : " + models.Getbaseurl())
+		if !app.ShouldShowError {
+			app.ShouldShowError = true
+			logger.Log.Warn("Can't connect to qbittorrent with url : " + app.BaseUrl)
 		}
 		return
 	}
@@ -41,12 +41,12 @@ func Auth(init bool) {
 		panic("Authentication Error, check your qBittorrent username / password")
 	}
 
-	if models.GetPromptError() {
+	if app.ShouldShowError {
 		logger.Log.Info("New cookie stored")
 	}
 
 	cookie := resp.Header.Get("Set-Cookie")
 	cookieValue := strings.Split(strings.Split(cookie, ";")[0], "=")[1]
-	models.Setcookie(cookieValue)
+	app.Cookie = cookieValue
 
 }

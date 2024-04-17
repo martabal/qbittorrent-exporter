@@ -8,10 +8,11 @@ import (
 	"os"
 )
 
-type Level int
+type PrettyHandler struct {
+	slog.Handler
+}
 
-var LogLevels = map[string]Level{
-	"TRACE": Trace,
+var LogLevels = map[string]int{
 	"DEBUG": Debug,
 	"INFO":  Info,
 	"WARN":  Warn,
@@ -19,11 +20,10 @@ var LogLevels = map[string]Level{
 }
 
 const (
-	Trace Level = -8
-	Debug Level = -4
-	Info  Level = 0
-	Warn  Level = 4
-	Error Level = 8
+	Debug int = -4
+	Info  int = 0
+	Warn  int = 4
+	Error int = 8
 )
 
 const (
@@ -32,16 +32,7 @@ const (
 	Green  = "\033[32m"
 	Yellow = "\033[33m"
 	Blue   = "\033[34m"
-	White  = "\033[97m"
 )
-
-type PrettyHandlerOptions struct {
-	SlogOpts slog.HandlerOptions
-}
-
-type PrettyHandler struct {
-	slog.Handler
-}
 
 func (h *PrettyHandler) Handle(ctx context.Context, r slog.Record) error {
 	level := r.Level.String()
@@ -67,10 +58,10 @@ func (h *PrettyHandler) Handle(ctx context.Context, r slog.Record) error {
 
 func NewPrettyHandler(
 	out io.Writer,
-	opts PrettyHandlerOptions,
+	opts slog.HandlerOptions,
 ) *PrettyHandler {
 	h := &PrettyHandler{
-		Handler: slog.NewTextHandler(out, &opts.SlogOpts),
+		Handler: slog.NewTextHandler(out, &opts),
 	}
 
 	return h
