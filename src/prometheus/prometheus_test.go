@@ -6,7 +6,7 @@ import (
 )
 
 func TestMain(t *testing.T) {
-	app.SetQbit("http://localhost:8080", "admin", "adminadmin")
+	app.SetVar(0, false, "", "http://localhost:8080", "admin", "adminadmin")
 	result := app.GetPasswordMasked()
 
 	if !isValidMaskedPassword(result) {

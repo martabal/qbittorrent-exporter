@@ -242,31 +242,31 @@ func apiRequest(uri string, method string, queryParams *[]QueryParams) (*http.Re
 	resp, err := client.Do(req)
 	if err != nil {
 		err := fmt.Errorf("can't connect to server")
-		if !app.ShouldShowError {
+		if app.ShouldShowError {
 			logger.Log.Debug(err.Error())
-			app.ShouldShowError = true
+			app.ShouldShowError = false
 		}
 		return resp, false, err
 	}
 
 	switch resp.StatusCode {
 	case http.StatusOK:
-		if app.ShouldShowError {
-			app.ShouldShowError = false
+		if !app.ShouldShowError {
+			app.ShouldShowError = true
 		}
 		return resp, false, nil
 	case http.StatusForbidden:
 		err := fmt.Errorf("%d", resp.StatusCode)
-		if !app.ShouldShowError {
-			app.ShouldShowError = true
+		if app.ShouldShowError {
+			app.ShouldShowError = false
 			logger.Log.Warn("Cookie changed, try to reconnect ...")
 		}
 		Auth(false)
 		return resp, true, err
 	default:
 		err := fmt.Errorf("%d", resp.StatusCode)
-		if !app.ShouldShowError {
-			app.ShouldShowError = true
+		if app.ShouldShowError {
+			app.ShouldShowError = false
 			logger.Log.Debug("Error code " + strconv.Itoa(resp.StatusCode))
 		}
 		return resp, false, err
