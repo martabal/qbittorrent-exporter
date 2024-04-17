@@ -13,14 +13,11 @@ var (
 	Password        string
 )
 
-func SetApp(port int, disableTracker bool, loglevel string) {
+func SetVar(port int, disableTracker bool, loglevel string, baseUrl string, username string, password string) {
 	Port = port
-	ShouldShowError = false
+	ShouldShowError = true
 	DisableTracker = disableTracker
 	LogLevel = loglevel
-}
-
-func SetQbit(baseUrl string, username string, password string) {
 	BaseUrl = baseUrl
 	Username = username
 	Password = password

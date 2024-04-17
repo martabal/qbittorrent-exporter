@@ -56,7 +56,7 @@ func metrics(w http.ResponseWriter, req *http.Request) {
 	if err == nil {
 		logger.Log.Debug("New request from " + ip)
 	} else {
-		logger.Log.Debug("New request from")
+		logger.Log.Debug("New request")
 	}
 
 	registry := prometheus.NewRegistry()
@@ -94,8 +94,7 @@ func loadenv() {
 		panic("EXPORTER_PORT must be > 0 and < 65353")
 	}
 
-	app.SetApp(num, strings.ToLower(disableTracker) == "true", loglevel)
-	app.SetQbit(qbitURL, qbitUsername, qbitPassword)
+	app.SetVar(num, strings.ToLower(disableTracker) == "true", loglevel, qbitURL, qbitUsername, qbitPassword)
 }
 
 func setLogLevel(logLevel string) string {
