@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-func Auth(init bool) {
+func Auth() {
 	params := url.Values{
 		"username": {app.Username},
 		"password": {app.Password},

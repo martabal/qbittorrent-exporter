@@ -78,7 +78,7 @@ func getData(r *prometheus.Registry, data Data, goroutine bool) bool {
 	if goroutine {
 		defer wg.Done()
 	}
-	resp, retry, err := apiRequest(data.URL, data.HTTPMethod, data.QueryParams)
+	body, retry, err := apiRequest(data.URL, data.HTTPMethod, data.QueryParams)
 	if retry {
 		return retry
 	}
@@ -86,10 +86,6 @@ func getData(r *prometheus.Registry, data Data, goroutine bool) bool {
 		return false
 	}
 
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return false
-	}
 	unmarshErr := UnmarshError + data.Ref
 	switch data.Ref {
 	case "info":
@@ -143,12 +139,11 @@ func getData(r *prometheus.Registry, data Data, goroutine bool) bool {
 
 func getTrackersInfo(data Data, c chan func() (*API.Trackers, error)) {
 	defer wgTracker.Done()
-	resp, _, err := apiRequest(data.URL, data.HTTPMethod, data.QueryParams)
+	body, _, err := apiRequest(data.URL, data.HTTPMethod, data.QueryParams)
 
 	if err != nil {
 		c <- (func() (*API.Trackers, error) { return nil, err })
 	}
-	body, err := io.ReadAll(resp.Body)
 
 	if err != nil {
 		c <- (func() (*API.Trackers, error) { return nil, err })
@@ -224,7 +219,7 @@ func errorHelper(body []byte, err error, unmarshErr string) {
 	logger.Log.Error(unmarshErr)
 }
 
-func apiRequest(uri string, method string, queryParams *[]QueryParams) (*http.Response, bool, error) {
+func apiRequest(uri string, method string, queryParams *[]QueryParams) ([]byte, bool, error) {
 	req, err := http.NewRequest(method, app.BaseUrl+uri, nil)
 	if err != nil {
 		panic("Error with url")
@@ -246,29 +241,35 @@ func apiRequest(uri string, method string, queryParams *[]QueryParams) (*http.Re
 			logger.Log.Debug(err.Error())
 			app.ShouldShowError = false
 		}
-		return resp, false, err
+		return nil, false, err
 	}
+
+	defer resp.Body.Close()
 
 	switch resp.StatusCode {
 	case http.StatusOK:
 		if !app.ShouldShowError {
 			app.ShouldShowError = true
 		}
-		return resp, false, nil
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return nil, false, err
+		}
+		return body, false, nil
 	case http.StatusForbidden:
 		err := fmt.Errorf("%d", resp.StatusCode)
 		if app.ShouldShowError {
 			app.ShouldShowError = false
 			logger.Log.Warn("Cookie changed, try to reconnect ...")
 		}
-		Auth(false)
-		return resp, true, err
+		Auth()
+		return nil, true, err
 	default:
 		err := fmt.Errorf("%d", resp.StatusCode)
 		if app.ShouldShowError {
 			app.ShouldShowError = false
 			logger.Log.Debug("Error code " + strconv.Itoa(resp.StatusCode))
 		}
-		return resp, false, err
+		return nil, false, err
 	}
 }
