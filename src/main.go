@@ -34,7 +34,7 @@ func main() {
 	fmt.Println("Author:", Author)
 	fmt.Println("Using log level: " + app.LogLevel)
 
-	qbit.Auth(true)
+	qbit.Auth()
 
 	logger.Log.Info("qbittorrent URL: " + app.BaseUrl)
 	logger.Log.Info("username: " + app.Username)
