@@ -13,3 +13,7 @@ updates:
         dependency-type: "development"
       prod:
         dependency-type: "production"
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
