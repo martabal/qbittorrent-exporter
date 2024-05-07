@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: ["main"]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test:
     name: Run tests
@@ -28,12 +32,15 @@ jobs:
 
       - name: Run unit tests
         run: go test -v ./...
+        if: ${{ !cancelled() }}
 
       - name: Run formatter
         run: test -z $(gofmt -l .)
+        if: ${{ !cancelled() }}
 
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v6
+        if: ${{ !cancelled() }}
         with:
           version: v1.57.2
           working-directory: src

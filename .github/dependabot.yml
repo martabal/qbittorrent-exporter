@@ -8,11 +8,6 @@ updates:
     directory: "src/"
     schedule:
       interval: "weekly"
-    groups:
-      dev:
-        dependency-type: "development"
-      prod:
-        dependency-type: "production"
   - package-ecosystem: "docker"
     directory: "/"
     schedule:
