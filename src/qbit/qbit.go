@@ -87,30 +87,31 @@ func getData(r *prometheus.Registry, data Data, goroutine bool) bool {
 	}
 
 	unmarshErr := UnmarshError + data.Ref
+
+	handleUnmarshal := func(target interface{}, body []byte) bool {
+		if err := json.Unmarshal(body, target); err != nil {
+			errorHelper(body, err, unmarshErr)
+			return false
+		}
+		return true
+	}
 	switch data.Ref {
 	case "info":
 		result := new(API.Info)
-		if err := json.Unmarshal(body, &result); err != nil {
-			errorHelper(body, err, unmarshErr)
-		} else {
+		if handleUnmarshal(result, body) {
 			prom.Torrent(result, r)
 			if !app.DisableTracker {
 				getTrackers(result, r)
 			}
-
 		}
 	case "maindata":
 		result := new(API.MainData)
-		if err := json.Unmarshal(body, &result); err != nil {
-			errorHelper(body, err, unmarshErr)
-		} else {
+		if handleUnmarshal(result, body) {
 			prom.MainData(result, r)
 		}
 	case "preference":
 		result := new(API.Preferences)
-		if err := json.Unmarshal(body, &result); err != nil {
-			errorHelper(body, err, unmarshErr)
-		} else {
+		if handleUnmarshal(result, body) {
 			prom.Preference(result, r)
 		}
 	case "qbitversion":
@@ -125,9 +126,7 @@ func getData(r *prometheus.Registry, data Data, goroutine bool) bool {
 		qbittorrent_app_version.Set(1)
 	case "transfer":
 		result := new(API.Transfer)
-		if err := json.Unmarshal(body, &result); err != nil {
-			errorHelper(body, err, unmarshErr)
-		} else {
+		if handleUnmarshal(result, body) {
 			prom.Transfer(result, r)
 		}
 	default:
