@@ -38,6 +38,12 @@ jobs:
         run: test -z $(gofmt -l .)
         if: ${{ !cancelled() }}
 
+      - name: Run Hadolint
+        uses: hadolint/hadolint-action@v3.1.0
+        if: ${{ !cancelled() }}
+        with:
+          dockerfile: Dockerfile
+
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v6
         if: ${{ !cancelled() }}
