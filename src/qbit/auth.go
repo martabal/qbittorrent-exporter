@@ -1,6 +1,7 @@
 package qbit
 
 import (
+	"context"
 	"io"
 	"net/http"
 	"net/url"
@@ -8,15 +9,28 @@ import (
 	"qbit-exp/logger"
 	"strconv"
 	"strings"
+	"time"
 )
 
 func Auth() {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(time.Second*app.QbittorrentTimeout))
+	defer cancel()
 	params := url.Values{
 		"username": {app.Username},
 		"password": {app.Password},
 	}
-	resp, err := http.PostForm(app.BaseUrl+"/api/v2/auth/login", params)
+	req, err := http.NewRequest(http.MethodPost, app.BaseUrl+"/api/v2/auth/login", strings.NewReader(params.Encode()))
+	req = req.WithContext(ctx)
+
 	if err != nil {
+		panic("Error with url " + err.Error())
+	}
+	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		logger.Log.Debug(err.Error())
 		if app.ShouldShowError {
 			app.ShouldShowError = false
 			logger.Log.Warn("Can't connect to qbittorrent with url : " + app.BaseUrl)

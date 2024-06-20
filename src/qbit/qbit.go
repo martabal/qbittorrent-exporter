@@ -1,11 +1,13 @@
 package qbit
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
 	"strconv"
 	"sync"
+	"time"
 
 	"net/http"
 	API "qbit-exp/api"
@@ -74,16 +76,18 @@ var info = []Data{
 	},
 }
 
-func getData(r *prometheus.Registry, data Data, goroutine bool) bool {
+func getData(r *prometheus.Registry, data Data, goroutine bool, c chan func() (bool, error)) {
 	if goroutine {
 		defer wg.Done()
 	}
 	body, retry, err := apiRequest(data.URL, data.HTTPMethod, data.QueryParams)
 	if retry {
-		return retry
+		c <- (func() (bool, error) { return true, nil })
+		return
 	}
 	if err != nil {
-		return false
+		c <- (func() (bool, error) { return false, err })
+		return
 	}
 
 	unmarshErr := UnmarshError + data.Ref
@@ -133,7 +137,7 @@ func getData(r *prometheus.Registry, data Data, goroutine bool) bool {
 		errormessage := "Unknown reference: " + data.Ref
 		panic(errormessage)
 	}
-	return false
+	c <- (func() (bool, error) { return false, nil })
 }
 
 func getTrackersInfo(data Data, c chan func() (*API.Trackers, error)) {
@@ -199,17 +203,37 @@ func getTrackers(torrentList *API.Info, r *prometheus.Registry) {
 	prom.Trackers(*responses, r)
 }
 
-func AllRequests(r *prometheus.Registry) {
-	retry := getData(r, info[0], false)
+func AllRequests(r *prometheus.Registry) error {
+	c := make(chan func() (bool, error))
+
+	go getData(r, info[0], false, c)
+	retry, err := (<-c)()
 	if retry {
 		logger.Log.Debug("Retrying ...")
-		getData(r, info[0], false)
+		go getData(r, info[0], false, c)
+		_, err = (<-c)()
 	}
-	wg.Add(len(info) - 1)
+	if err != nil {
+		logger.Log.Debug(err.Error())
+		return err
+	}
 	for i := 1; i < len(info); i++ {
-		go getData(r, info[i], true)
+		wg.Add(1)
+		go getData(r, info[i], true, c)
 	}
-	wg.Wait()
+	go func() {
+		wg.Wait()
+		close(c)
+	}()
+
+	for respFunc := range c {
+		_, err := respFunc()
+		if err != nil {
+			logger.Log.Debug(err.Error())
+			return err
+		}
+	}
+	return nil
 }
 
 func errorHelper(body []byte, err error, unmarshErr string) {
@@ -219,9 +243,13 @@ func errorHelper(body []byte, err error, unmarshErr string) {
 }
 
 func apiRequest(uri string, method string, queryParams *[]QueryParams) ([]byte, bool, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(time.Second*app.QbittorrentTimeout))
+	defer cancel()
+
 	req, err := http.NewRequest(method, app.BaseUrl+uri, nil)
+	req = req.WithContext(ctx)
 	if err != nil {
-		panic("Error with url")
+		panic("Error with url " + err.Error())
 	}
 	if queryParams != nil {
 		q := req.URL.Query()
@@ -235,6 +263,7 @@ func apiRequest(uri string, method string, queryParams *[]QueryParams) ([]byte, 
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
+		logger.Log.Debug(err.Error())
 		err := fmt.Errorf("can't connect to server")
 		if app.ShouldShowError {
 			logger.Log.Debug(err.Error())

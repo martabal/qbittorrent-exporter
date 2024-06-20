@@ -123,6 +123,7 @@ Docker compressed size is ~10 MB.
 | `-e QBITTORRENT_USERNAME` | qBittorrent username                                     | `admin`                 |
 | `-e QBITTORRENT_PASSWORD` | qBittorrent password                                     | `adminadmin`            |
 | `-e QBITTORRENT_BASE_URL` | qBittorrent base URL                                     | `http://localhost:8090` |
+| `-e QBITTORRENT_TIMEOUT`  | duration before ending a request to qBittorrent          | `30`                    |
 |    `-e EXPORTER_PORT`     | qbittorrent export port (optional)                       | `8090`                  |
 |   `-e DISABLE_TRACKER`    | get tracker infos (need an API request for each tracker) | `false`                 |
 |      `-e LOG_LEVEL`       | App log level (`DEBUG`, `INFO`, `WARN` and `ERROR`)      | `INFO`                  |
@@ -139,7 +140,7 @@ Add the target to your `scrape_configs` in your `prometheus.yml` file of your Pr
 
 ```yaml
 scrape_configs:
-  - job_name: 'qbittorrent'
+  - job_name: "qbittorrent"
     static_configs:
-      - targets: [ '<your_ip_address>:8090' ]
+      - targets: ["<your_ip_address>:8090"]
 ```
