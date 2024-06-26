@@ -196,6 +196,8 @@ func getTrackers(torrentList *API.Info, r *prometheus.Registry) {
 		res, err := respFunc()
 		if err == nil {
 			*responses = append(*responses, res)
+		} else {
+			logger.Log.Error(err.Error())
 		}
 
 	}
@@ -266,7 +268,7 @@ func apiRequest(uri string, method string, queryParams *[]QueryParams) ([]byte, 
 		logger.Log.Debug(err.Error())
 		err := fmt.Errorf("can't connect to server")
 		if app.ShouldShowError {
-			logger.Log.Debug(err.Error())
+			logger.Log.Error(err.Error())
 			app.ShouldShowError = false
 		}
 		return nil, false, err
@@ -296,7 +298,7 @@ func apiRequest(uri string, method string, queryParams *[]QueryParams) ([]byte, 
 		err := fmt.Errorf("%d", resp.StatusCode)
 		if app.ShouldShowError {
 			app.ShouldShowError = false
-			logger.Log.Debug("Error code " + strconv.Itoa(resp.StatusCode))
+			logger.Log.Error("Error code " + strconv.Itoa(resp.StatusCode))
 		}
 		return nil, false, err
 	}
