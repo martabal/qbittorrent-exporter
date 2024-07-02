@@ -21,9 +21,6 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
-const DEFAULT_PORT = 8090
-const DEFAULT_TIMEOUT = 30
-
 var (
 	Version     = "dev"
 	Author      = "martabal"
@@ -44,7 +41,7 @@ func main() {
 	logger.Log.Info("Started")
 	http.HandleFunc("/metrics", metrics)
 	addr := ":" + strconv.Itoa(app.Port)
-	if app.Port != DEFAULT_PORT {
+	if app.Port != app.DEFAULT_PORT {
 		logger.Log.Info("Listening on port " + strconv.Itoa(app.Port))
 	}
 	err := http.ListenAndServe(addr, nil)
@@ -86,26 +83,28 @@ func loadenv() {
 		}
 	}
 
-	loglevel := setLogLevel(getEnv("LOG_LEVEL", "INFO", ""))
-	qbitUsername := getEnv("QBITTORRENT_USERNAME", "admin", "Qbittorrent username is not set. Using default username")
-	qbitPassword := getEnv("QBITTORRENT_PASSWORD", "adminadmin", "Qbittorrent password is not set. Using default password")
-	qbitURL := strings.TrimSuffix(getEnv("QBITTORRENT_BASE_URL", "http://localhost:8080", "Qbittorrent base_url is not set. Using default base_url"), "/")
-	exporterPortEnv := getEnv("EXPORTER_PORT", strconv.Itoa(DEFAULT_PORT), "")
-	timeoutDurationEnv := getEnv("QBITTORRENT_TIMEOUT", strconv.Itoa(DEFAULT_TIMEOUT), "")
-	disableTracker := getEnv("DISABLE_TRACKER", "false", "")
+	loglevel := setLogLevel(getEnv(app.LogLevelEnv))
+	qbitUsername := getEnv(app.UsernameEnv)
+	qbitPassword := getEnv(app.PasswordEnv)
+	qbitURL := strings.TrimSuffix(getEnv(app.BaseUrlEnv), "/")
+	exporterPortEnv := getEnv(app.PortEnv)
+	timeoutDurationEnv := getEnv(app.TimeoutEnv)
+	disableTracker := getEnv(app.DisableTrackerEnv)
 
 	exporterPort, errExporterPort := strconv.Atoi(exporterPortEnv)
-
 	if errExporterPort != nil {
-		panic("EXPORTER_PORT must be an integer")
+		panic(fmt.Sprintf("%s must be an integer", app.PortEnv.Key))
 	}
 	if exporterPort < 0 || exporterPort > 65353 {
-		panic("EXPORTER_PORT must be > 0 and < 65353")
+		panic(fmt.Sprintf("%s must be > 0 and < 65353", app.PortEnv.Key))
 	}
 
 	timeoutDuration, errTimeoutDuration := strconv.Atoi(timeoutDurationEnv)
 	if errTimeoutDuration != nil {
-		panic("QBITTORRENT_TIMEOUT must be an integer")
+		panic(fmt.Sprintf("%s must be an integer", app.PortEnv.Key))
+	}
+	if timeoutDuration < 0 {
+		panic(fmt.Sprintf("%s must be > 0", app.PortEnv.Key))
 	}
 
 	app.SetVar(exporterPort, strings.ToLower(disableTracker) == "true", loglevel, qbitURL, qbitUsername, qbitPassword, timeoutDuration)
@@ -128,13 +127,13 @@ func setLogLevel(logLevel string) string {
 	return upperLogLevel
 }
 
-func getEnv(key string, fallback string, logMessage string) string {
-	value, ok := os.LookupEnv(key)
+func getEnv(env app.Env) string {
+	value, ok := os.LookupEnv(env.Key)
 	if !ok || value == "" {
-		if logMessage != "" {
-			logger.Log.Warn(logMessage)
+		if env.Help != "" {
+			logger.Log.Warn(env.Help)
 		}
-		return fallback
+		return env.DefaultValue
 	}
 	return value
 }
