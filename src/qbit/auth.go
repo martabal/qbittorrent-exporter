@@ -47,17 +47,17 @@ func Auth() {
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		errormessage := "Error reading the body" + err.Error()
-		panic(errormessage)
+		panic("Error reading the body" + err.Error())
 	}
 
 	if string(body) == "Fails." {
 		panic("Authentication Error, check your qBittorrent username / password")
 	}
-
-	if !app.ShouldShowError {
-		logger.Log.Info("New cookie stored")
+	logFunc := logger.Log.Info
+	if app.ShouldShowError {
+		logFunc = logger.Log.Debug
 	}
+	logFunc("New cookie stored")
 
 	cookie := resp.Header.Get("Set-Cookie")
 	cookieValue := strings.Split(strings.Split(cookie, ";")[0], "=")[1]

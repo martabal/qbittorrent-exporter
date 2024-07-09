@@ -1,6 +1,10 @@
 package app
 
-import "strconv"
+import (
+	"os"
+	"qbit-exp/logger"
+	"strconv"
+)
 
 const DEFAULT_PORT = 8090
 const DEFAULT_TIMEOUT = 30
@@ -11,44 +15,55 @@ type Env struct {
 	Help         string
 }
 
-var LogLevelEnv = Env{
+var defaultLogLevel = Env{
 	Key:          "LOG_LEVEL",
 	DefaultValue: "INFO",
 	Help:         "",
 }
 
-var PortEnv = Env{
+var defaultPort = Env{
 	Key:          "EXPORTER_PORT",
 	DefaultValue: strconv.Itoa(DEFAULT_PORT),
 	Help:         "",
 }
 
-var TimeoutEnv = Env{
+var defaultTimeout = Env{
 	Key:          "EXPORTER_PORT",
 	DefaultValue: strconv.Itoa(DEFAULT_TIMEOUT),
 	Help:         "",
 }
 
-var UsernameEnv = Env{
+var defaultUsername = Env{
 	Key:          "QBITTORRENT_USERNAME",
 	DefaultValue: "admin",
 	Help:         "Qbittorrent username is not set. Using default username",
 }
 
-var PasswordEnv = Env{
+var defaultPassword = Env{
 	Key:          "QBITTORRENT_PASSWORD",
 	DefaultValue: "adminadmin",
 	Help:         "Qbittorrent password is not set. Using default password",
 }
 
-var BaseUrlEnv = Env{
+var defaultBaseUrl = Env{
 	Key:          "QBITTORRENT_BASE_URL",
 	DefaultValue: "http://localhost:8080",
 	Help:         "Qbittorrent base_url is not set. Using default base_url",
 }
 
-var DisableTrackerEnv = Env{
+var defaultDisableTracker = Env{
 	Key:          "QBITTORRENT_BASE_URL",
 	DefaultValue: "http://localhost:8080",
 	Help:         "Qbittorrent base_url is not set. Using default base_url",
+}
+
+func getEnv(env Env) string {
+	value, ok := os.LookupEnv(env.Key)
+	if !ok || value == "" {
+		if env.Help != "" {
+			logger.Log.Warn(env.Help)
+		}
+		return env.DefaultValue
+	}
+	return value
 }
