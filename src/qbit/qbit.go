@@ -263,6 +263,7 @@ func apiRequest(uri string, method string, queryParams *[]QueryParams) ([]byte, 
 
 	req.AddCookie(&http.Cookie{Name: "SID", Value: app.Cookie})
 	client := &http.Client{}
+	logger.Log.Debug("New request to " + req.URL.String())
 	resp, err := client.Do(req)
 	if err != nil {
 		logger.Log.Debug(err.Error())

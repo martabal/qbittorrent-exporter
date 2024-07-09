@@ -6,6 +6,7 @@ import (
 	"io"
 	"log/slog"
 	"os"
+	"strings"
 )
 
 type PrettyHandler struct {
@@ -65,6 +66,23 @@ func NewPrettyHandler(
 	}
 
 	return h
+}
+
+func SetLogLevel(logLevel string) string {
+	upperLogLevel := strings.ToUpper(logLevel)
+	level, found := LogLevels[upperLogLevel]
+	if !found {
+		upperLogLevel = "INFO"
+		level = LogLevels[upperLogLevel]
+	}
+
+	opts := slog.HandlerOptions{
+		Level: slog.Level(level),
+	}
+
+	handler := NewPrettyHandler(os.Stdout, opts)
+	Log = slog.New(handler)
+	return upperLogLevel
 }
 
 var Log *slog.Logger
