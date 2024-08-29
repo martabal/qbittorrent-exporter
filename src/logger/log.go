@@ -39,20 +39,26 @@ func (h *PrettyHandler) Handle(ctx context.Context, r slog.Record) error {
 	level := r.Level.String()
 	timeStr := fmt.Sprintf("[%02d-%02d-%02d %02d:%02d:%02d]", r.Time.Year(), r.Time.Month(), r.Time.Day(), r.Time.Hour(), r.Time.Minute(), r.Time.Second())
 
+	var color string
 	switch r.Level {
 	case slog.LevelDebug:
-		level = fmt.Sprintf(Green + level + Reset)
-		fmt.Fprintf(os.Stdout, "%s %s %s\n", timeStr, level, r.Message)
+		color = Green
 	case slog.LevelInfo:
-		level = fmt.Sprintf(Blue + level + Reset)
-		fmt.Fprintf(os.Stdout, "%s %s %s\n", timeStr, level, r.Message)
+		color = Blue
 	case slog.LevelWarn:
-		level = fmt.Sprintf(Yellow + level + Reset)
-		fmt.Fprintf(os.Stderr, "%s %s %s\n", timeStr, level, r.Message)
+		color = Yellow
 	case slog.LevelError:
-		level = fmt.Sprintf(Red + level + Reset)
-		fmt.Fprintf(os.Stderr, "%s %s %s\n", timeStr, level, r.Message)
+		color = Red
 	}
+
+	coloredLevel := fmt.Sprintf("%s%s%s", color, level, Reset)
+
+	output := os.Stdout
+	if r.Level >= slog.LevelWarn {
+		output = os.Stderr
+	}
+
+	fmt.Fprintf(output, "%s %s %s\n", timeStr, coloredLevel, r.Message)
 
 	return nil
 }

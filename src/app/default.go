@@ -52,9 +52,9 @@ var defaultBaseUrl = Env{
 }
 
 var defaultDisableTracker = Env{
-	Key:          "QBITTORRENT_BASE_URL",
-	DefaultValue: "http://localhost:8080",
-	Help:         "Qbittorrent base_url is not set. Using default base_url",
+	Key:          "DISABLE_TRACKER",
+	DefaultValue: "false",
+	Help:         "",
 }
 
 func getEnv(env Env) string {
