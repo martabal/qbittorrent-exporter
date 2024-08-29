@@ -25,7 +25,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version: "1.22.5"
+          go-version: "1.23.0"
 
       - name: Install dependencies
         run: go get .
@@ -48,5 +48,5 @@ jobs:
         uses: golangci/golangci-lint-action@v6
         if: ${{ !cancelled() }}
         with:
-          version: v1.59.1
+          version: v1.60.3
           working-directory: src
