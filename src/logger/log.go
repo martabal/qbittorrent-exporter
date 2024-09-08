@@ -9,18 +9,32 @@ import (
 	"strings"
 )
 
+type Logger struct {
+	*slog.Logger
+}
+
 type PrettyHandler struct {
 	slog.Handler
 }
 
 var LogLevels = map[string]int{
+	"TRACE": Trace,
 	"DEBUG": Debug,
 	"INFO":  Info,
 	"WARN":  Warn,
 	"ERROR": Error,
 }
 
+var ReverseLogLevels = map[int]string{
+	Trace: "TRACE",
+	Debug: "DEBUG",
+	Info:  "INFO",
+	Warn:  "WARN",
+	Error: "ERROR",
+}
+
 const (
+	Trace int = -8
 	Debug int = -4
 	Info  int = 0
 	Warn  int = 4
@@ -33,14 +47,17 @@ const (
 	Green  = "\033[32m"
 	Yellow = "\033[33m"
 	Blue   = "\033[34m"
+	Purple = "\033[35m"
 )
 
 func (h *PrettyHandler) Handle(ctx context.Context, r slog.Record) error {
-	level := r.Level.String()
+	level := ReverseLogLevels[int(r.Level)]
 	timeStr := fmt.Sprintf("[%02d-%02d-%02d %02d:%02d:%02d]", r.Time.Year(), r.Time.Month(), r.Time.Day(), r.Time.Hour(), r.Time.Minute(), r.Time.Second())
 
 	var color string
 	switch r.Level {
+	case slog.Level(Trace):
+		color = Purple
 	case slog.LevelDebug:
 		color = Green
 	case slog.LevelInfo:
@@ -87,8 +104,12 @@ func SetLogLevel(logLevel string) string {
 	}
 
 	handler := NewPrettyHandler(os.Stdout, opts)
-	Log = slog.New(handler)
+	Log = &Logger{slog.New(handler)}
 	return upperLogLevel
 }
 
-var Log *slog.Logger
+func (l *Logger) Trace(msg string) {
+	l.Log(context.Background(), slog.Level(Trace), msg)
+}
+
+var Log *Logger
