@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	QbittorrentTimeout time.Duration
+	QBittorrentTimeout time.Duration
 	Port               int
 	ShouldShowError    bool
 	DisableTracker     bool
@@ -24,7 +24,7 @@ var (
 	Password           string
 )
 
-func SetVar(port int, disableTracker bool, loglevel string, baseUrl string, username string, password string, qbittorrentTimeout int) {
+func SetVar(port int, disableTracker bool, loglevel string, baseUrl string, username string, password string, qBittorrentTimeout int) {
 	Port = port
 	ShouldShowError = true
 	DisableTracker = disableTracker
@@ -32,7 +32,7 @@ func SetVar(port int, disableTracker bool, loglevel string, baseUrl string, user
 	BaseUrl = baseUrl
 	Username = username
 	Password = password
-	QbittorrentTimeout = time.Duration(qbittorrentTimeout)
+	QBittorrentTimeout = time.Duration(qBittorrentTimeout)
 }
 
 func LoadEnv() {

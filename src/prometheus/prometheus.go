@@ -158,7 +158,7 @@ func Transfer(result *API.Transfer, r *prometheus.Registry) {
 
 func Trackers(result []*API.Trackers, r *prometheus.Registry) {
 	if len(result) == 0 {
-		logger.Log.Debug("No tracker")
+		logger.Log.Trace("No tracker")
 		return
 	}
 	qbittorrent_tracker_info := prometheus.NewGaugeVec(prometheus.GaugeOpts{
