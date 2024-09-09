@@ -4,11 +4,23 @@ updates:
     directory: "/"
     schedule:
       interval: "daily"
+    groups:
+      ci-dependencies:
+        patterns:
+          - "*"
   - package-ecosystem: "gomod"
     directory: "src/"
     schedule:
       interval: "weekly"
+    groups:
+      all:
+        patterns:
+          - "*"
   - package-ecosystem: "docker"
     directory: "/"
     schedule:
       interval: "weekly"
+    groups:
+      docker-dependencies:
+        patterns:
+          - "*"
