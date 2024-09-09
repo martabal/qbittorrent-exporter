@@ -26,19 +26,26 @@ func main() {
 	app.LoadEnv()
 	fmt.Printf("%s (version %s)\n", ProjectName, Version)
 	fmt.Println("Author:", Author)
-	fmt.Println("Using log level: " + app.LogLevel)
-
-	qbit.Auth()
+	fmt.Println("Using log level: " + fmt.Sprintf("%s%s%s", logger.ColorLogLevel[logger.LogLevels[app.LogLevel]], app.LogLevel, logger.Reset))
 
 	logger.Log.Info("qbittorrent URL: " + app.BaseUrl)
 	logger.Log.Info("username: " + app.Username)
 	logger.Log.Info("password: " + app.GetPasswordMasked())
 	logger.Log.Info("Started")
+	isTrackerEnabled := "enabled"
+	if app.DisableTracker {
+		isTrackerEnabled = "disabled"
+	}
+	logger.Log.Debug("Trackers info is " + isTrackerEnabled)
+
+	qbit.Auth()
+
 	http.HandleFunc("/metrics", metrics)
 	addr := ":" + strconv.Itoa(app.Port)
 	if app.Port != app.DEFAULT_PORT {
 		logger.Log.Info("Listening on port " + strconv.Itoa(app.Port))
 	}
+	logger.Log.Info("Starting the exporter")
 	err := http.ListenAndServe(addr, nil)
 	if err != nil {
 		panic(err)
@@ -48,9 +55,9 @@ func main() {
 func metrics(w http.ResponseWriter, req *http.Request) {
 	ip, _, err := net.SplitHostPort(req.RemoteAddr)
 	if err == nil {
-		logger.Log.Debug("New request from " + ip)
+		logger.Log.Trace("New request from " + ip)
 	} else {
-		logger.Log.Debug("New request")
+		logger.Log.Trace("New request")
 	}
 
 	registry := prometheus.NewRegistry()

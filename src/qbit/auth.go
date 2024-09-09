@@ -13,7 +13,7 @@ import (
 )
 
 func Auth() {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(time.Second*app.QbittorrentTimeout))
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(time.Second*app.QBittorrentTimeout))
 	defer cancel()
 	params := url.Values{
 		"username": {app.Username},
@@ -57,7 +57,7 @@ func Auth() {
 	if app.ShouldShowError {
 		logFunc = logger.Log.Debug
 	}
-	logFunc("New cookie stored")
+	logFunc("New cookie for auth stored")
 
 	cookie := resp.Header.Get("Set-Cookie")
 	cookieValue := strings.Split(strings.Split(cookie, ";")[0], "=")[1]

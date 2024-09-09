@@ -245,7 +245,7 @@ func errorHelper(body []byte, err error, unmarshErr string) {
 }
 
 func apiRequest(uri string, method string, queryParams *[]QueryParams) ([]byte, bool, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(time.Second*app.QbittorrentTimeout))
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(time.Second*app.QBittorrentTimeout))
 	defer cancel()
 
 	req, err := http.NewRequest(method, app.BaseUrl+uri, nil)
@@ -263,11 +263,11 @@ func apiRequest(uri string, method string, queryParams *[]QueryParams) ([]byte, 
 
 	req.AddCookie(&http.Cookie{Name: "SID", Value: app.Cookie})
 	client := &http.Client{}
-	logger.Log.Debug("New request to " + req.URL.String())
+	logger.Log.Trace("New request to " + req.URL.String())
 	resp, err := client.Do(req)
 	if err != nil {
 		logger.Log.Debug(err.Error())
-		err := fmt.Errorf("can't connect to server")
+		err := fmt.Errorf("can't connect to qBittorrent")
 		if app.ShouldShowError {
 			logger.Log.Error(err.Error())
 			app.ShouldShowError = false

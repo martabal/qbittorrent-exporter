@@ -17,7 +17,7 @@ type PrettyHandler struct {
 	slog.Handler
 }
 
-var LogLevels = map[string]int{
+var LogLevels = map[string]slog.Level{
 	"TRACE": Trace,
 	"DEBUG": Debug,
 	"INFO":  Info,
@@ -25,7 +25,7 @@ var LogLevels = map[string]int{
 	"ERROR": Error,
 }
 
-var ReverseLogLevels = map[int]string{
+var ReverseLogLevels = map[slog.Level]string{
 	Trace: "TRACE",
 	Debug: "DEBUG",
 	Info:  "INFO",
@@ -33,12 +33,20 @@ var ReverseLogLevels = map[int]string{
 	Error: "ERROR",
 }
 
+var ColorLogLevel = map[slog.Level]string{
+	Trace: Purple,
+	Debug: Green,
+	Info:  Blue,
+	Warn:  Yellow,
+	Error: Red,
+}
+
 const (
-	Trace int = -8
-	Debug int = -4
-	Info  int = 0
-	Warn  int = 4
-	Error int = 8
+	Trace slog.Level = -8
+	Debug slog.Level = -4
+	Info  slog.Level = 0
+	Warn  slog.Level = 4
+	Error slog.Level = 8
 )
 
 const (
@@ -51,22 +59,10 @@ const (
 )
 
 func (h *PrettyHandler) Handle(ctx context.Context, r slog.Record) error {
-	level := ReverseLogLevels[int(r.Level)]
+	level := ReverseLogLevels[slog.Level(r.Level)]
 	timeStr := fmt.Sprintf("[%02d-%02d-%02d %02d:%02d:%02d]", r.Time.Year(), r.Time.Month(), r.Time.Day(), r.Time.Hour(), r.Time.Minute(), r.Time.Second())
 
-	var color string
-	switch r.Level {
-	case slog.Level(Trace):
-		color = Purple
-	case slog.LevelDebug:
-		color = Green
-	case slog.LevelInfo:
-		color = Blue
-	case slog.LevelWarn:
-		color = Yellow
-	case slog.LevelError:
-		color = Red
-	}
+	color := ColorLogLevel[r.Level]
 
 	coloredLevel := fmt.Sprintf("%s%s%s", color, level, Reset)
 
