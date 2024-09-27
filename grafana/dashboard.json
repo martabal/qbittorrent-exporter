@@ -898,564 +898,6 @@
           "color": {
             "mode": "thresholds"
           },
-          "custom": {
-            "align": "auto",
-            "cellOptions": {
-              "type": "auto"
-            },
-            "inspect": false
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          }
-        },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "progress"
-            },
-            "properties": [
-              {
-                "id": "unit",
-                "value": "percentunit"
-              },
-              {
-                "id": "decimals",
-                "value": 2
-              },
-              {
-                "id": "custom.cellOptions",
-                "value": {
-                  "type": "color-text"
-                }
-              },
-              {
-                "id": "custom.align"
-              },
-              {
-                "id": "thresholds",
-                "value": {
-                  "mode": "absolute",
-                  "steps": [
-                    {
-                      "color": "rgba(245, 54, 54, 0.9)",
-                      "value": null
-                    },
-                    {
-                      "color": "rgba(237, 129, 40, 0.89)",
-                      "value": 0
-                    },
-                    {
-                      "color": "rgba(50, 172, 45, 0.97)",
-                      "value": 0
-                    }
-                  ]
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "seeders"
-            },
-            "properties": [
-              {
-                "id": "unit",
-                "value": "short"
-              },
-              {
-                "id": "decimals",
-                "value": 2
-              },
-              {
-                "id": "custom.cellOptions",
-                "value": {
-                  "type": "color-text"
-                }
-              },
-              {
-                "id": "custom.align",
-                "value": "left"
-              },
-              {
-                "id": "thresholds",
-                "value": {
-                  "mode": "absolute",
-                  "steps": [
-                    {
-                      "color": "#d8d9da",
-                      "value": null
-                    },
-                    {
-                      "color": "#37872D",
-                      "value": 1
-                    }
-                  ]
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "leechers"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "Leechers"
-              },
-              {
-                "id": "unit",
-                "value": "short"
-              },
-              {
-                "id": "custom.cellOptions",
-                "value": {
-                  "type": "color-text"
-                }
-              },
-              {
-                "id": "custom.align",
-                "value": "left"
-              },
-              {
-                "id": "thresholds",
-                "value": {
-                  "mode": "absolute",
-                  "steps": [
-                    {
-                      "color": "#d8d9da",
-                      "value": null
-                    },
-                    {
-                      "color": "#C4162A",
-                      "value": 1
-                    }
-                  ]
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "name"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "Name"
-              },
-              {
-                "id": "custom.align",
-                "value": "left"
-              },
-              {
-                "id": "custom.width",
-                "value": 400
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "state"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "State"
-              },
-              {
-                "id": "custom.cellOptions",
-                "value": {
-                  "type": "color-text"
-                }
-              },
-              {
-                "id": "custom.align",
-                "value": "left"
-              },
-              {
-                "id": "thresholds",
-                "value": {
-                  "mode": "absolute",
-                  "steps": [
-                    {
-                      "color": "rgba(245, 54, 54, 0.9)",
-                      "value": null
-                    },
-                    {
-                      "color": "rgba(237, 129, 40, 0.89)"
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "mappings",
-                "value": [
-                  {
-                    "options": {
-                      "checkingDL": {
-                        "color": "semi-dark-blue",
-                        "index": 8,
-                        "text": "Checking"
-                      },
-                      "checkingUL": {
-                        "color": "semi-dark-blue",
-                        "index": 9,
-                        "text": "Checking"
-                      },
-                      "downloading": {
-                        "color": "semi-dark-green",
-                        "index": 1,
-                        "text": "Downloading"
-                      },
-                      "missingFiles": {
-                        "color": "semi-dark-red",
-                        "index": 10,
-                        "text": "Missing Files"
-                      },
-                      "pausedDL": {
-                        "color": "dark-yellow",
-                        "index": 6,
-                        "text": "Paused (Down)"
-                      },
-                      "pausedUP": {
-                        "color": "dark-yellow",
-                        "index": 7,
-                        "text": "Paused (Up)"
-                      },
-                      "queuedDL": {
-                        "color": "semi-dark-purple",
-                        "index": 5,
-                        "text": "Queued (Down)"
-                      },
-                      "queuedUP": {
-                        "color": "semi-dark-purple",
-                        "index": 3,
-                        "text": "Queued (Up)"
-                      },
-                      "stalledDL": {
-                        "color": "#868686",
-                        "index": 2,
-                        "text": "Stalled (Down)"
-                      },
-                      "stalledUP": {
-                        "color": "#868686",
-                        "index": 0,
-                        "text": "Stalled (Up)"
-                      },
-                      "uploading": {
-                        "color": "semi-dark-orange",
-                        "index": 4,
-                        "text": "Uploading"
-                      }
-                    },
-                    "type": "value"
-                  }
-                ]
-              },
-              {
-                "id": "custom.filterable",
-                "value": true
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "size"
-            },
-            "properties": [
-              {
-                "id": "unit",
-                "value": "decbytes"
-              },
-              {
-                "id": "decimals",
-                "value": 2
-              },
-              {
-                "id": "custom.align"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "dl_speed"
-            },
-            "properties": [
-              {
-                "id": "unit",
-                "value": "Bps"
-              },
-              {
-                "id": "decimals",
-                "value": 2
-              },
-              {
-                "id": "custom.align"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "up_speed"
-            },
-            "properties": [
-              {
-                "id": "unit",
-                "value": "Bps"
-              },
-              {
-                "id": "decimals",
-                "value": 2
-              },
-              {
-                "id": "custom.align"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "amount_left"
-            },
-            "properties": [
-              {
-                "id": "unit",
-                "value": "decbytes"
-              },
-              {
-                "id": "decimals",
-                "value": 2
-              },
-              {
-                "id": "custom.align"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "uploaded"
-            },
-            "properties": [
-              {
-                "id": "unit",
-                "value": "decbytes"
-              },
-              {
-                "id": "decimals",
-                "value": 2
-              },
-              {
-                "id": "custom.align"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "time_active"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "Active"
-              },
-              {
-                "id": "unit",
-                "value": "s"
-              },
-              {
-                "id": "decimals",
-                "value": 1
-              },
-              {
-                "id": "custom.align"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "eta"
-            },
-            "properties": [
-              {
-                "id": "unit",
-                "value": "s"
-              },
-              {
-                "id": "decimals",
-                "value": 2
-              },
-              {
-                "id": "custom.align"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "downloaded"
-            },
-            "properties": [
-              {
-                "id": "unit",
-                "value": "decbytes"
-              },
-              {
-                "id": "decimals",
-                "value": 2
-              },
-              {
-                "id": "displayName",
-                "value": "Downloaded"
-              }
-            ]
-          }
-        ]
-      },
-      "gridPos": {
-        "h": 7,
-        "w": 24,
-        "x": 0,
-        "y": 23
-      },
-      "id": 24,
-      "interval": "",
-      "options": {
-        "cellHeight": "sm",
-        "footer": {
-          "countRows": false,
-          "fields": "",
-          "reducer": ["sum"],
-          "show": false
-        },
-        "showHeader": true,
-        "sortBy": [
-          {
-            "desc": false,
-            "displayName": "Name"
-          }
-        ]
-      },
-      "pluginVersion": "11.2.0",
-      "targets": [
-        {
-          "expr": "qbittorrent_torrent_info",
-          "format": "table",
-          "instant": true,
-          "interval": "",
-          "intervalFactor": 1,
-          "legendFormat": "",
-          "refId": "A",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          }
-        }
-      ],
-      "title": "Torrents",
-      "transformations": [
-        {
-          "id": "organize",
-          "options": {
-            "excludeByName": {
-              "Time": true,
-              "Value": true,
-              "__name__": true,
-              "container": true,
-              "downloaded_session": true,
-              "endpoint": true,
-              "instance": true,
-              "job": true,
-              "max_ratio": true,
-              "namespace": true,
-              "pod": true,
-              "service": true,
-              "uploaded_session": true
-            },
-            "indexByName": {
-              "Time": 3,
-              "Value": 20,
-              "__name__": 4,
-              "amount_left": 9,
-              "container": 19,
-              "dl_speed": 5,
-              "downloaded": 6,
-              "downloaded_session": 7,
-              "endpoint": 26,
-              "eta": 8,
-              "instance": 25,
-              "job": 24,
-              "leechers": 11,
-              "max_ratio": 12,
-              "name": 0,
-              "namespace": 23,
-              "pod": 22,
-              "progress": 2,
-              "ratio": 13,
-              "seeders": 10,
-              "service": 21,
-              "size": 14,
-              "state": 1,
-              "time_active": 15,
-              "up_speed": 16,
-              "uploaded": 17,
-              "uploaded_session": 18
-            },
-            "renameByName": {
-              "amount_left": "Amount Left",
-              "dl_speed": "DL Speed",
-              "downloaded": "Downloaded",
-              "eta": "ETA",
-              "leechers": "Leechers",
-              "max_ratio": "",
-              "name": "Name",
-              "progress": "Progress",
-              "ratio": "Ratio",
-              "seeders": "Seeders",
-              "size": "Size",
-              "state": "State",
-              "time_active": "Active",
-              "up_speed": "UL Speed",
-              "uploaded": "Uploaded"
-            }
-          }
-        }
-      ],
-      "type": "table"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
           "mappings": [
             {
               "options": {
@@ -1488,7 +930,7 @@
         "h": 3,
         "w": 8,
         "x": 0,
-        "y": 30
+        "y": 23
       },
       "id": 6,
       "maxDataPoints": 100,
@@ -1569,7 +1011,7 @@
         "h": 3,
         "w": 8,
         "x": 8,
-        "y": 30
+        "y": 23
       },
       "id": 8,
       "maxDataPoints": 100,
@@ -1650,7 +1092,7 @@
         "h": 3,
         "w": 8,
         "x": 16,
-        "y": 30
+        "y": 23
       },
       "id": 10,
       "maxDataPoints": 100,
@@ -1751,7 +1193,7 @@
         "h": 7,
         "w": 24,
         "x": 0,
-        "y": 33
+        "y": 26
       },
       "id": 39,
       "options": {
@@ -1822,7 +1264,7 @@
         "h": 9,
         "w": 12,
         "x": 0,
-        "y": 40
+        "y": 33
       },
       "id": 16,
       "maxDataPoints": 3,
@@ -2009,7 +1451,7 @@
         "h": 9,
         "w": 12,
         "x": 12,
-        "y": 40
+        "y": 33
       },
       "id": 18,
       "options": {
@@ -2107,7 +1549,7 @@
         "h": 9,
         "w": 24,
         "x": 0,
-        "y": 49
+        "y": 42
       },
       "id": 26,
       "options": {
@@ -2161,8 +1603,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -2177,7 +1618,7 @@
         "h": 9,
         "w": 4,
         "x": 0,
-        "y": 58
+        "y": 51
       },
       "id": 43,
       "options": {
@@ -2249,8 +1690,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -2265,7 +1705,7 @@
         "h": 9,
         "w": 4,
         "x": 4,
-        "y": 58
+        "y": 51
       },
       "id": 42,
       "options": {
@@ -2365,8 +1805,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -2382,7 +1821,7 @@
         "h": 9,
         "w": 16,
         "x": 8,
-        "y": 58
+        "y": 51
       },
       "id": 41,
       "options": {
@@ -2421,7 +1860,7 @@
     "list": []
   },
   "time": {
-    "from": "now-1h",
+    "from": "now-12h",
     "to": "now"
   },
   "timepicker": {

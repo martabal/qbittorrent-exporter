@@ -6,7 +6,7 @@ import (
 )
 
 func TestMain(t *testing.T) {
-	app.SetVar(0, false, "", "http://localhost:8080", "admin", "adminadmin", 30)
+	app.SetVar(0, false, "", "http://localhost:8080", "admin", "adminadmin", 30, false)
 	result := app.GetPasswordMasked()
 
 	if !isValidMaskedPassword(result) {

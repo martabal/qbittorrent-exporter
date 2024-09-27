@@ -13,18 +13,19 @@ import (
 )
 
 var (
-	QBittorrentTimeout time.Duration
-	Port               int
-	ShouldShowError    bool
-	DisableTracker     bool
-	LogLevel           string
-	BaseUrl            string
-	Cookie             string
-	Username           string
-	Password           string
+	QBittorrentTimeout    time.Duration
+	Port                  int
+	ShouldShowError       bool
+	DisableTracker        bool
+	LogLevel              string
+	BaseUrl               string
+	Cookie                string
+	Username              string
+	Password              string
+	EnableHighCardinality bool
 )
 
-func SetVar(port int, disableTracker bool, loglevel string, baseUrl string, username string, password string, qBittorrentTimeout int) {
+func SetVar(port int, disableTracker bool, loglevel string, baseUrl string, username string, password string, qBittorrentTimeout int, enableHighCardinality bool) {
 	Port = port
 	ShouldShowError = true
 	DisableTracker = disableTracker
@@ -33,6 +34,7 @@ func SetVar(port int, disableTracker bool, loglevel string, baseUrl string, user
 	Username = username
 	Password = password
 	QBittorrentTimeout = time.Duration(qBittorrentTimeout)
+	EnableHighCardinality = enableHighCardinality
 }
 
 func LoadEnv() {
@@ -55,6 +57,7 @@ func LoadEnv() {
 	exporterPortEnv := getEnv(defaultPort)
 	timeoutDurationEnv := getEnv(defaultTimeout)
 	disableTracker := getEnv(defaultDisableTracker)
+	enableHighCardinality := getEnv(defaultHighCardinality)
 
 	exporterPort, errExporterPort := strconv.Atoi(exporterPortEnv)
 	if errExporterPort != nil {
@@ -72,7 +75,7 @@ func LoadEnv() {
 		panic(fmt.Sprintf("%s must be > 0", defaultPort.Key))
 	}
 
-	SetVar(exporterPort, strings.ToLower(disableTracker) == "true", loglevel, qbitURL, qbitUsername, qbitPassword, timeoutDuration)
+	SetVar(exporterPort, strings.ToLower(disableTracker) == "true", loglevel, qbitURL, qbitUsername, qbitPassword, timeoutDuration, strings.ToLower(enableHighCardinality) == "true")
 }
 
 func GetPasswordMasked() string {

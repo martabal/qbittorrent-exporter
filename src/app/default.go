@@ -57,6 +57,12 @@ var defaultDisableTracker = Env{
 	Help:         "",
 }
 
+var defaultHighCardinality = Env{
+	Key:          "ENABLE_HIGH_CARDINALITY",
+	DefaultValue: "false",
+	Help:         "",
+}
+
 func getEnv(env Env) string {
 	value, ok := os.LookupEnv(env.Key)
 	if !ok || value == "" {
