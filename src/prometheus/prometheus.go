@@ -3,6 +3,7 @@ package prom
 import (
 	"net/url"
 	API "qbit-exp/api"
+	"qbit-exp/app"
 	"qbit-exp/logger"
 	"strconv"
 	"strings"
@@ -46,9 +47,12 @@ func Torrent(result *API.Info, r *prometheus.Registry) {
 		"qbittorrent_torrent_session_uploaded_bytes":   newGaugeVec("qbittorrent_torrent_session_uploaded_bytes", "The current session upload amount of torrents (in bytes)", "name"),
 		"qbittorrent_torrent_total_downloaded_bytes":   newGaugeVec("qbittorrent_torrent_total_downloaded_bytes", "The current total download amount of torrents (in bytes)", "name"),
 		"qbittorrent_torrent_total_uploaded_bytes":     newGaugeVec("qbittorrent_torrent_total_uploaded_bytes", "The current total upload amount of torrents (in bytes)", "name"),
-		"qbittorrent_torrent_info": newGaugeVec("qbittorrent_torrent_info", "All info for torrents",
-			"name", "category", "state", "size", "progress", "seeders", "leechers", "dl_speed", "up_speed", "amount_left", "time_active", "eta", "uploaded", "uploaded_session", "downloaded", "downloaded_session", "max_ratio", "ratio", "tracker"),
-		"qbittorrent_torrent_tags": newGaugeVec("qbittorrent_tags", "All tags associated to this torrent", "name", "tag"),
+		"qbittorrent_torrent_tags":                     newGaugeVec("qbittorrent_tags", "All tags associated to this torrent", "name", "tag"),
+	}
+
+	if app.EnableHighCardinality {
+		metrics["qbittorrent_torrent_info"] = newGaugeVec("qbittorrent_torrent_info", "All info for torrents",
+			"name", "category", "state", "size", "progress", "seeders", "leechers", "dl_speed", "up_speed", "amount_left", "time_active", "eta", "uploaded", "uploaded_session", "downloaded", "downloaded_session", "max_ratio", "ratio", "tracker")
 	}
 
 	qbittorrent_global_torrents := prometheus.NewGauge(prometheus.GaugeOpts{
@@ -104,7 +108,9 @@ func Torrent(result *API.Info, r *prometheus.Registry) {
 			"ratio":              strconv.FormatFloat(torrent.Ratio, 'f', 3, 64),
 			"tracker":            torrent.Tracker,
 		}
-		metrics["qbittorrent_torrent_info"].With(infoLabels).Set(1)
+		if app.EnableHighCardinality {
+			metrics["qbittorrent_torrent_info"].With(infoLabels).Set(1)
+		}
 
 		if torrent.Tags != "" {
 			tags := strings.Split(torrent.Tags, ", ")
