@@ -3,49 +3,49 @@ package API
 import "encoding/json"
 
 type Info []struct {
-	AmountLeft        int     `json:"amount_left"`
+	AmountLeft        int64   `json:"amount_left"`
 	Category          string  `json:"category"`
-	Dlspeed           int     `json:"dlspeed"`
-	Downloaded        int     `json:"downloaded"`
-	DownloadedSession int     `json:"downloaded_session"`
-	Eta               int     `json:"eta"`
+	Dlspeed           int64   `json:"dlspeed"`
+	Downloaded        int64   `json:"downloaded"`
+	DownloadedSession int64   `json:"downloaded_session"`
+	Eta               int64   `json:"eta"`
 	Hash              string  `json:"hash"`
 	MaxRatio          float64 `json:"max_ratio"`
 	Name              string  `json:"name"`
-	NumLeechs         int     `json:"num_leechs"`
-	NumSeeds          int     `json:"num_seeds"`
+	NumLeechs         int64   `json:"num_leechs"`
+	NumSeeds          int64   `json:"num_seeds"`
 	Progress          float64 `json:"progress"`
 	Ratio             float64 `json:"ratio"`
-	Size              int     `json:"size"`
+	Size              int64   `json:"size"`
 	State             string  `json:"state"`
 	Tags              string  `json:"tags"`
 	Tracker           string  `json:"tracker"`
-	TimeActive        int     `json:"time_active"`
-	Uploaded          int     `json:"uploaded"`
-	UploadedSession   int     `json:"uploaded_session"`
-	Upspeed           int     `json:"upspeed"`
+	TimeActive        int64   `json:"time_active"`
+	Uploaded          int64   `json:"uploaded"`
+	UploadedSession   int64   `json:"uploaded_session"`
+	Upspeed           int64   `json:"upspeed"`
 }
 
 type Preferences struct {
-	AltDlLimit         int `json:"alt_dl_limit"`
-	AltUpLimit         int `json:"alt_up_limit"`
-	DlLimit            int `json:"dl_limit"`
-	MaxActiveDownloads int `json:"max_active_downloads"`
-	MaxActiveTorrents  int `json:"max_active_torrents"`
-	MaxActiveUploads   int `json:"max_active_uploads"`
-	UpLimit            int `json:"up_limit"`
+	AltDlLimit         int64 `json:"alt_dl_limit"`
+	AltUpLimit         int64 `json:"alt_up_limit"`
+	DlLimit            int64 `json:"dl_limit"`
+	MaxActiveDownloads int64 `json:"max_active_downloads"`
+	MaxActiveTorrents  int64 `json:"max_active_torrents"`
+	MaxActiveUploads   int64 `json:"max_active_uploads"`
+	UpLimit            int64 `json:"up_limit"`
 }
 
 type MainData struct {
 	CategoryMap map[string]Category `json:"categories"`
 	ServerState struct {
-		AlltimeDl         int    `json:"alltime_dl"`
-		AlltimeUl         int    `json:"alltime_ul"`
-		DlInfoData        int    `json:"dl_info_data"`
-		DlInfoSpeed       int    `json:"dl_info_speed"`
+		AlltimeDl         int64  `json:"alltime_dl"`
+		AlltimeUl         int64  `json:"alltime_ul"`
+		DlInfoData        int64  `json:"dl_info_data"`
+		DlInfoSpeed       int64  `json:"dl_info_speed"`
 		GlobalRatio       string `json:"global_ratio"`
-		UpInfoData        int    `json:"up_info_data"`
-		UpInfoSpeed       int    `json:"up_info_speed"`
+		UpInfoData        int64  `json:"up_info_data"`
+		UpInfoSpeed       int64  `json:"up_info_speed"`
 		UseAltSpeedLimits bool   `json:"use_alt_speed_limits"`
 	} `json:"server_state"`
 	Tags []string `json:"tags"`
