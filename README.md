@@ -86,7 +86,7 @@ go run ./src -e
 
 ## Metrics
 
-You can find in the dasboard the following metrics:
+You can find in the dashboard the following metrics:
 
 - All time download/upload
 - Session download/upload

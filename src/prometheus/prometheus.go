@@ -135,7 +135,7 @@ func Preference(result *API.Preferences, r *prometheus.Registry) {
 		{"max active uploads", nil, "The max number of active uploads allowed", float64((*result).MaxActiveDownloads)},
 		{"max active torrents", nil, "The max number of active torrents allowed", float64((*result).MaxActiveTorrents)},
 		{"download rate limit", &Bytes, "The global download rate limit", float64((*result).DlLimit)},
-		{"upload rate limite", &Bytes, "The global upload rate limit", float64((*result).UpLimit)},
+		{"upload rate limit", &Bytes, "The global upload rate limit", float64((*result).UpLimit)},
 		{"alt download rate limit", &Bytes, "The alternate download rate limit", float64((*result).AltDlLimit)},
 		{"alt upload rate limit", &Bytes, "The alternate upload rate limit", float64((*result).AltUpLimit)},
 	}
