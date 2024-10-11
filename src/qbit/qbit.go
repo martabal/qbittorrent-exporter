@@ -216,7 +216,6 @@ func AllRequests(r *prometheus.Registry) error {
 		_, err = (<-c)()
 	}
 	if err != nil {
-		logger.Log.Debug(err.Error())
 		return err
 	}
 	for i := 1; i < len(info); i++ {
@@ -231,7 +230,6 @@ func AllRequests(r *prometheus.Registry) error {
 	for respFunc := range c {
 		_, err := respFunc()
 		if err != nil {
-			logger.Log.Debug(err.Error())
 			return err
 		}
 	}
