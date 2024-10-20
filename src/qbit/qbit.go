@@ -104,7 +104,7 @@ func getData(r *prometheus.Registry, data Data, goroutine bool, c chan func() (b
 		result := new(API.Info)
 		if handleUnmarshal(result, body) {
 			prom.Torrent(result, r)
-			if !app.DisableTracker {
+			if !app.DisableTracker && app.EnableHighCardinality {
 				getTrackers(result, r)
 			}
 		}

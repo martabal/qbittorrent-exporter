@@ -148,13 +148,13 @@ func Transfer(result *API.Transfer, r *prometheus.Registry) {
 	gauges := Gauge{
 		{"dht nodes", nil, "The DHT nodes connected to", float64(result.DhtNodes)},
 	}
-	qbittorrent_tracker_info := prometheus.NewGaugeVec(prometheus.GaugeOpts{
+	qbittorrent_transfer_connection_status := prometheus.NewGaugeVec(prometheus.GaugeOpts{
 		Name: "qbittorrent_transfer_connection_status",
 		Help: "Connection status (connected, firewalled or disconnected)",
 	}, []string{"connection_status"})
 
-	r.MustRegister(qbittorrent_tracker_info)
-	qbittorrent_tracker_info.With(prometheus.Labels{
+	r.MustRegister(qbittorrent_transfer_connection_status)
+	qbittorrent_transfer_connection_status.With(prometheus.Labels{
 		"connection_status": result.ConnectionStatus,
 	}).Set(1)
 
