@@ -81,3 +81,26 @@ func LoadEnv() {
 func GetPasswordMasked() string {
 	return strings.Repeat("*", len(Password))
 }
+
+func GetFeaturesEnabled() string {
+	features := ""
+
+	addComma := func() {
+		if features != "" {
+			features += ", "
+		}
+	}
+
+	if EnableHighCardinality {
+		features += "High cardinality"
+	}
+
+	if !DisableTracker {
+		addComma()
+		features += "Trackers"
+	}
+
+	features = "[" + features + "]"
+
+	return features
+}

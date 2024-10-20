@@ -167,12 +167,26 @@ func Trackers(result []*API.Trackers, r *prometheus.Registry) {
 		logger.Log.Trace("No tracker")
 		return
 	}
-	qbittorrent_tracker_info := prometheus.NewGaugeVec(prometheus.GaugeOpts{
-		Name: "qbittorrent_tracker_info",
-		Help: "All info for trackers",
-	}, []string{"message", "downloaded", "leeches", "peers", "seeders", "status", "tier", "url"})
 
-	r.MustRegister(qbittorrent_tracker_info)
+	label_name := "url"
+
+	metrics := map[string]*prometheus.GaugeVec{
+		"qbittorrent_tracker_downloaded": newGaugeVec("qbittorrent_tracker_downloaded", "The current number of completed downloads for each trackers", label_name),
+		"qbittorrent_tracker_leeches":    newGaugeVec("qbittorrent_tracker_leeches", "The current number of leechers for each trackers", label_name),
+		"qbittorrent_tracker_peers":      newGaugeVec("qbittorrent_tracker_peers", "The current number of peers for each trackers", label_name),
+		"qbittorrent_tracker_seeders":    newGaugeVec("qbittorrent_tracker_seeders", "The current number of seeders for each trackers", label_name),
+		"qbittorrent_tracker_status":     newGaugeVec("qbittorrent_tracker_status", "The current status of each trackers", label_name),
+		"qbittorrent_tracker_tier":       newGaugeVec("qbittorrent_tracker_tier", "The current tracker priority tier of each trackers", label_name),
+	}
+
+	if app.EnableHighCardinality {
+		metrics["qbittorrent_tracker_info"] = newGaugeVec("qbittorrent_tracker_info", "All info for trackers",
+			"message", "downloaded", "leeches", "peers", "seeders", "status", "tier", "url")
+	}
+
+	for _, metric := range metrics {
+		r.MustRegister(metric)
+	}
 	for _, listOfTracker := range result {
 		for _, tracker := range *listOfTracker {
 			if isValidURL(tracker.URL) {
@@ -180,15 +194,26 @@ func Trackers(result []*API.Trackers, r *prometheus.Registry) {
 				if err != nil {
 					tier = 0
 				}
-				qbittorrent_tracker_info.With(prometheus.Labels{
-					"message":    tracker.Message,
-					"downloaded": strconv.Itoa(tracker.NumDownloaded),
-					"leeches":    strconv.Itoa(tracker.NumLeeches),
-					"peers":      strconv.Itoa(tracker.NumPeers),
-					"seeders":    strconv.Itoa(int(tracker.NumSeeds)),
-					"status":     strconv.Itoa((tracker.Status)),
-					"tier":       strconv.Itoa(tier),
-					"url":        tracker.URL}).Set(1)
+				label := prometheus.Labels{label_name: tracker.URL}
+				metrics["qbittorrent_tracker_downloaded"].With(label).Set((float64(tracker.NumDownloaded)))
+				metrics["qbittorrent_tracker_leeches"].With(label).Set((float64(tracker.NumLeeches)))
+				metrics["qbittorrent_tracker_seeders"].With(label).Set((float64(tracker.NumSeeds)))
+				metrics["qbittorrent_tracker_peers"].With(label).Set((float64(tracker.NumPeers)))
+				metrics["qbittorrent_tracker_status"].With(label).Set((float64(tracker.Status)))
+
+				if app.EnableHighCardinality {
+					qbittorrent_tracker_info_labels := prometheus.Labels{
+						"message":    tracker.Message,
+						"downloaded": strconv.Itoa(tracker.NumDownloaded),
+						"leeches":    strconv.Itoa(tracker.NumLeeches),
+						"peers":      strconv.Itoa(tracker.NumPeers),
+						"seeders":    strconv.Itoa(int(tracker.NumSeeds)),
+						"status":     strconv.Itoa((tracker.Status)),
+						"tier":       strconv.Itoa(tier),
+						"url":        tracker.URL}
+					metrics["qbittorrent_tracker_info"].With(qbittorrent_tracker_info_labels).Set(1)
+				}
+
 			}
 		}
 

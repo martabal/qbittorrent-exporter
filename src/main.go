@@ -31,6 +31,7 @@ func main() {
 	logger.Log.Info("qbittorrent URL: " + app.BaseUrl)
 	logger.Log.Info("username: " + app.Username)
 	logger.Log.Info("password: " + app.GetPasswordMasked())
+	logger.Log.Info("Features enabled: " + app.GetFeaturesEnabled())
 	logger.Log.Info("Started")
 	isTrackerEnabled := "enabled"
 	if app.DisableTracker {
