@@ -56,7 +56,7 @@ func Torrent(result *API.Info, r *prometheus.Registry) {
 		"qbittorrent_torrent_session_uploaded_bytes":   newGaugeVec("qbittorrent_torrent_session_uploaded_bytes", "The current session upload amount of torrents (in bytes)", labels),
 		"qbittorrent_torrent_total_downloaded_bytes":   newGaugeVec("qbittorrent_torrent_total_downloaded_bytes", "The current total download amount of torrents (in bytes)", labels),
 		"qbittorrent_torrent_total_uploaded_bytes":     newGaugeVec("qbittorrent_torrent_total_uploaded_bytes", "The current total upload amount of torrents (in bytes)", labels),
-		"qbittorrent_torrent_tags":                     newGaugeVec("qbittorrent_tags", "All tags associated to this torrent", labels),
+		"qbittorrent_torrent_tags":                     newGaugeVec("qbittorrent_tags", "All tags associated to this torrent", append(labels, "tag")),
 		"qbittorrent_torrent_states":                   newGaugeVec("qbittorrent_torrent_states", "The current state of torrents", []string{TorrentLabelName}),
 	}
 
