@@ -104,7 +104,7 @@ func getData(r *prometheus.Registry, data Data, goroutine bool, c chan func() (b
 		result := new(API.Info)
 		if handleUnmarshal(result, body) {
 			prom.Torrent(result, r)
-			if app.Feature.EnableTracker {
+			if app.Exporter.Feature.EnableTracker {
 				getTrackers(result, r)
 			}
 		}
@@ -243,10 +243,10 @@ func errorHelper(body []byte, err error, unmarshErr string) {
 }
 
 func apiRequest(uri string, method string, queryParams *[]QueryParams) ([]byte, bool, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(time.Second*app.QBittorrentTimeout))
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(time.Second*app.QBittorrent.Timeout))
 	defer cancel()
 
-	req, err := http.NewRequest(method, app.BaseUrl+uri, nil)
+	req, err := http.NewRequest(method, app.QBittorrent.BaseUrl+uri, nil)
 	req = req.WithContext(ctx)
 	if err != nil {
 		panic("Error with url " + err.Error())
@@ -259,7 +259,7 @@ func apiRequest(uri string, method string, queryParams *[]QueryParams) ([]byte, 
 		req.URL.RawQuery = q.Encode()
 	}
 
-	req.AddCookie(&http.Cookie{Name: "SID", Value: app.Cookie})
+	req.AddCookie(&http.Cookie{Name: "SID", Value: app.QBittorrent.Cookie})
 	client := &http.Client{}
 	logger.Log.Trace("New request to " + req.URL.String())
 	resp, err := client.Do(req)

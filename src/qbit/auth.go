@@ -13,14 +13,13 @@ import (
 )
 
 func Auth() {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(time.Second*app.QBittorrentTimeout))
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(time.Second*app.QBittorrent.Timeout))
 	defer cancel()
 	params := url.Values{
-		"username": {app.Username},
-		"password": {app.Password},
+		"username": {app.QBittorrent.Username},
+		"password": {app.QBittorrent.Password},
 	}
-	req, err := http.NewRequest(http.MethodPost, app.BaseUrl+"/api/v2/auth/login", strings.NewReader(params.Encode()))
-	req = req.WithContext(ctx)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, app.QBittorrent.BaseUrl+"/api/v2/auth/login", strings.NewReader(params.Encode()))
 
 	if err != nil {
 		panic("Error with url " + err.Error())
@@ -33,7 +32,7 @@ func Auth() {
 		logger.Log.Debug(err.Error())
 		if app.ShouldShowError {
 			app.ShouldShowError = false
-			logger.Log.Warn("Can't connect to qbittorrent with url : " + app.BaseUrl)
+			logger.Log.Warn("Can't connect to qbittorrent with url : " + app.QBittorrent.BaseUrl)
 		}
 		return
 	}
@@ -61,5 +60,5 @@ func Auth() {
 
 	cookie := resp.Header.Get("Set-Cookie")
 	cookieValue := strings.Split(strings.Split(cookie, ";")[0], "=")[1]
-	app.Cookie = cookieValue
+	app.QBittorrent.Cookie = cookieValue
 }
