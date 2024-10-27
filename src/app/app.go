@@ -13,18 +13,26 @@ import (
 )
 
 var (
-	QBittorrentTimeout  time.Duration
+	QBittorrent     QBittorrentSettings
+	Exporter        ExporterSettings
+	ShouldShowError bool
+	UsingEnvFile    bool
+)
+
+type ExporterSettings struct {
 	Port                int
-	ShouldShowError     bool
 	LogLevel            string
-	BaseUrl             string
-	Cookie              string
-	Username            string
-	Password            string
 	ExperimentalFeature ExperimentalFeatures
 	Feature             Features
-	UsingEnvFile        bool
-)
+}
+
+type QBittorrentSettings struct {
+	Timeout  time.Duration
+	BaseUrl  string
+	Cookie   string
+	Username string
+	Password string
+}
 
 type ExperimentalFeatures struct {
 	EnableLabelWithHash bool
@@ -36,16 +44,16 @@ type Features struct {
 }
 
 func SetVar(port int, enableTracker bool, loglevel string, baseUrl string, username string, password string, qBittorrentTimeout int, enableHighCardinality bool, enableLabelWithHash bool) {
-	Port = port
+	Exporter.Port = port
 	ShouldShowError = true
-	Feature.EnableTracker = enableTracker
-	LogLevel = loglevel
-	BaseUrl = baseUrl
-	Username = username
-	Password = password
-	QBittorrentTimeout = time.Duration(qBittorrentTimeout)
-	Feature.EnableHighCardinality = enableHighCardinality
-	ExperimentalFeature.EnableLabelWithHash = enableLabelWithHash
+	Exporter.Feature.EnableTracker = enableTracker
+	Exporter.LogLevel = loglevel
+	QBittorrent.BaseUrl = baseUrl
+	QBittorrent.Username = username
+	QBittorrent.Password = password
+	QBittorrent.Timeout = time.Duration(qBittorrentTimeout)
+	Exporter.Feature.EnableHighCardinality = enableHighCardinality
+	Exporter.ExperimentalFeature.EnableLabelWithHash = enableLabelWithHash
 }
 
 func LoadEnv() {
@@ -97,7 +105,7 @@ func envSetToTrue(env string) bool {
 }
 
 func GetPasswordMasked() string {
-	return strings.Repeat("*", len(Password))
+	return strings.Repeat("*", len(QBittorrent.Password))
 }
 
 func GetFeaturesEnabled() string {
@@ -109,16 +117,16 @@ func GetFeaturesEnabled() string {
 		}
 	}
 
-	if Feature.EnableHighCardinality {
+	if Exporter.Feature.EnableHighCardinality {
 		features += "High cardinality"
 	}
 
-	if Feature.EnableTracker {
+	if Exporter.Feature.EnableTracker {
 		addComma()
 		features += "Trackers"
 	}
 
-	if ExperimentalFeature.EnableLabelWithHash {
+	if Exporter.ExperimentalFeature.EnableLabelWithHash {
 		addComma()
 		features += "Label with hash (experimental)"
 	}

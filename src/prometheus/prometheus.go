@@ -28,7 +28,7 @@ type Gauge []struct {
 const TorrentLabelName = "name"
 const TorrentLabelHash = "hash"
 
-const TrackerLabelName = "url"
+const TrackerLabelURL = "url"
 
 func isValidURL(input string) bool {
 	u, err := url.Parse(input)
@@ -37,8 +37,8 @@ func isValidURL(input string) bool {
 
 func Torrent(result *API.Info, r *prometheus.Registry) {
 	labels := []string{TorrentLabelName}
-	if app.ExperimentalFeature.EnableLabelWithHash {
-		labels = []string{TorrentLabelName, TorrentLabelHash}
+	if app.Exporter.ExperimentalFeature.EnableLabelWithHash {
+		labels = append(labels, TorrentLabelHash)
 	}
 
 	metrics := map[string]*prometheus.GaugeVec{
@@ -60,7 +60,7 @@ func Torrent(result *API.Info, r *prometheus.Registry) {
 		"qbittorrent_torrent_states":                   newGaugeVec("qbittorrent_torrent_states", "The current state of torrents", []string{TorrentLabelName}),
 	}
 
-	if app.Feature.EnableHighCardinality {
+	if app.Exporter.Feature.EnableHighCardinality {
 		metrics["qbittorrent_torrent_info"] = newGaugeVec("qbittorrent_torrent_info", "All info for torrents",
 			[]string{TorrentLabelName, "category", "state", "size", "progress", "seeders", "leechers", "dl_speed", "up_speed", "amount_left", "time_active", "eta", "uploaded", "uploaded_session", "downloaded", "downloaded_session", "max_ratio", "ratio", "tracker", TorrentLabelHash})
 	}
@@ -78,8 +78,8 @@ func Torrent(result *API.Info, r *prometheus.Registry) {
 	count_stelledup, count_uploading := 0, 0
 	for _, torrent := range *result {
 		labels := prometheus.Labels{TorrentLabelName: torrent.Name}
-		if app.ExperimentalFeature.EnableLabelWithHash {
-			labels = prometheus.Labels{TorrentLabelName: torrent.Name, TorrentLabelHash: torrent.Hash}
+		if app.Exporter.ExperimentalFeature.EnableLabelWithHash {
+			labels[TorrentLabelHash] = torrent.Hash
 		}
 		metrics["qbittorrent_torrent_eta"].With(labels).Set(float64(torrent.Eta))
 		metrics["qbittorrent_torrent_download_speed_bytes"].With(labels).Set(float64(torrent.Dlspeed))
@@ -122,7 +122,7 @@ func Torrent(result *API.Info, r *prometheus.Registry) {
 			"tracker":            torrent.Tracker,
 			TorrentLabelHash:     torrent.Hash,
 		}
-		if app.Feature.EnableHighCardinality {
+		if app.Exporter.Feature.EnableHighCardinality {
 			metrics["qbittorrent_torrent_info"].With(infoLabels).Set(1)
 		}
 
@@ -155,7 +155,7 @@ func Preference(result *API.Preferences, r *prometheus.Registry) {
 		{"alt upload rate limit", &Bytes, "The alternate upload rate limit", float64((*result).AltUpLimit)},
 	}
 
-	register_and_set(&gauges, r)
+	registerAndSet(&gauges, r)
 
 }
 
@@ -173,7 +173,7 @@ func Transfer(result *API.Transfer, r *prometheus.Registry) {
 		"connection_status": result.ConnectionStatus,
 	}).Set(1)
 
-	register_and_set(&gauges, r)
+	registerAndSet(&gauges, r)
 
 }
 
@@ -183,20 +183,20 @@ func Trackers(result []*API.Trackers, r *prometheus.Registry) {
 		return
 	}
 
-	label := []string{TrackerLabelName}
+	labels := []string{TrackerLabelURL}
 
 	metrics := map[string]*prometheus.GaugeVec{
-		"qbittorrent_tracker_downloaded": newGaugeVec("qbittorrent_tracker_downloaded", "The current number of completed downloads for each trackers", label),
-		"qbittorrent_tracker_leeches":    newGaugeVec("qbittorrent_tracker_leeches", "The current number of leechers for each trackers", label),
-		"qbittorrent_tracker_peers":      newGaugeVec("qbittorrent_tracker_peers", "The current number of peers for each trackers", label),
-		"qbittorrent_tracker_seeders":    newGaugeVec("qbittorrent_tracker_seeders", "The current number of seeders for each trackers", label),
-		"qbittorrent_tracker_status":     newGaugeVec("qbittorrent_tracker_status", "The current status of each trackers", label),
-		"qbittorrent_tracker_tier":       newGaugeVec("qbittorrent_tracker_tier", "The current tracker priority tier of each trackers", label),
+		"qbittorrent_tracker_downloaded": newGaugeVec("qbittorrent_tracker_downloaded", "The current number of completed downloads for each trackers", labels),
+		"qbittorrent_tracker_leeches":    newGaugeVec("qbittorrent_tracker_leeches", "The current number of leechers for each trackers", labels),
+		"qbittorrent_tracker_peers":      newGaugeVec("qbittorrent_tracker_peers", "The current number of peers for each trackers", labels),
+		"qbittorrent_tracker_seeders":    newGaugeVec("qbittorrent_tracker_seeders", "The current number of seeders for each trackers", labels),
+		"qbittorrent_tracker_status":     newGaugeVec("qbittorrent_tracker_status", "The current status of each trackers", labels),
+		"qbittorrent_tracker_tier":       newGaugeVec("qbittorrent_tracker_tier", "The current tracker priority tier of each trackers", labels),
 	}
 
-	if app.Feature.EnableHighCardinality {
+	if app.Exporter.Feature.EnableHighCardinality {
 		metrics["qbittorrent_tracker_info"] = newGaugeVec("qbittorrent_tracker_info", "All info for trackers",
-			[]string{"message", "downloaded", "leeches", "peers", "seeders", "status", "tier", TrackerLabelName})
+			[]string{"message", "downloaded", "leeches", "peers", "seeders", "status", "tier", TrackerLabelURL})
 	}
 
 	for _, metric := range metrics {
@@ -209,23 +209,23 @@ func Trackers(result []*API.Trackers, r *prometheus.Registry) {
 				if err != nil {
 					tier = 0
 				}
-				label := prometheus.Labels{TrackerLabelName: tracker.URL}
-				metrics["qbittorrent_tracker_downloaded"].With(label).Set((float64(tracker.NumDownloaded)))
-				metrics["qbittorrent_tracker_leeches"].With(label).Set((float64(tracker.NumLeeches)))
-				metrics["qbittorrent_tracker_seeders"].With(label).Set((float64(tracker.NumSeeds)))
-				metrics["qbittorrent_tracker_peers"].With(label).Set((float64(tracker.NumPeers)))
-				metrics["qbittorrent_tracker_status"].With(label).Set((float64(tracker.Status)))
+				labels := prometheus.Labels{TrackerLabelURL: tracker.URL}
+				metrics["qbittorrent_tracker_downloaded"].With(labels).Set((float64(tracker.NumDownloaded)))
+				metrics["qbittorrent_tracker_leeches"].With(labels).Set((float64(tracker.NumLeeches)))
+				metrics["qbittorrent_tracker_seeders"].With(labels).Set((float64(tracker.NumSeeds)))
+				metrics["qbittorrent_tracker_peers"].With(labels).Set((float64(tracker.NumPeers)))
+				metrics["qbittorrent_tracker_status"].With(labels).Set((float64(tracker.Status)))
 
-				if app.Feature.EnableHighCardinality {
+				if app.Exporter.Feature.EnableHighCardinality {
 					qbittorrent_tracker_info_labels := prometheus.Labels{
-						"message":        tracker.Message,
-						"downloaded":     strconv.Itoa(tracker.NumDownloaded),
-						"leeches":        strconv.Itoa(tracker.NumLeeches),
-						"peers":          strconv.Itoa(tracker.NumPeers),
-						"seeders":        strconv.Itoa(int(tracker.NumSeeds)),
-						"status":         strconv.Itoa((tracker.Status)),
-						"tier":           strconv.Itoa(tier),
-						TrackerLabelName: tracker.URL}
+						"message":       tracker.Message,
+						"downloaded":    strconv.Itoa(tracker.NumDownloaded),
+						"leeches":       strconv.Itoa(tracker.NumLeeches),
+						"peers":         strconv.Itoa(tracker.NumPeers),
+						"seeders":       strconv.Itoa(int(tracker.NumSeeds)),
+						"status":        strconv.Itoa((tracker.Status)),
+						"tier":          strconv.Itoa(tier),
+						TrackerLabelURL: tracker.URL}
 					metrics["qbittorrent_tracker_info"].With(qbittorrent_tracker_info_labels).Set(1)
 				}
 
@@ -270,7 +270,7 @@ func MainData(result *API.MainData, r *prometheus.Registry) {
 		{"upload speed", &Bytes, "The total current upload speed of all torrents", float64((*result).ServerState.UpInfoSpeed)},
 	}
 
-	register_and_set(&gauges, r)
+	registerAndSet(&gauges, r)
 
 	qbittorrent_global_tags := prometheus.NewGaugeVec(prometheus.GaugeOpts{
 		Name: "qbittorrent_global_tags",
@@ -299,7 +299,7 @@ func MainData(result *API.MainData, r *prometheus.Registry) {
 	}
 }
 
-func register_and_set(gauges *Gauge, r *prometheus.Registry) {
+func registerAndSet(gauges *Gauge, r *prometheus.Registry) {
 	for _, gauge := range *gauges {
 		name := "qbittorrent_global_" + strings.Replace(gauge.name, " ", "_", -1)
 		help := gauge.help

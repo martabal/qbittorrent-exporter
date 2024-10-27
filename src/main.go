@@ -26,15 +26,15 @@ func main() {
 	app.LoadEnv()
 	fmt.Printf("%s (version %s)\n", ProjectName, Version)
 	fmt.Println("Author:", Author)
-	fmt.Println("Using log level: " + fmt.Sprintf("%s%s%s", logger.ColorLogLevel[logger.LogLevels[app.LogLevel]], app.LogLevel, logger.Reset))
+	fmt.Println("Using log level: " + fmt.Sprintf("%s%s%s", logger.ColorLogLevel[logger.LogLevels[app.Exporter.LogLevel]], app.Exporter.LogLevel, logger.Reset))
 
 	envFileMessage := "Using environment variables"
 	if app.UsingEnvFile {
 		envFileMessage = "Using .env"
 	}
 	logger.Log.Debug(envFileMessage)
-	logger.Log.Info("qbittorrent URL: " + app.BaseUrl)
-	logger.Log.Info("username: " + app.Username)
+	logger.Log.Info("qbittorrent URL: " + app.QBittorrent.BaseUrl)
+	logger.Log.Info("username: " + app.QBittorrent.Username)
 	logger.Log.Info("password: " + app.GetPasswordMasked())
 	logger.Log.Info("Features enabled: " + app.GetFeaturesEnabled())
 	logger.Log.Info("Started")
@@ -42,9 +42,9 @@ func main() {
 	qbit.Auth()
 
 	http.HandleFunc("/metrics", metrics)
-	addr := ":" + strconv.Itoa(app.Port)
-	if app.Port != app.DEFAULT_PORT {
-		logger.Log.Info("Listening on port " + strconv.Itoa(app.Port))
+	addr := ":" + strconv.Itoa(app.Exporter.Port)
+	if app.Exporter.Port != app.DEFAULT_PORT {
+		logger.Log.Info("Listening on port " + strconv.Itoa(app.Exporter.Port))
 	}
 	logger.Log.Info("Starting the exporter")
 	err := http.ListenAndServe(addr, nil)
