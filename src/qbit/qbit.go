@@ -7,7 +7,6 @@ import (
 	"io"
 	"strconv"
 	"sync"
-	"time"
 
 	"net/http"
 	API "qbit-exp/api"
@@ -243,7 +242,7 @@ func errorHelper(body []byte, err error, unmarshErr string) {
 }
 
 func apiRequest(uri string, method string, queryParams *[]QueryParams) ([]byte, bool, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(time.Second*app.QBittorrent.Timeout))
+	ctx, cancel := context.WithTimeout(context.Background(), app.QBittorrent.Timeout)
 	defer cancel()
 
 	req, err := http.NewRequest(method, app.QBittorrent.BaseUrl+uri, nil)
@@ -264,7 +263,6 @@ func apiRequest(uri string, method string, queryParams *[]QueryParams) ([]byte, 
 	logger.Log.Trace("New request to " + req.URL.String())
 	resp, err := client.Do(req)
 	if ctx.Err() == context.DeadlineExceeded {
-
 		logger.Log.Error(API.QbittorrentTimeOut)
 		return nil, false, context.DeadlineExceeded
 	}

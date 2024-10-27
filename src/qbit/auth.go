@@ -10,11 +10,10 @@ import (
 	"qbit-exp/logger"
 	"strconv"
 	"strings"
-	"time"
 )
 
 func Auth() {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(time.Second*app.QBittorrent.Timeout))
+	ctx, cancel := context.WithTimeout(context.Background(), app.QBittorrent.Timeout)
 	defer cancel()
 	params := url.Values{
 		"username": {app.QBittorrent.Username},
@@ -30,7 +29,10 @@ func Auth() {
 	resp, err := client.Do(req)
 
 	if ctx.Err() == context.DeadlineExceeded {
-		logger.Log.Error(API.QbittorrentTimeOut)
+		if app.ShouldShowError {
+			app.ShouldShowError = false
+			logger.Log.Error(API.QbittorrentTimeOut)
+		}
 	}
 
 	if err != nil {

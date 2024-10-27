@@ -1,23 +1,25 @@
 package qbit
 
 import (
+	"bytes"
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
-	"os"
+	"strings"
 	"testing"
+	"time"
 
+	API "qbit-exp/api"
 	"qbit-exp/app"
 	"qbit-exp/logger"
 )
 
-var mockLogger *logger.Logger
+var buff = &bytes.Buffer{}
+
+const twoSeconds = time.Duration(2 * time.Second)
 
 func init() {
-	handler := logger.NewPrettyHandler(os.Stdout, slog.HandlerOptions{})
-	mockLogger = &logger.Logger{Logger: slog.New(handler)}
-
-	logger.Log = mockLogger
+	logger.Log = &logger.Logger{Logger: slog.New(slog.NewTextHandler(buff, &slog.HandlerOptions{}))}
 }
 
 func TestAuthSuccess(t *testing.T) {
@@ -38,7 +40,7 @@ func TestAuthSuccess(t *testing.T) {
 	app.QBittorrent.BaseUrl = ts.URL
 	app.QBittorrent.Username = "testuser"
 	app.QBittorrent.Password = "testpass"
-	app.QBittorrent.Timeout = 2
+	app.QBittorrent.Timeout = twoSeconds
 
 	Auth()
 
@@ -62,7 +64,7 @@ func TestAuthFail(t *testing.T) {
 	app.QBittorrent.BaseUrl = ts.URL
 	app.QBittorrent.Username = "wronguser"
 	app.QBittorrent.Password = "wrongpass"
-	app.QBittorrent.Timeout = 2
+	app.QBittorrent.Timeout = twoSeconds
 
 	defer func() {
 		if r := recover(); r == nil {
@@ -73,6 +75,48 @@ func TestAuthFail(t *testing.T) {
 	Auth()
 }
 
+func TestAuthInvalidUrl(t *testing.T) {
+
+	t.Cleanup(resetState)
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer ts.Close()
+
+	app.QBittorrent.BaseUrl = ts.URL + "//"
+	app.QBittorrent.Username = ""
+	app.QBittorrent.Password = ""
+	app.QBittorrent.Timeout = twoSeconds
+
+	defer func() {
+		if r := recover(); r == nil {
+			t.Errorf("expected panic for invalid URL")
+		}
+	}()
+
+	Auth()
+}
+
+func TestAuthTimeout(t *testing.T) {
+
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		time.Sleep(3 * time.Second)
+	}))
+	defer ts.Close()
+
+	app.QBittorrent.BaseUrl = ts.URL
+	app.QBittorrent.Username = ""
+	app.QBittorrent.Password = ""
+	app.QBittorrent.Timeout = twoSeconds
+	Auth()
+
+	if !strings.Contains(buff.String(), API.QbittorrentTimeOut) {
+		t.Errorf("expected timeout log, got: %s", buff.String())
+	}
+}
+
 func resetState() {
 	app.QBittorrent.Cookie = ""
+	app.ShouldShowError = true
+	buff.Reset()
 }
