@@ -117,17 +117,18 @@ Docker compressed size is ~10 MB.
 
 ### Environment variables
 
-|          Parameters          | Function                                                                                                               | Default Value           |
-| :--------------------------: | ---------------------------------------------------------------------------------------------------------------------- | ----------------------- |
-|          `-p 8090`           | Webservice port                                                                                                        |                         |
-|  `-e QBITTORRENT_USERNAME`   | qBittorrent username                                                                                                   | `admin`                 |
-|  `-e QBITTORRENT_PASSWORD`   | qBittorrent password                                                                                                   | `adminadmin`            |
-|  `-e QBITTORRENT_BASE_URL`   | qBittorrent base URL                                                                                                   | `http://localhost:8090` |
-|   `-e QBITTORRENT_TIMEOUT`   | duration before ending a request to qBittorrent                                                                        | `30`                    |
-|      `-e EXPORTER_PORT`      | qbittorrent export port (optional)                                                                                     | `8090`                  |
-|     `-e DISABLE_TRACKER`     | get tracker infos, which needs an API request for each tracker (require `ENABLE_HIGH_CARDINALITY` to be set to `true`) | `false`                 |
-|        `-e LOG_LEVEL`        | App log level (`DEBUG`, `INFO`, `WARN` and `ERROR`)                                                                    | `INFO`                  |
-| `-e ENABLE_HIGH_CARDINALITY` | enable high cardinality metric (`qbittorrent_torrent_info` and `qbittorrent_tracker_info` )                            | `false`                 |
+|          Parameters          | Function                                                                                   | Default Value           |
+| :--------------------------: | ------------------------------------------------------------------------------------------ | ----------------------- |
+|          `-p 8090`           | Webservice port                                                                            |                         |
+|  `-e QBITTORRENT_USERNAME`   | qBittorrent username                                                                       | `admin`                 |
+|  `-e QBITTORRENT_PASSWORD`   | qBittorrent password                                                                       | `adminadmin`            |
+|  `-e QBITTORRENT_BASE_URL`   | qBittorrent base URL                                                                       | `http://localhost:8090` |
+|   `-e QBITTORRENT_TIMEOUT`   | duration before ending a request to qBittorrent                                            | `30`                    |
+|      `-e EXPORTER_PORT`      | qbittorrent export port (optional)                                                         | `8090`                  |
+|        `-e LOG_LEVEL`        | App log level (`DEBUG`, `INFO`, `WARN` and `ERROR`)                                        | `INFO`                  |
+|     `-e ENABLE_TRACKER`      | get tracker infos,                                                                         | `true`                  |
+| `-e ENABLE_HIGH_CARDINALITY` | enable high cardinality metric (`qbittorrent_torrent_info` and `qbittorrent_tracker_info`) | `false`                 |
+| `-e ENABLE_LABEL_WITH_HASH`  | **[EXPERIMENTAL]** add the torrent hash to the `qbittorrent_torrent_*` metrics label       | `false`                 |
 
 ### Arguments
 

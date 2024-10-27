@@ -28,16 +28,16 @@ func main() {
 	fmt.Println("Author:", Author)
 	fmt.Println("Using log level: " + fmt.Sprintf("%s%s%s", logger.ColorLogLevel[logger.LogLevels[app.LogLevel]], app.LogLevel, logger.Reset))
 
+	envFileMessage := "Using environment variables"
+	if app.UsingEnvFile {
+		envFileMessage = "Using .env"
+	}
+	logger.Log.Debug(envFileMessage)
 	logger.Log.Info("qbittorrent URL: " + app.BaseUrl)
 	logger.Log.Info("username: " + app.Username)
 	logger.Log.Info("password: " + app.GetPasswordMasked())
 	logger.Log.Info("Features enabled: " + app.GetFeaturesEnabled())
 	logger.Log.Info("Started")
-	isTrackerEnabled := "enabled"
-	if app.DisableTracker {
-		isTrackerEnabled = "disabled"
-	}
-	logger.Log.Debug("Trackers info is " + isTrackerEnabled)
 
 	qbit.Auth()
 

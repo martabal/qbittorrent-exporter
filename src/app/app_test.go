@@ -6,41 +6,88 @@ import (
 
 func TestGetFeaturesEnabled(t *testing.T) {
 	tests := []struct {
-		name                  string
-		enableHighCardinality bool
-		disableTracker        bool
-		expectedOutput        string
+		name                string
+		features            Features
+		experimentalFeature ExperimentalFeatures
+
+		expectedOutput string
 	}{
 		{
-			name:                  "Both disabled",
-			enableHighCardinality: false,
-			disableTracker:        true,
-			expectedOutput:        "[]",
+			name: "All features disabled",
+			features: Features{
+				EnableHighCardinality: false,
+				EnableTracker:         false,
+			},
+			experimentalFeature: ExperimentalFeatures{
+				EnableLabelWithHash: false,
+			},
+			expectedOutput: "[]",
 		},
 		{
-			name:                  "Only High Cardinality enabled",
-			enableHighCardinality: true,
-			disableTracker:        true,
-			expectedOutput:        "[High cardinality]",
+			name: "Only High Cardinality enabled",
+			features: Features{
+				EnableHighCardinality: true,
+				EnableTracker:         false,
+			},
+			experimentalFeature: ExperimentalFeatures{
+				EnableLabelWithHash: false,
+			},
+			expectedOutput: "[High cardinality]",
 		},
 		{
-			name:                  "Only Trackers enabled",
-			enableHighCardinality: false,
-			disableTracker:        false,
-			expectedOutput:        "[Trackers]",
+			name: "Only Trackers enabled",
+			features: Features{
+				EnableHighCardinality: false,
+				EnableTracker:         true,
+			},
+			experimentalFeature: ExperimentalFeatures{
+				EnableLabelWithHash: false,
+			},
+			expectedOutput: "[Trackers]",
 		},
 		{
-			name:                  "Both High Cardinality and Trackers enabled",
-			enableHighCardinality: true,
-			disableTracker:        false,
-			expectedOutput:        "[High cardinality, Trackers]",
+			name: "Both High Cardinality and Trackers enabled",
+			features: Features{
+				EnableHighCardinality: true,
+				EnableTracker:         true,
+			},
+			experimentalFeature: ExperimentalFeatures{
+				EnableLabelWithHash: false,
+			},
+			expectedOutput: "[High cardinality, Trackers]",
+		},
+		{
+			name: "Experimental feature enabled",
+			features: Features{
+				EnableHighCardinality: false,
+				EnableTracker:         false,
+			},
+			experimentalFeature: ExperimentalFeatures{
+				EnableLabelWithHash: true,
+			},
+			expectedOutput: "[Label with hash (experimental)]",
+		},
+		{
+			name: "All features enabled",
+			features: Features{
+				EnableHighCardinality: true,
+				EnableTracker:         true,
+			},
+			experimentalFeature: ExperimentalFeatures{
+				EnableLabelWithHash: true,
+			},
+			expectedOutput: "[High cardinality, Trackers, Label with hash (experimental)]",
 		},
 	}
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			EnableHighCardinality = test.enableHighCardinality
-			DisableTracker = test.disableTracker
+			// Set main features
+			Feature.EnableHighCardinality = test.features.EnableHighCardinality
+			Feature.EnableTracker = test.features.EnableTracker
+
+			// Set experimental features
+			ExperimentalFeature.EnableLabelWithHash = test.experimentalFeature.EnableLabelWithHash
 
 			result := GetFeaturesEnabled()
 			if result != test.expectedOutput {

@@ -52,13 +52,19 @@ var defaultBaseUrl = Env{
 }
 
 var defaultDisableTracker = Env{
-	Key:          "DISABLE_TRACKER",
-	DefaultValue: "false",
+	Key:          "ENABLE_TRACKER",
+	DefaultValue: "true",
 	Help:         "",
 }
 
 var defaultHighCardinality = Env{
 	Key:          "ENABLE_HIGH_CARDINALITY",
+	DefaultValue: "false",
+	Help:         "",
+}
+
+var defaultLabelWithHash = Env{
+	Key:          "ENABLE_LABEL_WITH_HASH",
 	DefaultValue: "false",
 	Help:         "",
 }
