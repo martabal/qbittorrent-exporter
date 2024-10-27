@@ -2,6 +2,7 @@ package qbit
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"net/http"
 	"net/url"
@@ -21,7 +22,7 @@ func Auth() {
 	}
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, app.QBittorrent.BaseUrl+"/api/v2/auth/login", strings.NewReader(params.Encode()))
 	if err != nil {
-		panic("Error with url " + err.Error())
+		panic(API.ErrorWithUrl + err.Error())
 	}
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 
@@ -36,10 +37,10 @@ func Auth() {
 	}
 
 	if err != nil {
-		logger.Log.Debug(err.Error())
+		err := fmt.Errorf("%s: %v", API.ErrorConnect, err)
 		if app.ShouldShowError {
+			logger.Log.Error(err.Error())
 			app.ShouldShowError = false
-			logger.Log.Warn("Can't connect to qbittorrent with url : " + app.QBittorrent.BaseUrl)
 		}
 		return
 	}

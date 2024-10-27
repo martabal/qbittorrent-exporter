@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -50,7 +51,6 @@ func TestAuthSuccess(t *testing.T) {
 }
 
 func TestAuthFail(t *testing.T) {
-
 	t.Cleanup(resetState)
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
@@ -76,7 +76,6 @@ func TestAuthFail(t *testing.T) {
 }
 
 func TestAuthInvalidUrl(t *testing.T) {
-
 	t.Cleanup(resetState)
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
@@ -98,7 +97,7 @@ func TestAuthInvalidUrl(t *testing.T) {
 }
 
 func TestAuthTimeout(t *testing.T) {
-
+	t.Cleanup(resetState)
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		time.Sleep(3 * time.Second)
 	}))
@@ -112,6 +111,24 @@ func TestAuthTimeout(t *testing.T) {
 
 	if !strings.Contains(buff.String(), API.QbittorrentTimeOut) {
 		t.Errorf("expected timeout log, got: %s", buff.String())
+	}
+}
+
+func TestUnknownStatusCode(t *testing.T) {
+	t.Cleanup(resetState)
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusCreated)
+	}))
+	defer ts.Close()
+
+	app.QBittorrent.BaseUrl = ts.URL
+	app.QBittorrent.Username = ""
+	app.QBittorrent.Password = ""
+	app.QBittorrent.Timeout = twoSeconds
+	Auth()
+
+	if !strings.Contains(buff.String(), strconv.Itoa(http.StatusCreated)) {
+		t.Errorf("expected %d, got: %s", http.StatusCreated, buff.String())
 	}
 }
 

@@ -3,6 +3,8 @@ package API
 import "encoding/json"
 
 const QbittorrentTimeOut = "Qbittorrent is timing out"
+const ErrorWithUrl = "Error with url"
+const ErrorConnect = "Can't connect to qBittorrent"
 
 type Info []struct {
 	AmountLeft        int64   `json:"amount_left"`

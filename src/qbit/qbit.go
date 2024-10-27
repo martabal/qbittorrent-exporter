@@ -248,7 +248,7 @@ func apiRequest(uri string, method string, queryParams *[]QueryParams) ([]byte, 
 	req, err := http.NewRequest(method, app.QBittorrent.BaseUrl+uri, nil)
 	req = req.WithContext(ctx)
 	if err != nil {
-		panic("Error with url " + err.Error())
+		panic(API.ErrorWithUrl + err.Error())
 	}
 	if queryParams != nil {
 		q := req.URL.Query()
@@ -268,8 +268,7 @@ func apiRequest(uri string, method string, queryParams *[]QueryParams) ([]byte, 
 	}
 
 	if err != nil {
-		logger.Log.Debug(err.Error())
-		err := fmt.Errorf("can't connect to qBittorrent")
+		err := fmt.Errorf("%s: %v", API.ErrorConnect, err)
 		if app.ShouldShowError {
 			logger.Log.Error(err.Error())
 			app.ShouldShowError = false

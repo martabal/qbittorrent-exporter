@@ -43,17 +43,26 @@ type Features struct {
 	EnableTracker         bool
 }
 
-func SetVar(port int, enableTracker bool, loglevel string, baseUrl string, username string, password string, qBittorrentTimeout int, enableHighCardinality bool, enableLabelWithHash bool) {
-	Exporter.Port = port
+func SetVar(port int, enableTracker bool, loglevel string, baseUrl string, username string, password string, timeout int, enableHighCardinality bool, enableLabelWithHash bool) {
 	ShouldShowError = true
-	Exporter.Feature.EnableTracker = enableTracker
-	Exporter.LogLevel = loglevel
-	QBittorrent.BaseUrl = baseUrl
-	QBittorrent.Username = username
-	QBittorrent.Password = password
-	QBittorrent.Timeout = time.Duration(qBittorrentTimeout)
-	Exporter.Feature.EnableHighCardinality = enableHighCardinality
-	Exporter.ExperimentalFeature.EnableLabelWithHash = enableLabelWithHash
+	QBittorrent = QBittorrentSettings{
+		BaseUrl:  baseUrl,
+		Username: username,
+		Password: password,
+		Timeout:  time.Duration(timeout) * time.Second,
+	}
+	Exporter = ExporterSettings{
+		Feature: Features{
+			EnableHighCardinality: enableHighCardinality,
+			EnableTracker:         enableTracker,
+		},
+		ExperimentalFeature: ExperimentalFeatures{
+			EnableLabelWithHash: enableLabelWithHash,
+		},
+		LogLevel: loglevel,
+		Port:     port,
+	}
+
 }
 
 func LoadEnv() {
@@ -83,18 +92,18 @@ func LoadEnv() {
 
 	exporterPort, errExporterPort := strconv.Atoi(exporterPortEnv)
 	if errExporterPort != nil {
-		panic(fmt.Sprintf("%s must be an integer", defaultPort.Key))
+		panic(fmt.Sprintf("%s must be an integer", exporterPortEnv))
 	}
 	if exporterPort < 0 || exporterPort > 65353 {
-		panic(fmt.Sprintf("%s must be > 0 and < 65353", defaultPort.Key))
+		panic(fmt.Sprintf("%d must be > 0 and < 65353", exporterPort))
 	}
 
 	timeoutDuration, errTimeoutDuration := strconv.Atoi(timeoutDurationEnv)
 	if errTimeoutDuration != nil {
-		panic(fmt.Sprintf("%s must be an integer", defaultPort.Key))
+		panic(fmt.Sprintf("%s must be an integer", timeoutDurationEnv))
 	}
 	if timeoutDuration < 0 {
-		panic(fmt.Sprintf("%s must be > 0", defaultPort.Key))
+		panic(fmt.Sprintf("%d must be > 0", timeoutDuration))
 	}
 
 	SetVar(exporterPort, envSetToTrue(enableTracker), loglevel, qbitURL, qbitUsername, qbitPassword, timeoutDuration, envSetToTrue(enableHighCardinality), envSetToTrue(labelWithHash))
