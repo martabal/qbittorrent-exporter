@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	API "qbit-exp/api"
 	app "qbit-exp/app"
 	"qbit-exp/logger"
 	"strconv"
@@ -20,7 +21,6 @@ func Auth() {
 		"password": {app.QBittorrent.Password},
 	}
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, app.QBittorrent.BaseUrl+"/api/v2/auth/login", strings.NewReader(params.Encode()))
-
 	if err != nil {
 		panic("Error with url " + err.Error())
 	}
@@ -28,6 +28,11 @@ func Auth() {
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
+
+	if ctx.Err() == context.DeadlineExceeded {
+		logger.Log.Error(API.QbittorrentTimeOut)
+	}
+
 	if err != nil {
 		logger.Log.Debug(err.Error())
 		if app.ShouldShowError {

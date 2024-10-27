@@ -263,6 +263,12 @@ func apiRequest(uri string, method string, queryParams *[]QueryParams) ([]byte, 
 	client := &http.Client{}
 	logger.Log.Trace("New request to " + req.URL.String())
 	resp, err := client.Do(req)
+	if ctx.Err() == context.DeadlineExceeded {
+
+		logger.Log.Error(API.QbittorrentTimeOut)
+		return nil, false, context.DeadlineExceeded
+	}
+
 	if err != nil {
 		logger.Log.Debug(err.Error())
 		err := fmt.Errorf("can't connect to qBittorrent")

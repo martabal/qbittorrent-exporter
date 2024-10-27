@@ -2,6 +2,8 @@ package API
 
 import "encoding/json"
 
+const QbittorrentTimeOut = "Qbittorrent is timing out"
+
 type Info []struct {
 	AmountLeft        int64   `json:"amount_left"`
 	Category          string  `json:"category"`
