@@ -28,7 +28,10 @@ func TestAuthSuccess(t *testing.T) {
 		}
 		w.Header().Set("Set-Cookie", "SID=abc123; Path=/")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("Success"))
+		_, err := w.Write([]byte("Success"))
+		if err != nil {
+			panic("Error with the response" + err.Error())
+		}
 	}))
 	defer ts.Close()
 
@@ -49,7 +52,10 @@ func TestAuthFail(t *testing.T) {
 	t.Cleanup(resetState)
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("Fails."))
+		_, err := w.Write([]byte("Fails."))
+		if err != nil {
+			panic("Error with the response" + err.Error())
+		}
 	}))
 	defer ts.Close()
 
