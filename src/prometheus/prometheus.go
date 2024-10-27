@@ -40,6 +40,7 @@ func Torrent(result *API.Info, r *prometheus.Registry) {
 	if app.Exporter.ExperimentalFeature.EnableLabelWithHash {
 		labels = append(labels, TorrentLabelHash)
 	}
+	labelsWithTag := append(labels, "tag")
 
 	metrics := map[string]*prometheus.GaugeVec{
 		"qbittorrent_torrent_eta":                      newGaugeVec("qbittorrent_torrent_eta", "The current ETA for each torrent (in seconds)", labels),
@@ -56,7 +57,7 @@ func Torrent(result *API.Info, r *prometheus.Registry) {
 		"qbittorrent_torrent_session_uploaded_bytes":   newGaugeVec("qbittorrent_torrent_session_uploaded_bytes", "The current session upload amount of torrents (in bytes)", labels),
 		"qbittorrent_torrent_total_downloaded_bytes":   newGaugeVec("qbittorrent_torrent_total_downloaded_bytes", "The current total download amount of torrents (in bytes)", labels),
 		"qbittorrent_torrent_total_uploaded_bytes":     newGaugeVec("qbittorrent_torrent_total_uploaded_bytes", "The current total upload amount of torrents (in bytes)", labels),
-		"qbittorrent_torrent_tags":                     newGaugeVec("qbittorrent_tags", "All tags associated to this torrent", append(labels, "tag")),
+		"qbittorrent_torrent_tags":                     newGaugeVec("qbittorrent_tags", "All tags associated to this torrent", labelsWithTag),
 		"qbittorrent_torrent_states":                   newGaugeVec("qbittorrent_torrent_states", "The current state of torrents", []string{TorrentLabelName}),
 	}
 
@@ -129,10 +130,9 @@ func Torrent(result *API.Info, r *prometheus.Registry) {
 		if torrent.Tags != "" {
 			tags := strings.Split(torrent.Tags, ", ")
 			for _, tag := range tags {
-				tagLabels := prometheus.Labels{
-					TorrentLabelName: torrent.Name,
-					TorrentLabelHash: torrent.Hash,
-					"tag":            tag,
+				tagLabels := prometheus.Labels{TorrentLabelName: torrent.Name, "tag": tag}
+				if app.Exporter.ExperimentalFeature.EnableLabelWithHash {
+					tagLabels[TorrentLabelHash] = torrent.Hash
 				}
 				metrics["qbittorrent_torrent_tags"].With(tagLabels).Set(1)
 			}
