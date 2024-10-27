@@ -13,28 +13,39 @@ import (
 )
 
 var (
-	QBittorrentTimeout    time.Duration
-	Port                  int
-	ShouldShowError       bool
-	DisableTracker        bool
-	LogLevel              string
-	BaseUrl               string
-	Cookie                string
-	Username              string
-	Password              string
-	EnableHighCardinality bool
+	QBittorrentTimeout  time.Duration
+	Port                int
+	ShouldShowError     bool
+	LogLevel            string
+	BaseUrl             string
+	Cookie              string
+	Username            string
+	Password            string
+	ExperimentalFeature ExperimentalFeatures
+	Feature             Features
+	UsingEnvFile        bool
 )
 
-func SetVar(port int, disableTracker bool, loglevel string, baseUrl string, username string, password string, qBittorrentTimeout int, enableHighCardinality bool) {
+type ExperimentalFeatures struct {
+	EnableLabelWithHash bool
+}
+
+type Features struct {
+	EnableHighCardinality bool
+	EnableTracker         bool
+}
+
+func SetVar(port int, enableTracker bool, loglevel string, baseUrl string, username string, password string, qBittorrentTimeout int, enableHighCardinality bool, enableLabelWithHash bool) {
 	Port = port
 	ShouldShowError = true
-	DisableTracker = disableTracker
+	Feature.EnableTracker = enableTracker
 	LogLevel = loglevel
 	BaseUrl = baseUrl
 	Username = username
 	Password = password
 	QBittorrentTimeout = time.Duration(qBittorrentTimeout)
-	EnableHighCardinality = enableHighCardinality
+	Feature.EnableHighCardinality = enableHighCardinality
+	ExperimentalFeature.EnableLabelWithHash = enableLabelWithHash
 }
 
 func LoadEnv() {
@@ -42,7 +53,9 @@ func LoadEnv() {
 	flag.BoolVar(&envfile, "e", false, "Use .env file")
 	flag.Parse()
 	_, err := os.Stat(".env")
+	UsingEnvFile = false
 	if !os.IsNotExist(err) && !envfile {
+		UsingEnvFile = true
 		err := godotenv.Load(".env")
 		if err != nil {
 			errormessage := "Error loading .env file:" + err.Error()
@@ -56,8 +69,9 @@ func LoadEnv() {
 	qbitURL := strings.TrimSuffix(getEnv(defaultBaseUrl), "/")
 	exporterPortEnv := getEnv(defaultPort)
 	timeoutDurationEnv := getEnv(defaultTimeout)
-	disableTracker := getEnv(defaultDisableTracker)
+	enableTracker := getEnv(defaultDisableTracker)
 	enableHighCardinality := getEnv(defaultHighCardinality)
+	labelWithHash := getEnv(defaultLabelWithHash)
 
 	exporterPort, errExporterPort := strconv.Atoi(exporterPortEnv)
 	if errExporterPort != nil {
@@ -75,7 +89,11 @@ func LoadEnv() {
 		panic(fmt.Sprintf("%s must be > 0", defaultPort.Key))
 	}
 
-	SetVar(exporterPort, strings.ToLower(disableTracker) == "true", loglevel, qbitURL, qbitUsername, qbitPassword, timeoutDuration, strings.ToLower(enableHighCardinality) == "true")
+	SetVar(exporterPort, envSetToTrue(enableTracker), loglevel, qbitURL, qbitUsername, qbitPassword, timeoutDuration, envSetToTrue(enableHighCardinality), envSetToTrue(labelWithHash))
+}
+
+func envSetToTrue(env string) bool {
+	return strings.ToLower(env) == "true"
 }
 
 func GetPasswordMasked() string {
@@ -91,13 +109,18 @@ func GetFeaturesEnabled() string {
 		}
 	}
 
-	if EnableHighCardinality {
+	if Feature.EnableHighCardinality {
 		features += "High cardinality"
 	}
 
-	if !DisableTracker {
+	if Feature.EnableTracker {
 		addComma()
 		features += "Trackers"
+	}
+
+	if ExperimentalFeature.EnableLabelWithHash {
+		addComma()
+		features += "Label with hash (experimental)"
 	}
 
 	features = "[" + features + "]"
