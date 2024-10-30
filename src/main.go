@@ -41,7 +41,9 @@ func main() {
 
 	qbit.Auth()
 
-	http.HandleFunc("/metrics", metrics)
+	http.HandleFunc("/metrics", func(w http.ResponseWriter, req *http.Request) {
+		metrics(w, req, qbit.AllRequests)
+	})
 	addr := ":" + strconv.Itoa(app.Exporter.Port)
 	if app.Exporter.Port != app.DEFAULT_PORT {
 		logger.Log.Info("Listening on port " + strconv.Itoa(app.Exporter.Port))
@@ -53,7 +55,7 @@ func main() {
 	}
 }
 
-func metrics(w http.ResponseWriter, req *http.Request) {
+func metrics(w http.ResponseWriter, req *http.Request, allRequestsFunc func(*prometheus.Registry) error) {
 	ip, _, err := net.SplitHostPort(req.RemoteAddr)
 	if err == nil {
 		logger.Log.Trace("New request from " + ip)
@@ -62,7 +64,7 @@ func metrics(w http.ResponseWriter, req *http.Request) {
 	}
 
 	registry := prometheus.NewRegistry()
-	err = qbit.AllRequests(registry)
+	err = allRequestsFunc(registry)
 	if err != nil {
 		http.Error(w, "", http.StatusServiceUnavailable)
 		runtime.GC()

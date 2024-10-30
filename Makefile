@@ -16,5 +16,11 @@ lint:
 test: 
 	cd src && go test -v ./...
 
+test-count:
+	cd src && go test ./... -v | grep -c RUN
+
+test-coverage:
+	cd src && go test ./... -coverprofile=cover.out && go tool cover -html=cover.out && rm cover.out
+
 update: 
 	cd src && go get -u . && go mod tidy

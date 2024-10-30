@@ -7,10 +7,13 @@ import (
 	"qbit-exp/logger"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/joho/godotenv"
 )
+
+var loadEnvOnce sync.Once
 
 var (
 	QBittorrent     QBittorrentSettings
@@ -66,19 +69,21 @@ func SetVar(port int, enableTracker bool, loglevel string, baseUrl string, usern
 }
 
 func LoadEnv() {
-	var envfile bool
-	flag.BoolVar(&envfile, "e", false, "Use .env file")
-	flag.Parse()
-	_, err := os.Stat(".env")
-	UsingEnvFile = false
-	if !os.IsNotExist(err) && !envfile {
-		UsingEnvFile = true
-		err := godotenv.Load(".env")
-		if err != nil {
-			errormessage := "Error loading .env file:" + err.Error()
-			panic(errormessage)
+	loadEnvOnce.Do(func() {
+		var envfile bool
+		flag.BoolVar(&envfile, "e", false, "Use .env file")
+		flag.Parse()
+		_, err := os.Stat(".env")
+		UsingEnvFile = false
+		if !os.IsNotExist(err) && !envfile {
+			UsingEnvFile = true
+			err := godotenv.Load(".env")
+			if err != nil {
+				errormessage := "Error loading .env file:" + err.Error()
+				panic(errormessage)
+			}
 		}
-	}
+	})
 
 	loglevel := logger.SetLogLevel(getEnv(defaultLogLevel))
 	qbitUsername := getEnv(defaultUsername)
