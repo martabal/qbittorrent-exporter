@@ -22,5 +22,8 @@ test-count:
 test-coverage:
 	cd src && go test ./... -coverprofile=cover.out && go tool cover -html=cover.out && rm cover.out
 
+test-coverage-gha:
+	cd src && go test -cover -coverprofile=coverage.txt ./... && mv coverage.txt ..
+
 update: 
 	cd src && go get -u . && go mod tidy
