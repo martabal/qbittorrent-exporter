@@ -298,7 +298,7 @@ func apiRequest(uri string, method string, queryParams *[]QueryParams) ([]byte, 
 			app.ShouldShowError = false
 			logger.Log.Warn("Cookie changed, try to reconnect ...")
 		}
-		Auth()
+		_ = Auth()
 		return nil, true, err
 	default:
 		err := fmt.Errorf("%d", resp.StatusCode)

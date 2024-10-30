@@ -39,7 +39,11 @@ func main() {
 	logger.Log.Info("Features enabled: " + app.GetFeaturesEnabled())
 	logger.Log.Info("Started")
 
-	qbit.Auth()
+	err := qbit.Auth()
+	if err != nil && app.ShouldShowError {
+		logger.Log.Error(err.Error())
+		app.ShouldShowError = false
+	}
 
 	http.HandleFunc("/metrics", func(w http.ResponseWriter, req *http.Request) {
 		metrics(w, req, qbit.AllRequests)
@@ -49,7 +53,7 @@ func main() {
 		logger.Log.Info("Listening on port " + strconv.Itoa(app.Exporter.Port))
 	}
 	logger.Log.Info("Starting the exporter")
-	err := http.ListenAndServe(addr, nil)
+	err = http.ListenAndServe(addr, nil)
 	if err != nil {
 		panic(err)
 	}

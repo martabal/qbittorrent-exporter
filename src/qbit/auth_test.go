@@ -43,7 +43,11 @@ func TestAuthSuccess(t *testing.T) {
 	app.QBittorrent.Password = "testpass"
 	app.QBittorrent.Timeout = tenMs
 
-	Auth()
+	err := Auth()
+
+	if err != nil {
+		t.Errorf("shouldn't have any errors, got '%s'", err.Error())
+	}
 
 	if app.QBittorrent.Cookie != "abc123" {
 		t.Errorf("expected cookie value to be 'abc123', got '%s'", app.QBittorrent.Cookie)
@@ -72,7 +76,7 @@ func TestAuthFail(t *testing.T) {
 		}
 	}()
 
-	Auth()
+	_ = Auth()
 }
 
 func TestAuthInvalidUrl(t *testing.T) {
@@ -82,7 +86,7 @@ func TestAuthInvalidUrl(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	app.QBittorrent.BaseUrl = ts.URL + "//"
+	app.QBittorrent.BaseUrl = ts.URL + "://invalid-url"
 	app.QBittorrent.Username = ""
 	app.QBittorrent.Password = ""
 	app.QBittorrent.Timeout = tenMs
@@ -93,7 +97,7 @@ func TestAuthInvalidUrl(t *testing.T) {
 		}
 	}()
 
-	Auth()
+	_ = Auth()
 }
 
 func TestAuthTimeout(t *testing.T) {
@@ -107,10 +111,10 @@ func TestAuthTimeout(t *testing.T) {
 	app.QBittorrent.Username = ""
 	app.QBittorrent.Password = ""
 	app.QBittorrent.Timeout = tenMs
-	Auth()
+	err := Auth()
 
-	if !strings.Contains(buff.String(), API.QbittorrentTimeOut) {
-		t.Errorf("expected timeout log, got: %s", buff.String())
+	if !strings.Contains(err.Error(), API.QbittorrentTimeOut) {
+		t.Errorf("expected timeout log, got: %s", err.Error())
 	}
 }
 
@@ -125,9 +129,9 @@ func TestUnknownStatusCode(t *testing.T) {
 	app.QBittorrent.Username = ""
 	app.QBittorrent.Password = ""
 	app.QBittorrent.Timeout = tenMs
-	Auth()
+	err := Auth()
 
-	if !strings.Contains(buff.String(), strconv.Itoa(http.StatusCreated)) {
+	if !strings.Contains(err.Error(), strconv.Itoa(http.StatusCreated)) {
 		t.Errorf("expected %d, got: %s", http.StatusCreated, buff.String())
 	}
 }
