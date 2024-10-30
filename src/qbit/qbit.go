@@ -241,6 +241,10 @@ func errorHelper(body []byte, err error, unmarshErr string) {
 	logger.Log.Error(unmarshErr)
 }
 
+// returns:
+// - body (content of the http response)
+// - retry (if it should retry that query)
+// - err (the error if there was one during the request)
 func apiRequest(uri string, method string, queryParams *[]QueryParams) ([]byte, bool, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), app.QBittorrent.Timeout)
 	defer cancel()
