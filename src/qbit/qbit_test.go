@@ -11,7 +11,7 @@ import (
 )
 
 func setupMockApp() {
-	app.QBittorrent.Timeout = 2 * time.Second
+	app.QBittorrent.Timeout = 10 * time.Millisecond
 	app.QBittorrent.Cookie = "SID"
 	app.ShouldShowError = true
 }
@@ -59,7 +59,7 @@ func TestApiRequest_Forbidden(t *testing.T) {
 func TestApiRequest_Timeout(t *testing.T) {
 	setupMockApp()
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		time.Sleep(3 * time.Second)
+		time.Sleep(20 * time.Millisecond)
 		w.WriteHeader(http.StatusOK)
 	}))
 	defer server.Close()

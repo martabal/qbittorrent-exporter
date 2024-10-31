@@ -18,7 +18,7 @@ var loadEnvOnce sync.Once
 var (
 	QBittorrent     QBittorrentSettings
 	Exporter        ExporterSettings
-	ShouldShowError bool
+	ShouldShowError bool = true
 	UsingEnvFile    bool
 )
 
@@ -46,28 +46,6 @@ type Features struct {
 	EnableTracker         bool
 }
 
-func SetVar(port int, enableTracker bool, loglevel string, baseUrl string, username string, password string, timeout int, enableHighCardinality bool, enableLabelWithHash bool) {
-	ShouldShowError = true
-	QBittorrent = QBittorrentSettings{
-		BaseUrl:  baseUrl,
-		Username: username,
-		Password: password,
-		Timeout:  time.Duration(timeout) * time.Second,
-	}
-	Exporter = ExporterSettings{
-		Feature: Features{
-			EnableHighCardinality: enableHighCardinality,
-			EnableTracker:         enableTracker,
-		},
-		ExperimentalFeature: ExperimentalFeatures{
-			EnableLabelWithHash: enableLabelWithHash,
-		},
-		LogLevel: loglevel,
-		Port:     port,
-	}
-
-}
-
 func LoadEnv() {
 	loadEnvOnce.Do(func() {
 		var envfile bool
@@ -88,7 +66,7 @@ func LoadEnv() {
 	loglevel := logger.SetLogLevel(getEnv(defaultLogLevel))
 	qbitUsername := getEnv(defaultUsername)
 	qbitPassword := getEnv(defaultPassword)
-	qbitURL := strings.TrimSuffix(getEnv(defaultBaseUrl), "/")
+	baseUrl := strings.TrimSuffix(getEnv(defaultBaseUrl), "/")
 	exporterPortEnv := getEnv(defaultPort)
 	timeoutDurationEnv := getEnv(defaultTimeout)
 	enableTracker := getEnv(defaultDisableTracker)
@@ -111,7 +89,25 @@ func LoadEnv() {
 		panic(fmt.Sprintf("%d must be > 0", timeoutDuration))
 	}
 
-	SetVar(exporterPort, envSetToTrue(enableTracker), loglevel, qbitURL, qbitUsername, qbitPassword, timeoutDuration, envSetToTrue(enableHighCardinality), envSetToTrue(labelWithHash))
+	QBittorrent = QBittorrentSettings{
+		BaseUrl:  baseUrl,
+		Username: qbitUsername,
+		Password: qbitPassword,
+		Timeout:  time.Duration(timeoutDuration) * time.Second,
+	}
+
+	Exporter = ExporterSettings{
+		Feature: Features{
+			EnableHighCardinality: envSetToTrue(enableHighCardinality),
+			EnableTracker:         envSetToTrue(enableTracker),
+		},
+		ExperimentalFeature: ExperimentalFeatures{
+			EnableLabelWithHash: envSetToTrue(labelWithHash),
+		},
+		LogLevel: loglevel,
+		Port:     exporterPort,
+	}
+
 }
 
 func envSetToTrue(env string) bool {

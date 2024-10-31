@@ -3,10 +3,17 @@ package prom
 import (
 	app "qbit-exp/app"
 	"testing"
+	"time"
 )
 
 func TestMain(t *testing.T) {
-	app.SetVar(0, false, "", "http://localhost:8080", "admin", "adminadmin", 30, false, false)
+	app.QBittorrent = app.QBittorrentSettings{
+		BaseUrl:  "http://localhost:8080",
+		Username: "admin",
+		Password: "adminadmin",
+		Timeout:  time.Duration(30) * time.Second,
+	}
+
 	result := app.GetPasswordMasked()
 
 	if !isValidMaskedPassword(result) {
