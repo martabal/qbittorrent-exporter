@@ -92,7 +92,7 @@ func SetLogLevel(logLevel string) string {
 	level, found := LogLevels[upperLogLevel]
 	if !found {
 		upperLogLevel = "INFO"
-		level = LogLevels[upperLogLevel]
+		level = Info
 	}
 
 	opts := slog.HandlerOptions{
