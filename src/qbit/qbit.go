@@ -35,47 +35,56 @@ type UniqueTracker struct {
 	Hash    string
 }
 
-const UnmarshError = "Can not unmarshal JSON for "
+const unmarshError = "Can not unmarshal JSON for"
 
 var (
 	wg        sync.WaitGroup
 	wgTracker sync.WaitGroup
 )
 
+const (
+	RefQbitVersion = "qbitversion"
+	RefPreference  = "preference"
+	RefInfo        = "info"
+	RefTransfer    = "transfer"
+	RefMainData    = "maindata"
+	RefTracker     = "tracker"
+)
+
 var info = []Data{
 	{
 		URL:         "/api/v2/app/version",
 		HTTPMethod:  http.MethodGet,
-		Ref:         "qbitversion",
+		Ref:         RefQbitVersion,
 		QueryParams: nil,
 	},
 	{
 		URL:         "/api/v2/app/preferences",
 		HTTPMethod:  http.MethodGet,
-		Ref:         "preference",
+		Ref:         RefPreference,
 		QueryParams: nil,
 	},
 	{
 		URL:         "/api/v2/torrents/info",
 		HTTPMethod:  http.MethodGet,
-		Ref:         "info",
+		Ref:         RefInfo,
 		QueryParams: nil,
 	},
 	{
 		URL:         "/api/v2/sync/maindata",
 		HTTPMethod:  http.MethodGet,
-		Ref:         "maindata",
+		Ref:         RefMainData,
 		QueryParams: nil,
 	},
 	{
 		URL:         "/api/v2/transfer/info",
 		HTTPMethod:  http.MethodGet,
-		Ref:         "transfer",
+		Ref:         RefTransfer,
 		QueryParams: nil,
 	},
 }
 
-func getData(r *prometheus.Registry, data Data, goroutine bool, c chan func() (bool, error)) {
+func getData(r *prometheus.Registry, data *Data, goroutine bool, c chan func() (bool, error)) {
 	if goroutine {
 		defer wg.Done()
 	}
@@ -89,17 +98,17 @@ func getData(r *prometheus.Registry, data Data, goroutine bool, c chan func() (b
 		return
 	}
 
-	unmarshErr := UnmarshError + data.Ref
+	unmarshErr := fmt.Sprintf("%s %s", unmarshError, data.Ref)
 
 	handleUnmarshal := func(target interface{}, body []byte) bool {
 		if err := json.Unmarshal(body, target); err != nil {
-			errorHelper(body, err, unmarshErr)
+			errorHelper(body, unmarshErr)
 			return false
 		}
 		return true
 	}
 	switch data.Ref {
-	case "info":
+	case RefInfo:
 		result := new(API.Info)
 		if handleUnmarshal(result, body) {
 			prom.Torrent(result, r)
@@ -107,26 +116,18 @@ func getData(r *prometheus.Registry, data Data, goroutine bool, c chan func() (b
 				getTrackers(result, r)
 			}
 		}
-	case "maindata":
+	case RefMainData:
 		result := new(API.MainData)
 		if handleUnmarshal(result, body) {
 			prom.MainData(result, r)
 		}
-	case "preference":
+	case RefPreference:
 		result := new(API.Preferences)
 		if handleUnmarshal(result, body) {
 			prom.Preference(result, r)
 		}
-	case "qbitversion":
-		qbittorrent_app_version := prometheus.NewGauge(prometheus.GaugeOpts{
-			Name: "qbittorrent_app_version",
-			Help: "The current qBittorrent version",
-			ConstLabels: map[string]string{
-				"version": string(body),
-			},
-		})
-		r.MustRegister(qbittorrent_app_version)
-		qbittorrent_app_version.Set(1)
+	case RefQbitVersion:
+		prom.Version(&body, r)
 	case "transfer":
 		result := new(API.Transfer)
 		if handleUnmarshal(result, body) {
@@ -139,7 +140,7 @@ func getData(r *prometheus.Registry, data Data, goroutine bool, c chan func() (b
 	c <- (func() (bool, error) { return false, nil })
 }
 
-func getTrackersInfo(data Data, c chan func() (*API.Trackers, error)) {
+func getTrackersInfo(data *Data, c chan func() (*API.Trackers, error)) {
 	defer wgTracker.Done()
 	body, _, err := apiRequest(data.URL, data.HTTPMethod, data.QueryParams)
 
@@ -147,13 +148,9 @@ func getTrackersInfo(data Data, c chan func() (*API.Trackers, error)) {
 		c <- (func() (*API.Trackers, error) { return nil, err })
 	}
 
-	if err != nil {
-		c <- (func() (*API.Trackers, error) { return nil, err })
-	}
 	result := new(API.Trackers)
-	unmarshErr := UnmarshError + "tracker"
 	if err := json.Unmarshal(body, &result); err != nil {
-		errorHelper(body, err, unmarshErr)
+		errorHelper(body, fmt.Sprintf("%s %s", unmarshError, RefTracker))
 	} else {
 		c <- (func() (*API.Trackers, error) { return result, err })
 	}
@@ -176,7 +173,7 @@ func getTrackers(torrentList *API.Info, r *prometheus.Registry) {
 		var trackerInfo = Data{
 			URL:        "/api/v2/torrents/trackers",
 			HTTPMethod: http.MethodGet,
-			Ref:        "tracker",
+			Ref:        RefTracker,
 			QueryParams: &[]QueryParams{
 				{
 					Key:   "hash",
@@ -185,7 +182,7 @@ func getTrackers(torrentList *API.Info, r *prometheus.Registry) {
 			},
 		}
 		wgTracker.Add(1)
-		go getTrackersInfo(trackerInfo, tracker)
+		go getTrackersInfo(&trackerInfo, tracker)
 	}
 	go func() {
 		wgTracker.Wait()
@@ -207,11 +204,11 @@ func getTrackers(torrentList *API.Info, r *prometheus.Registry) {
 func AllRequests(r *prometheus.Registry) error {
 	c := make(chan func() (bool, error))
 
-	go getData(r, info[0], false, c)
+	go getData(r, &info[0], false, c)
 	retry, err := (<-c)()
 	if retry {
 		logger.Log.Debug("Retrying ...")
-		go getData(r, info[0], false, c)
+		go getData(r, &info[0], false, c)
 		_, err = (<-c)()
 	}
 	if err != nil {
@@ -219,7 +216,7 @@ func AllRequests(r *prometheus.Registry) error {
 	}
 	for i := 1; i < len(info); i++ {
 		wg.Add(1)
-		go getData(r, info[i], true, c)
+		go getData(r, &info[i], true, c)
 	}
 	go func() {
 		wg.Wait()
@@ -235,10 +232,9 @@ func AllRequests(r *prometheus.Registry) error {
 	return nil
 }
 
-func errorHelper(body []byte, err error, unmarshErr string) {
+func errorHelper(body []byte, errMsg string) {
 	logger.Log.Debug(string(body))
-	logger.Log.Debug(err.Error())
-	logger.Log.Error(unmarshErr)
+	logger.Log.Error(fmt.Sprintf("%s %s", unmarshError, errMsg))
 }
 
 // returns:
