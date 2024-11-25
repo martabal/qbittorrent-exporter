@@ -13,6 +13,8 @@ func TestSetLogLevel(t *testing.T) {
 		expectedLevel  slog.Level
 	}{
 		{"ValidLogLevelTrace", "TRACE", "TRACE", slog.Level(Trace)},
+		{"ValidLogLevelTraceLower", "Trace", "TRACE", slog.Level(Trace)},
+		{"ValidLogLevelFullLower", "trace", "TRACE", slog.Level(Trace)},
 		{"ValidLogLevelDebug", "DEBUG", "DEBUG", slog.Level(Debug)},
 		{"ValidLogLevelInfo", "INFO", "INFO", slog.Level(Info)},
 		{"ValidLogLevelWarn", "WARN", "WARN", slog.Level(Warn)},
