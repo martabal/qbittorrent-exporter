@@ -20,6 +20,9 @@ test-count:
 	cd src && go test ./... -v | grep -c RUN
 
 test-coverage:
+	cd src && go test ./... -cover
+
+test-coverage-web:
 	cd src && go test ./... -coverprofile=cover.out && go tool cover -html=cover.out && rm cover.out
 
 update: 

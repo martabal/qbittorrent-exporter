@@ -42,8 +42,8 @@ type Preferences struct {
 
 type MainData struct {
 	CategoryMap map[string]Category `json:"categories"`
-	ServerState ServerState
-	Tags        []string `json:"tags"`
+	ServerState ServerState         `json:"server_state"`
+	Tags        []string            `json:"tags"`
 }
 
 type ServerState struct {

@@ -317,6 +317,7 @@ func Trackers(result []*API.Trackers, r *prometheus.Registry) {
 				metrics[QbittorrentTrackerSeeders].With(labels).Set((float64(tracker.NumSeeds)))
 				metrics[QbittorrentTrackerPeers].With(labels).Set((float64(tracker.NumPeers)))
 				metrics[QbittorrentTrackerStatus].With(labels).Set((float64(tracker.Status)))
+				metrics[QbittorrentTrackerTier].With(labels).Set((float64(tier)))
 
 				if app.Exporter.Feature.EnableHighCardinality {
 					qbittorrentTrackerInfoLabels := prometheus.Labels{
@@ -342,7 +343,7 @@ func MainData(result *API.MainData, r *prometheus.Registry) {
 	globalratio, err := strconv.ParseFloat((*result).ServerState.GlobalRatio, 64)
 
 	if err != nil {
-		logger.Log.Warn("error to convert ratio")
+		logger.Log.Warn(fmt.Sprintf("error to convert ratio \"%s\"", (*result).ServerState.GlobalRatio))
 	} else {
 		qbittorrentGlobalRatio := prometheus.NewGauge(prometheus.GaugeOpts{
 			Name: createMetricName(metricNameGlobal, "ratio"),
