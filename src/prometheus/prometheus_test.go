@@ -155,6 +155,131 @@ func TestTransfer(t *testing.T) {
 	testMetrics(expectedMetrics, registry, t)
 }
 
+func TestVersion(t *testing.T) {
+
+	expectedVersion := "v5.0.2"
+	version := []byte(expectedVersion)
+
+	registry := prometheus.NewRegistry()
+	Version(&version, registry)
+
+	metrics, err := registry.Gather()
+	if err != nil {
+		t.Fatalf("Failed to gather metrics: %v", err)
+	}
+
+	var found bool
+
+	expectedMetricName := "qbittorrent_app_version"
+	metricName := createMetricName(metricNameApp, "version")
+	for _, m := range metrics {
+		if m.GetName() == metricName {
+			found = true
+			if len(m.GetMetric()) == 0 {
+				t.Fatal("Expected metrics to have at least one entry")
+			}
+			if m.GetMetric()[0].GetGauge().GetValue() != 1.0 {
+				t.Errorf("Expected gauge value to be 1.0, got %v", m.GetMetric()[0].GetGauge().GetValue())
+			}
+			if len(m.GetMetric()[0].GetLabel()) == 0 || m.GetMetric()[0].GetLabel()[0].GetValue() != expectedVersion {
+				t.Errorf("Expected label value to be '%s', got %v", expectedVersion, m.GetMetric()[0].GetLabel())
+			}
+			break
+		}
+	}
+
+	if expectedMetricName != metricName {
+		t.Errorf("Error with metric name, expected %s got %s", expectedMetricName, metricName)
+	}
+
+	if !found {
+		t.Fatal("Expected qBittorrent version metric to be registered")
+	}
+}
+
+func TestTorrent(t *testing.T) {
+
+	mockInfo := &API.Info{
+		{
+			Name:              "Torrent",
+			Hash:              "hash",
+			Eta:               120,
+			Dlspeed:           500000,
+			Upspeed:           250000,
+			Progress:          50,
+			TimeActive:        3600,
+			NumSeeds:          10,
+			NumLeechs:         5,
+			Ratio:             1.5,
+			AmountLeft:        1000000000,
+			Size:              5000000000,
+			DownloadedSession: 250000000,
+			UploadedSession:   100000000,
+			Downloaded:        1000000000,
+			Uploaded:          500000000,
+			State:             "stalledUP",
+			Tags:              "tag1, tag2",
+		},
+	}
+
+	registry := prometheus.NewRegistry()
+
+	Torrent(mockInfo, registry)
+
+	expectedMetrics := map[string]float64{
+		"qbittorrent_torrent_eta":                      120,
+		"qbittorrent_torrent_download_speed_bytes":     500000,
+		"qbittorrent_torrent_upload_speed_bytes":       250000,
+		"qbittorrent_torrent_progress":                 50,
+		"qbittorrent_torrent_time_active":              3600,
+		"qbittorrent_torrent_seeders":                  10,
+		"qbittorrent_torrent_leechers":                 5,
+		"qbittorrent_torrent_ratio":                    1.5,
+		"qbittorrent_torrent_amount_left_bytes":        1000000000,
+		"qbittorrent_torrent_size_bytes":               5000000000,
+		"qbittorrent_torrent_session_downloaded_bytes": 250000000,
+		"qbittorrent_torrent_session_uploaded_bytes":   100000000,
+		"qbittorrent_torrent_total_downloaded_bytes":   1000000000,
+		"qbittorrent_torrent_total_uploaded_bytes":     500000000,
+		"qbittorrent_torrent_states":                   1,
+		"qbittorrent_global_torrents":                  1,
+	}
+
+	testMetrics(expectedMetrics, registry, t)
+}
+
+func TestTrackers(t *testing.T) {
+
+	mockTrackers := []*API.Trackers{
+		{
+			{
+				URL:           "http://tracker",
+				NumDownloaded: 100,
+				NumLeeches:    50,
+				NumSeeds:      10,
+				NumPeers:      60,
+				Status:        1,
+				Tier:          []byte("1"),
+				Message:       "Active",
+			},
+		},
+	}
+
+	registry := prometheus.NewRegistry()
+	Trackers(mockTrackers, registry)
+
+	expectedMetrics := map[string]float64{
+		"qbittorrent_tracker_downloaded": 100,
+		"qbittorrent_tracker_leeches":    50,
+		"qbittorrent_tracker_peers":      60,
+		"qbittorrent_tracker_seeders":    10,
+		"qbittorrent_tracker_status":     1,
+		"qbittorrent_tracker_tier":       1,
+	}
+
+	testMetrics(expectedMetrics, registry, t)
+}
+
 func testMetrics(expectedMetrics map[string]float64, registry *prometheus.Registry, t *testing.T) {
 
 	for name, expectedValue := range expectedMetrics {

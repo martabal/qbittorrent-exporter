@@ -1,6 +1,7 @@
 package app
 
 import (
+	"strings"
 	"testing"
 )
 
@@ -94,5 +95,38 @@ func TestGetFeaturesEnabled(t *testing.T) {
 				t.Errorf("expected %s, got %s", test.expectedOutput, result)
 			}
 		})
+	}
+}
+
+func TestEnvSetToTrue(t *testing.T) {
+	tests := []struct {
+		input  string
+		output bool
+	}{
+		{"true", true},
+		{"TRUE", true},
+		{"False", false},
+		{"false", false},
+		{"1", false},
+		{"0", false},
+		{"", false},
+		{"randomstring", false},
+	}
+
+	for _, test := range tests {
+		got := envSetToTrue(test.input)
+		if got != test.output {
+			t.Errorf("envSetToTrue(%q) = %v; want %v", test.input, got, test.output)
+		}
+	}
+}
+
+func TestGetPasswordMasked(t *testing.T) {
+	QBittorrent.Password = "mysecretpassword"
+	expected := strings.Repeat("*", len(QBittorrent.Password))
+	got := GetPasswordMasked()
+
+	if got != expected {
+		t.Errorf("GetPasswordMasked() = %q; want %q", got, expected)
 	}
 }
