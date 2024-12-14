@@ -114,7 +114,7 @@ func Torrent(result *API.Info, r *prometheus.Registry) {
 		TorrentRatio             = createMetricName(metricNameTorrent, TorrentLabelRatio)
 		TorrentAmountLeft        = createMetricName(metricNameTorrent, TorrentLabelAmountLeftBytes)
 		TorrentSize              = createMetricName(metricNameTorrent, TorrentLabelSizeBytes)
-		TorrentSessionDownloaded = createMetricName(metricNameTorrent, TorrentLabelTotalDownloaded)
+		TorrentSessionDownloaded = createMetricName(metricNameTorrent, TorrentLabelSessionDownloadedBytes)
 		TorrentSessionUploaded   = createMetricName(metricNameTorrent, TorrentLabelSessionUploadedBytes)
 		TorrentTotalDownloaded   = createMetricName(metricNameTorrent, TorrentLabelTotalDownloaded)
 		TorrentTotalUploaded     = createMetricName(metricNameTorrent, TorrentLabelTotalUploaded)
