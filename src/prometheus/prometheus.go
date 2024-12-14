@@ -39,26 +39,39 @@ const (
 	LabelDownloaded = "downloaded"
 	LabelSeeders    = "seeders"
 
-	TorrentLabelHash              = "hash"
-	TorrentLabelTag               = "tag"
-	TorrentLabelCategory          = "category"
-	TorrentLabelState             = "state"
-	TorrentLabelSize              = "size"
-	TorrentLabelProgress          = "progress"
-	TorrentLabelLeechers          = "leechers"
-	TorrentLabelDlSpeed           = "dl_speed"
-	TorrentLabelUpSpeed           = "up_speed"
-	TorrentLabelAmountLeft        = "amount_left"
-	TorrentLabelTimeActive        = "time_active"
-	TorrentLabelEta               = "eta"
-	TorrentLabelUploaded          = "uploaded"
-	TorrentLabelUploadedSession   = "uploaded_session"
-	TorrentLabelDownloadedSession = "downloaded_session"
-	TorrentLabelMaxRatio          = "max_ratio"
-	TorrentLabelRatio             = "ratio"
-	TorrentLabelTracker           = "tracker"
-	TorrentLabelStatus            = "connection_status"
-	TorrentLabelTransfer          = "transfer"
+	TorrentLabelAmountLeft             = "amount_left"
+	TorrentLabelAmountLeftBytes        = "amount_left_bytes"
+	TorrentLabelCategory               = "category"
+	TorrentLabelConnectionStatus       = "connection_status"
+	TorrentLabelDlSpeed                = "dl_speed"
+	TorrentLabelDownloadedSession      = "downloaded_session"
+	TorrentLabelDownloadSpeed          = "download_speed_bytes"
+	TorrentLabelEta                    = "eta"
+	TorrentLabelHash                   = "hash"
+	TorrentLabelInfo                   = "info"
+	TorrentLabelLeechers               = "leechers"
+	TorrentLabelMaxRatio               = "max_ratio"
+	TorrentLabelTag                    = "tag"
+	TorrentLabelTags                   = "tags"
+	TorrentLabelProgress               = "progress"
+	TorrentLabelRatio                  = "ratio"
+	TorrentLabelSeeders                = "seeders"
+	TorrentLabelSessionDownloadedBytes = "session_downloaded_bytes"
+	TorrentLabelSessionUploadedBytes   = "session_uploaded_bytes"
+	TorrentLabelSize                   = "size"
+	TorrentLabelSizeBytes              = "size_bytes"
+	TorrentLabelState                  = "state"
+	TorrentLabelStates                 = "states"
+	TorrentLabelTimeActive             = "time_active"
+	TorrentLabelTorrents               = "torrents"
+	TorrentLabelTotalDownloaded        = "total_downloaded_bytes"
+	TorrentLabelTotalUploaded          = "total_uploaded_bytes"
+	TorrentLabelTracker                = "tracker"
+	TorrentLabelTransfer               = "transfer"
+	TorrentLabelUploaded               = "uploaded"
+	TorrentLabelUploadedSession        = "uploaded_session"
+	TorrentLabelUploadSpeed            = "upload_speed_bytes"
+	TorrentLabelUpSpeed                = "up_speed"
 
 	TrackerLabelURL     = "url"
 	TrackerLabelMessage = "message"
@@ -91,24 +104,24 @@ func Version(result *[]byte, r *prometheus.Registry) {
 func Torrent(result *API.Info, r *prometheus.Registry) {
 
 	var (
-		TorrentEta               = createMetricName(metricNameTorrent, "eta")
-		TorrentDownloadSpeed     = createMetricName(metricNameTorrent, "download_speed_bytes")
-		TorrentUploadSpeed       = createMetricName(metricNameTorrent, "upload_speed_bytes")
-		TorrentProgress          = createMetricName(metricNameTorrent, "progress")
-		TorrentTimeActive        = createMetricName(metricNameTorrent, "time_active")
-		TorrentSeeders           = createMetricName(metricNameTorrent, "seeders")
-		TorrentLeechers          = createMetricName(metricNameTorrent, "leechers")
-		TorrentRatio             = createMetricName(metricNameTorrent, "ratio")
-		TorrentAmountLeft        = createMetricName(metricNameTorrent, "amount_left_bytes")
-		TorrentSize              = createMetricName(metricNameTorrent, "size_bytes")
-		TorrentSessionDownloaded = createMetricName(metricNameTorrent, "session_downloaded_bytes")
-		TorrentSessionUploaded   = createMetricName(metricNameTorrent, "session_uploaded_bytes")
-		TorrentTotalDownloaded   = createMetricName(metricNameTorrent, "total_downloaded_bytes")
-		TorrentTotalUploaded     = createMetricName(metricNameTorrent, "total_uploaded_bytes")
-		TorrentTags              = createMetricName(metricNameTorrent, "tags")
-		TorrentStates            = createMetricName(metricNameTorrent, "states")
-		TorrentInfo              = createMetricName(metricNameTorrent, "info")
-		GlobalTorrents           = createMetricName(metricNameGlobal, "torrents")
+		TorrentEta               = createMetricName(metricNameTorrent, TorrentLabelEta)
+		TorrentDownloadSpeed     = createMetricName(metricNameTorrent, TorrentLabelDownloadSpeed)
+		TorrentUploadSpeed       = createMetricName(metricNameTorrent, TorrentLabelUploadSpeed)
+		TorrentProgress          = createMetricName(metricNameTorrent, TorrentLabelProgress)
+		TorrentTimeActive        = createMetricName(metricNameTorrent, TorrentLabelTimeActive)
+		TorrentSeeders           = createMetricName(metricNameTorrent, TorrentLabelSeeders)
+		TorrentLeechers          = createMetricName(metricNameTorrent, TorrentLabelLeechers)
+		TorrentRatio             = createMetricName(metricNameTorrent, TorrentLabelRatio)
+		TorrentAmountLeft        = createMetricName(metricNameTorrent, TorrentLabelAmountLeftBytes)
+		TorrentSize              = createMetricName(metricNameTorrent, TorrentLabelSizeBytes)
+		TorrentSessionDownloaded = createMetricName(metricNameTorrent, TorrentLabelTotalDownloaded)
+		TorrentSessionUploaded   = createMetricName(metricNameTorrent, TorrentLabelSessionUploadedBytes)
+		TorrentTotalDownloaded   = createMetricName(metricNameTorrent, TorrentLabelTotalDownloaded)
+		TorrentTotalUploaded     = createMetricName(metricNameTorrent, TorrentLabelTotalUploaded)
+		TorrentTags              = createMetricName(metricNameTorrent, TorrentLabelTags)
+		TorrentStates            = createMetricName(metricNameTorrent, TorrentLabelStates)
+		TorrentInfo              = createMetricName(metricNameTorrent, TorrentLabelInfo)
+		GlobalTorrents           = createMetricName(metricNameGlobal, TorrentLabelTorrents)
 	)
 
 	labels := []string{LabelName}
@@ -246,13 +259,13 @@ func Transfer(result *API.Transfer, r *prometheus.Registry) {
 		{"dht_nodes", nil, "The DHT nodes connected to", float64(result.DhtNodes)},
 	}
 	qbittorrentTransferConnectionStatus := prometheus.NewGaugeVec(prometheus.GaugeOpts{
-		Name: createMetricName(TorrentLabelTransfer, TorrentLabelStatus),
+		Name: createMetricName(TorrentLabelTransfer, TorrentLabelConnectionStatus),
 		Help: "Connection status (connected, firewalled or disconnected)",
-	}, []string{TorrentLabelStatus})
+	}, []string{TorrentLabelConnectionStatus})
 
 	r.MustRegister(qbittorrentTransferConnectionStatus)
 	qbittorrentTransferConnectionStatus.With(prometheus.Labels{
-		TorrentLabelStatus: result.ConnectionStatus,
+		TorrentLabelConnectionStatus: result.ConnectionStatus,
 	}).Set(1)
 
 	registerGaugeGlobalAndSet(&gauges, r)
