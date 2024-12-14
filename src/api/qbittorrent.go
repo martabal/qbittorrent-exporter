@@ -42,17 +42,19 @@ type Preferences struct {
 
 type MainData struct {
 	CategoryMap map[string]Category `json:"categories"`
-	ServerState struct {
-		AlltimeDl         int64  `json:"alltime_dl"`
-		AlltimeUl         int64  `json:"alltime_ul"`
-		DlInfoData        int64  `json:"dl_info_data"`
-		DlInfoSpeed       int64  `json:"dl_info_speed"`
-		GlobalRatio       string `json:"global_ratio"`
-		UpInfoData        int64  `json:"up_info_data"`
-		UpInfoSpeed       int64  `json:"up_info_speed"`
-		UseAltSpeedLimits bool   `json:"use_alt_speed_limits"`
-	} `json:"server_state"`
-	Tags []string `json:"tags"`
+	ServerState ServerState
+	Tags        []string `json:"tags"`
+}
+
+type ServerState struct {
+	AlltimeDl         int64  `json:"alltime_dl"`
+	AlltimeUl         int64  `json:"alltime_ul"`
+	DlInfoData        int64  `json:"dl_info_data"`
+	DlInfoSpeed       int64  `json:"dl_info_speed"`
+	GlobalRatio       string `json:"global_ratio"`
+	UpInfoData        int64  `json:"up_info_data"`
+	UpInfoSpeed       int64  `json:"up_info_speed"`
+	UseAltSpeedLimits bool   `json:"use_alt_speed_limits"`
 }
 
 type Category struct {
