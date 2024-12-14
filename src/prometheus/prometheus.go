@@ -243,7 +243,7 @@ func Torrent(result *API.Info, r *prometheus.Registry) {
 func Preference(result *API.Preferences, r *prometheus.Registry) {
 	gauges := GaugeSet{
 		{"max_active_downloads", nil, "The max number of downloads allowed", float64((*result).MaxActiveDownloads)},
-		{"max_active_uploads", nil, "The max number of active uploads allowed", float64((*result).MaxActiveDownloads)},
+		{"max_active_uploads", nil, "The max number of active uploads allowed", float64((*result).MaxActiveUploads)},
 		{"max_active_torrents", nil, "The max number of active torrents allowed", float64((*result).MaxActiveTorrents)},
 		{"download_rate_limit", &Bytes, "The global download rate limit", float64((*result).DlLimit)},
 		{"upload_rate_limit", &Bytes, "The global upload rate limit", float64((*result).UpLimit)},
