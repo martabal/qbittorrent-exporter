@@ -28,7 +28,7 @@ var defaultPort = Env{
 }
 
 var defaultTimeout = Env{
-	Key:          "EXPORTER_PORT",
+	Key:          "QBITTORRENT_TIMEOUT",
 	DefaultValue: strconv.Itoa(DEFAULT_TIMEOUT),
 	Help:         "",
 }
