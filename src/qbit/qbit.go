@@ -37,11 +37,6 @@ type UniqueTracker struct {
 
 const unmarshError = "Can not unmarshal JSON for"
 
-var (
-	wg        sync.WaitGroup
-	wgTracker sync.WaitGroup
-)
-
 const (
 	RefQbitVersion = "qbitversion"
 	RefPreference  = "preference"
@@ -84,8 +79,8 @@ var info = []Data{
 	},
 }
 
-func getData(r *prometheus.Registry, data *Data, goroutine bool, c chan func() (bool, error)) {
-	if goroutine {
+func getData(r *prometheus.Registry, data *Data, wg *sync.WaitGroup, c chan func() (bool, error)) {
+	if wg != nil {
 		defer wg.Done()
 	}
 	body, retry, err := apiRequest(data.URL, data.HTTPMethod, data.QueryParams)
@@ -140,8 +135,8 @@ func getData(r *prometheus.Registry, data *Data, goroutine bool, c chan func() (
 	c <- (func() (bool, error) { return false, nil })
 }
 
-func getTrackersInfo(data *Data, c chan func() (*API.Trackers, error)) {
-	defer wgTracker.Done()
+func getTrackersInfo(data *Data, wg *sync.WaitGroup, c chan func() (*API.Trackers, error)) {
+	defer wg.Done()
 	body, _, err := apiRequest(data.URL, data.HTTPMethod, data.QueryParams)
 
 	if err != nil {
@@ -158,6 +153,7 @@ func getTrackersInfo(data *Data, c chan func() (*API.Trackers, error)) {
 }
 
 func getTrackers(torrentList *API.Info, r *prometheus.Registry) {
+	var wg sync.WaitGroup
 	uniqueValues := make(map[string]struct{})
 	var uniqueTrackers []UniqueTracker
 	for _, obj := range *torrentList {
@@ -181,11 +177,11 @@ func getTrackers(torrentList *API.Info, r *prometheus.Registry) {
 				},
 			},
 		}
-		wgTracker.Add(1)
-		go getTrackersInfo(&trackerInfo, tracker)
+		wg.Add(1)
+		go getTrackersInfo(&trackerInfo, &wg, tracker)
 	}
 	go func() {
-		wgTracker.Wait()
+		wg.Wait()
 		close(tracker)
 	}()
 	for respFunc := range tracker {
@@ -202,13 +198,14 @@ func getTrackers(torrentList *API.Info, r *prometheus.Registry) {
 }
 
 func AllRequests(r *prometheus.Registry) error {
+	var wg sync.WaitGroup
 	c := make(chan func() (bool, error))
 
-	go getData(r, &info[0], false, c)
+	go getData(r, &info[0], nil, c)
 	retry, err := (<-c)()
 	if retry {
 		logger.Log.Debug("Retrying ...")
-		go getData(r, &info[0], false, c)
+		go getData(r, &info[0], nil, c)
 		_, err = (<-c)()
 	}
 	if err != nil {
@@ -216,7 +213,7 @@ func AllRequests(r *prometheus.Registry) error {
 	}
 	for i := 1; i < len(info); i++ {
 		wg.Add(1)
-		go getData(r, &info[i], true, c)
+		go getData(r, &info[i], &wg, c)
 	}
 	go func() {
 		wg.Wait()

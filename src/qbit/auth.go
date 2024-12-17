@@ -9,7 +9,6 @@ import (
 	API "qbit-exp/api"
 	app "qbit-exp/app"
 	"qbit-exp/logger"
-	"strconv"
 	"strings"
 )
 
@@ -24,22 +23,21 @@ func Auth() {
 	if err != nil {
 		panic(API.ErrorWithUrl + err.Error())
 	}
-	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
 
 	if ctx.Err() == context.DeadlineExceeded {
 		if app.ShouldShowError {
-			app.ShouldShowError = false
 			logger.Log.Error(API.QbittorrentTimeOut)
+			app.ShouldShowError = false
 		}
+		return
 	}
-
 	if err != nil {
-		err := fmt.Errorf("%s: %v", API.ErrorConnect, err)
 		if app.ShouldShowError {
-			logger.Log.Error(err.Error())
+			logger.Log.Error(fmt.Sprintf("%s: %v", API.ErrorConnect, err))
 			app.ShouldShowError = false
 		}
 		return
@@ -48,7 +46,7 @@ func Auth() {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		logger.Log.Error("Unknown error, status code " + strconv.Itoa(resp.StatusCode))
+		logger.Log.Error(fmt.Sprintf("Authentication failed, status code: %d", resp.StatusCode))
 		return
 	}
 
@@ -56,15 +54,11 @@ func Auth() {
 	if err != nil {
 		panic("Error reading the body" + err.Error())
 	}
-
 	if string(body) == "Fails." {
 		panic("Authentication Error, check your qBittorrent username / password")
 	}
-	logFunc := logger.Log.Info
-	if app.ShouldShowError {
-		logFunc = logger.Log.Debug
-	}
-	logFunc("New cookie for auth stored")
+
+	logger.Log.Info("New cookie for auth stored")
 
 	cookie := resp.Header.Get("Set-Cookie")
 	cookieValue := strings.Split(strings.Split(cookie, ";")[0], "=")[1]
