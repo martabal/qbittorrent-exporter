@@ -15,8 +15,10 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
+const devVersion = "dev"
+
 var (
-	Version     = "dev"
+	Version     = devVersion
 	Author      = "martabal"
 	ProjectName = "qbittorrent-exporter"
 )
@@ -47,6 +49,13 @@ func main() {
 	if app.Exporter.Port != app.DEFAULT_PORT {
 		logger.Log.Info(fmt.Sprintf("Listening on port %d", app.Exporter.Port))
 	}
+
+	if Version == devVersion {
+		app.Exporter.URL = fmt.Sprintf("http://localhost:%d", app.Exporter.Port)
+	}
+
+	logger.Log.Info(fmt.Sprintf("qbittorrent-exporter URL: %s/metrics", app.Exporter.URL))
+
 	logger.Log.Info("Starting the exporter")
 	err := http.ListenAndServe(addr, nil)
 	if err != nil {

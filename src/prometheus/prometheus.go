@@ -2,9 +2,9 @@ package prom
 
 import (
 	"fmt"
-	"net/url"
 	API "qbit-exp/api"
 	"qbit-exp/app"
+	"qbit-exp/internal"
 	"qbit-exp/logger"
 	"strconv"
 	"strings"
@@ -306,7 +306,7 @@ func Trackers(result []*API.Trackers, r *prometheus.Registry) {
 
 	for _, listOfTracker := range result {
 		for _, tracker := range *listOfTracker {
-			if isValidURL(tracker.URL) {
+			if internal.IsValidURL(tracker.URL) {
 				tier, err := strconv.Atoi(string(tracker.Tier))
 				if err != nil {
 					tier = 0
@@ -441,11 +441,6 @@ func newGaugeVec(name, help string, labels []string) *prometheus.GaugeVec {
 		Name: name,
 		Help: help,
 	}, labels)
-}
-
-func isValidURL(input string) bool {
-	u, err := url.Parse(input)
-	return err == nil && u.Scheme != "" && u.Host != ""
 }
 
 func createMetricName(metricName string, metric string) string {

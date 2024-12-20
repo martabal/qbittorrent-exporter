@@ -69,6 +69,12 @@ var defaultLabelWithHash = Env{
 	Help:         "",
 }
 
+var defaultExporterURL = Env{
+	Key:          "EXPORTER_URL",
+	DefaultValue: "",
+	Help:         "",
+}
+
 func getEnv(env Env) string {
 	value, ok := os.LookupEnv(env.Key)
 	if !ok || value == "" {

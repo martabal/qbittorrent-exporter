@@ -66,6 +66,7 @@ func TestGetEnvWithDifferentDefaults(t *testing.T) {
 		{"DefaultDisableTracker", defaultDisableTracker, "true"},
 		{"DefaultHighCardinality", defaultHighCardinality, "false"},
 		{"DefaultLabelWithHash", defaultLabelWithHash, "false"},
+		{"DefaultExporterURL", defaultExporterURL, ""},
 	}
 
 	for _, tt := range tests {
