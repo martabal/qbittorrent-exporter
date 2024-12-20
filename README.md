@@ -92,7 +92,7 @@ You can find in the dashboard the following metrics:
 - Session download/upload
 - Cumulative upload/download speeds
 - Global ratio/download speed/upload speed
-- Qbittorrent version
+- qBittorrent version
 - Torrent list with statuses
 - Total torrents/seeders/leechers
 - Torrent state chart

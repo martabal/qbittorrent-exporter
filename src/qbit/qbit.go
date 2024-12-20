@@ -82,8 +82,13 @@ var info = []Data{
 var firstAPIRequest = info[0]
 var otherAPIRequests = info[1:]
 
+func createUrl(url string) string {
+	return app.QBittorrent.BaseUrl + url
+}
+
 func getData(r *prometheus.Registry, data *Data, c chan func() (bool, error)) {
-	body, retry, err := apiRequest(data.URL, data.HTTPMethod, data.QueryParams)
+	url := createUrl(data.URL)
+	body, retry, err := apiRequest(url, data.HTTPMethod, data.QueryParams)
 	if retry {
 		c <- (func() (bool, error) { return true, nil })
 		return
@@ -93,11 +98,11 @@ func getData(r *prometheus.Registry, data *Data, c chan func() (bool, error)) {
 		return
 	}
 
-	unmarshErr := fmt.Sprintf("%s %s", unmarshError, data.Ref)
+	unmarshErr := fmt.Errorf("%s %s", unmarshError, url)
 
 	handleUnmarshal := func(target interface{}, body []byte) bool {
 		if err := json.Unmarshal(body, target); err != nil {
-			errorHelper(body, unmarshErr)
+			errorHelper(&body, &unmarshErr, &url)
 			return false
 		}
 		return true
@@ -136,7 +141,8 @@ func getData(r *prometheus.Registry, data *Data, c chan func() (bool, error)) {
 }
 
 func getTrackersInfo(data *Data, c chan func() (*API.Trackers, error)) {
-	body, _, err := apiRequest(data.URL, data.HTTPMethod, data.QueryParams)
+	url := createUrl(data.URL)
+	body, _, err := apiRequest(url, data.HTTPMethod, data.QueryParams)
 
 	if err != nil {
 		c <- (func() (*API.Trackers, error) { return nil, err })
@@ -144,7 +150,8 @@ func getTrackersInfo(data *Data, c chan func() (*API.Trackers, error)) {
 
 	result := new(API.Trackers)
 	if err := json.Unmarshal(body, &result); err != nil {
-		errorHelper(body, fmt.Sprintf("%s %s", unmarshError, RefTracker))
+		errMsg := fmt.Errorf("%s %s", unmarshError, RefTracker)
+		errorHelper(&body, &errMsg, &url)
 	} else {
 		c <- (func() (*API.Trackers, error) { return result, err })
 	}
@@ -164,9 +171,9 @@ func getTrackers(torrentList *API.Info, r *prometheus.Registry) {
 
 	responses := new([]*API.Trackers)
 	tracker := make(chan func() (*API.Trackers, error), len(uniqueTrackers))
-	processData := func(trackerInfo Data) {
+	processData := func(trackerInfo *Data) {
 		defer wg.Done()
-		getTrackersInfo(&trackerInfo, tracker)
+		getTrackersInfo(trackerInfo, tracker)
 	}
 	for i := 0; i < len(uniqueTrackers); i++ {
 		var trackerInfo = Data{
@@ -181,7 +188,7 @@ func getTrackers(torrentList *API.Info, r *prometheus.Registry) {
 			},
 		}
 		wg.Add(1)
-		processData(trackerInfo)
+		processData(&trackerInfo)
 	}
 	go func() {
 		wg.Wait()
@@ -220,18 +227,18 @@ func AllRequests(r *prometheus.Registry) error {
 		return err
 	}
 	newc := make(chan func() (bool, error), len(otherAPIRequests))
-	processData := func(data Data) {
+	processData := func(data *Data) {
 		defer wg.Done()
 		defer func() {
 			if r := recover(); r != nil {
 				logger.Log.Error(fmt.Sprintf("Recovered panic: %s", r))
 			}
 		}()
-		getData(r, &data, newc)
+		getData(r, data, newc)
 	}
 	for _, request := range otherAPIRequests {
 		wg.Add(1)
-		go processData(request)
+		go processData(&request)
 	}
 	go func() {
 		wg.Wait()
@@ -247,16 +254,16 @@ func AllRequests(r *prometheus.Registry) error {
 	return nil
 }
 
-func errorHelper(body []byte, errMsg string) {
-	logger.Log.Debug(string(body))
-	logger.Log.Error(fmt.Sprintf("%s %s", unmarshError, errMsg))
+func errorHelper(body *[]byte, errMsg *error, url *string) {
+	logger.Log.Trace(fmt.Sprintf("body from %s: %s", *url, string(*body)))
+	logger.Log.Error(fmt.Sprintf("%s %s", unmarshError, *errMsg))
 }
 
 // returns:
 // - body (content of the http response)
 // - retry (if it should retry that query)
 // - err (the error if there was one during the request)
-func apiRequest(uri string, method string, queryParams *[]QueryParams) ([]byte, bool, error) {
+func apiRequest(url string, method string, queryParams *[]QueryParams) ([]byte, bool, error) {
 	if app.QBittorrent.Cookie == nil {
 		logger.Log.Debug("no cookie set")
 		err := Auth()
@@ -268,7 +275,7 @@ func apiRequest(uri string, method string, queryParams *[]QueryParams) ([]byte, 
 	ctx, cancel := context.WithTimeout(context.Background(), app.QBittorrent.Timeout)
 	defer cancel()
 
-	req, err := http.NewRequest(method, app.QBittorrent.BaseUrl+uri, nil)
+	req, err := http.NewRequest(method, url, nil)
 	req = req.WithContext(ctx)
 	if err != nil {
 		panic(fmt.Sprintf("%s %s", API.ErrorWithUrl, err.Error()))

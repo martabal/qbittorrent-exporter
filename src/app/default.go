@@ -37,19 +37,19 @@ var defaultTimeout = Env{
 var defaultUsername = Env{
 	Key:          "QBITTORRENT_USERNAME",
 	DefaultValue: "admin",
-	Help:         "Qbittorrent username is not set. Using default username",
+	Help:         "qBittorrent username is not set. Using default username",
 }
 
 var defaultPassword = Env{
 	Key:          "QBITTORRENT_PASSWORD",
 	DefaultValue: "adminadmin",
-	Help:         "Qbittorrent password is not set. Using default password",
+	Help:         "qBittorrent password is not set. Using default password",
 }
 
 var defaultBaseUrl = Env{
 	Key:          "QBITTORRENT_BASE_URL",
 	DefaultValue: "http://localhost:8080",
-	Help:         "Qbittorrent base_url is not set. Using default base_url",
+	Help:         "qBittorrent base_url is not set. Using default base_url",
 }
 
 var defaultDisableTracker = Env{

@@ -124,9 +124,9 @@ func TestGetEnvLogsWarningsCorrectly(t *testing.T) {
 		env         Env
 		expectedLog string
 	}{
-		{"UsernameWarning", defaultUsername, "Qbittorrent username is not set. Using default username"},
-		{"PasswordWarning", defaultPassword, "Qbittorrent password is not set. Using default password"},
-		{"BaseUrlWarning", defaultBaseUrl, "Qbittorrent base_url is not set. Using default base_url"},
+		{"UsernameWarning", defaultUsername, "qBittorrent username is not set. Using default username"},
+		{"PasswordWarning", defaultPassword, "qBittorrent password is not set. Using default password"},
+		{"BaseUrlWarning", defaultBaseUrl, "qBittorrent base_url is not set. Using default base_url"},
 	}
 
 	for _, tt := range tests {

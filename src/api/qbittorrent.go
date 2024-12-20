@@ -2,7 +2,7 @@ package API
 
 import "encoding/json"
 
-const QbittorrentTimeOut = "Qbittorrent is timing out"
+const QbittorrentTimeOut = "qBittorrent is timing out"
 const ErrorWithUrl = "Error with url"
 const ErrorConnect = "Can't connect to qBittorrent"
 

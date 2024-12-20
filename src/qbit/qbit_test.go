@@ -26,8 +26,9 @@ func TestApiRequest_Success(t *testing.T) {
 	defer server.Close()
 
 	app.QBittorrent.BaseUrl = server.URL
+	url := createUrl("/test")
 
-	body, reAuth, err := apiRequest("/test", "GET", nil)
+	body, reAuth, err := apiRequest(url, "GET", nil)
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}
@@ -47,8 +48,9 @@ func TestApiRequest_Forbidden(t *testing.T) {
 	defer server.Close()
 
 	app.QBittorrent.BaseUrl = server.URL
+	url := createUrl("/test")
 
-	_, reAuth, err := apiRequest("/test", "GET", nil)
+	_, reAuth, err := apiRequest(url, "GET", nil)
 	if err == nil || err.Error() != "403" {
 		t.Fatalf("Expected error '403', got %v", err)
 	}
@@ -66,8 +68,9 @@ func TestApiRequest_Timeout(t *testing.T) {
 	defer server.Close()
 
 	app.QBittorrent.BaseUrl = server.URL
+	url := createUrl("/test")
 
-	body, reAuth, err := apiRequest("/test", http.MethodGet, nil)
+	body, reAuth, err := apiRequest(url, http.MethodGet, nil)
 	if !errors.Is(err, context.DeadlineExceeded) {
 		t.Fatalf("Expected DeadlineExceeded error, got %v", err)
 	}
@@ -91,13 +94,14 @@ func TestApiRequest_WithQueryParams(t *testing.T) {
 	defer server.Close()
 
 	app.QBittorrent.BaseUrl = server.URL
+	url := createUrl("/test")
 
 	queryParams := []QueryParams{
 		{"param1", "value1"},
 		{"param2", "value2"},
 	}
 
-	body, retry, err := apiRequest("/test", http.MethodGet, &queryParams)
+	body, retry, err := apiRequest(url, http.MethodGet, &queryParams)
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}
@@ -117,8 +121,9 @@ func TestApiRequest_Non200Status(t *testing.T) {
 	defer server.Close()
 
 	app.QBittorrent.BaseUrl = server.URL
+	url := createUrl("/test")
 
-	body, retry, err := apiRequest("/test", http.MethodGet, nil)
+	body, retry, err := apiRequest(url, http.MethodGet, nil)
 	if err == nil || err.Error() != "500" {
 		t.Fatalf("Expected error '500', got %v", err)
 	}

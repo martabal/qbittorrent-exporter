@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net"
 	"net/http"
-	"runtime"
 
 	"qbit-exp/qbit"
 
@@ -34,7 +33,7 @@ func main() {
 		envFileMessage = "Using .env"
 	}
 	logger.Log.Debug(envFileMessage)
-	logger.Log.Info(fmt.Sprintf("qbittorrent URL: %s", app.QBittorrent.BaseUrl))
+	logger.Log.Info(fmt.Sprintf("qBittorrent URL: %s", app.QBittorrent.BaseUrl))
 	logger.Log.Info(fmt.Sprintf("username: %s", app.QBittorrent.Username))
 	logger.Log.Info(fmt.Sprintf("password: %s", app.GetPasswordMasked()))
 	logger.Log.Info(fmt.Sprintf("Features enabled: %s", app.GetFeaturesEnabled()))
@@ -77,7 +76,6 @@ func metrics(w http.ResponseWriter, req *http.Request, allRequestsFunc func(*pro
 	err = allRequestsFunc(registry)
 	if err != nil {
 		http.Error(w, "", http.StatusServiceUnavailable)
-		runtime.GC()
 	} else {
 		h := promhttp.HandlerFor(registry, promhttp.HandlerOpts{})
 		h.ServeHTTP(w, req)
