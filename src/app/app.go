@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"qbit-exp/internal"
 	"qbit-exp/logger"
 	"strconv"
 	"strings"
@@ -26,6 +27,8 @@ type ExporterSettings struct {
 	LogLevel            string
 	ExperimentalFeature ExperimentalFeatures
 	Feature             Features
+	URL                 string
+	Path                string
 }
 
 type QBittorrentSettings struct {
@@ -71,6 +74,8 @@ func LoadEnv() {
 	enableTracker := getEnv(defaultDisableTracker)
 	enableHighCardinality := getEnv(defaultHighCardinality)
 	labelWithHash := getEnv(defaultLabelWithHash)
+	exporterUrl := getEnv(defaultExporterURL)
+	exporterPath := getEnv(defaultExporterPath)
 
 	exporterPort, errExporterPort := strconv.Atoi(exporterPortEnv)
 	if errExporterPort != nil {
@@ -87,6 +92,15 @@ func LoadEnv() {
 	if timeoutDuration < 0 {
 		panic(fmt.Sprintf("%d must be > 0", timeoutDuration))
 	}
+
+	if exporterUrl != "" {
+		exporterUrl = strings.TrimSuffix(exporterUrl, "/")
+		if !internal.IsValidURL(exporterUrl) {
+			panic(fmt.Sprintf("%s is not a valid URL", exporterUrl))
+		}
+	}
+
+	internal.EnsureLeadingSlash(&exporterPath)
 
 	QBittorrent = QBittorrentSettings{
 		BaseUrl:  baseUrl,
@@ -106,6 +120,8 @@ func LoadEnv() {
 		},
 		LogLevel: loglevel,
 		Port:     exporterPort,
+		URL:      exporterUrl,
+		Path:     exporterPath,
 	}
 
 }
