@@ -79,10 +79,10 @@ var info = []Data{
 	},
 }
 
-func getData(r *prometheus.Registry, data *Data, wg *sync.WaitGroup, c chan func() (bool, error)) {
-	if wg != nil {
-		defer wg.Done()
-	}
+var firstAPIRequest = info[0]
+var otherAPIRequests = info[1:]
+
+func getData(r *prometheus.Registry, data *Data, c chan func() (bool, error)) {
 	body, retry, err := apiRequest(data.URL, data.HTTPMethod, data.QueryParams)
 	if retry {
 		c <- (func() (bool, error) { return true, nil })
@@ -135,8 +135,7 @@ func getData(r *prometheus.Registry, data *Data, wg *sync.WaitGroup, c chan func
 	c <- (func() (bool, error) { return false, nil })
 }
 
-func getTrackersInfo(data *Data, wg *sync.WaitGroup, c chan func() (*API.Trackers, error)) {
-	defer wg.Done()
+func getTrackersInfo(data *Data, c chan func() (*API.Trackers, error)) {
 	body, _, err := apiRequest(data.URL, data.HTTPMethod, data.QueryParams)
 
 	if err != nil {
@@ -164,7 +163,11 @@ func getTrackers(torrentList *API.Info, r *prometheus.Registry) {
 	}
 
 	responses := new([]*API.Trackers)
-	tracker := make(chan func() (*API.Trackers, error))
+	tracker := make(chan func() (*API.Trackers, error), len(uniqueTrackers))
+	processData := func(trackerInfo Data) {
+		defer wg.Done()
+		getTrackersInfo(&trackerInfo, tracker)
+	}
 	for i := 0; i < len(uniqueTrackers); i++ {
 		var trackerInfo = Data{
 			URL:        "/api/v2/torrents/trackers",
@@ -178,7 +181,7 @@ func getTrackers(torrentList *API.Info, r *prometheus.Registry) {
 			},
 		}
 		wg.Add(1)
-		go getTrackersInfo(&trackerInfo, &wg, tracker)
+		processData(trackerInfo)
 	}
 	go func() {
 		wg.Wait()
@@ -199,28 +202,43 @@ func getTrackers(torrentList *API.Info, r *prometheus.Registry) {
 
 func AllRequests(r *prometheus.Registry) error {
 	var wg sync.WaitGroup
-	c := make(chan func() (bool, error))
+	c := make(chan func() (bool, error), 1)
+	defer close(c)
 
-	go getData(r, &info[0], nil, c)
-	retry, err := (<-c)()
+	retry, err := func() (bool, error) {
+		getData(r, &firstAPIRequest, c)
+		return (<-c)()
+	}()
 	if retry {
 		logger.Log.Debug("Retrying ...")
-		go getData(r, &info[0], nil, c)
-		_, err = (<-c)()
+		_, err = func() (bool, error) {
+			getData(r, &info[0], c)
+			return (<-c)()
+		}()
 	}
 	if err != nil {
 		return err
 	}
-	for i := 1; i < len(info); i++ {
+	newc := make(chan func() (bool, error), len(otherAPIRequests))
+	processData := func(data Data) {
+		defer wg.Done()
+		defer func() {
+			if r := recover(); r != nil {
+				logger.Log.Error(fmt.Sprintf("Recovered panic: %s", r))
+			}
+		}()
+		getData(r, &data, newc)
+	}
+	for _, request := range otherAPIRequests {
 		wg.Add(1)
-		go getData(r, &info[i], &wg, c)
+		go processData(request)
 	}
 	go func() {
 		wg.Wait()
-		close(c)
+		close(newc)
 	}()
 
-	for respFunc := range c {
+	for respFunc := range newc {
 		_, err := respFunc()
 		if err != nil {
 			return err
