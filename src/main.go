@@ -10,7 +10,6 @@ import (
 
 	app "qbit-exp/app"
 	logger "qbit-exp/logger"
-	"strconv"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -25,28 +24,28 @@ var (
 func main() {
 	app.LoadEnv()
 	fmt.Printf("%s (version %s)\n", ProjectName, Version)
-	fmt.Println("Author:", Author)
-	fmt.Println("Using log level: " + fmt.Sprintf("%s%s%s", logger.ColorLogLevel[logger.LogLevels[app.Exporter.LogLevel]], app.Exporter.LogLevel, logger.Reset))
+	fmt.Printf("Author: %s\n", Author)
+	fmt.Printf("Using log level: %s%s%s\n", logger.ColorLogLevel[logger.LogLevels[app.Exporter.LogLevel]], app.Exporter.LogLevel, logger.Reset)
 
 	envFileMessage := "Using environment variables"
 	if app.UsingEnvFile {
 		envFileMessage = "Using .env"
 	}
 	logger.Log.Debug(envFileMessage)
-	logger.Log.Info("qbittorrent URL: " + app.QBittorrent.BaseUrl)
-	logger.Log.Info("username: " + app.QBittorrent.Username)
-	logger.Log.Info("password: " + app.GetPasswordMasked())
-	logger.Log.Info("Features enabled: " + app.GetFeaturesEnabled())
+	logger.Log.Info(fmt.Sprintf("qbittorrent URL: %s", app.QBittorrent.BaseUrl))
+	logger.Log.Info(fmt.Sprintf("username: %s", app.QBittorrent.Username))
+	logger.Log.Info(fmt.Sprintf("password: %s", app.GetPasswordMasked()))
+	logger.Log.Info(fmt.Sprintf("Features enabled: %s", app.GetFeaturesEnabled()))
 	logger.Log.Info("Started")
 
-	qbit.Auth()
+	_ = qbit.Auth()
 
 	http.HandleFunc("/metrics", func(w http.ResponseWriter, req *http.Request) {
 		metrics(w, req, qbit.AllRequests)
 	})
-	addr := ":" + strconv.Itoa(app.Exporter.Port)
+	addr := fmt.Sprintf(":%d", app.Exporter.Port)
 	if app.Exporter.Port != app.DEFAULT_PORT {
-		logger.Log.Info("Listening on port " + strconv.Itoa(app.Exporter.Port))
+		logger.Log.Info(fmt.Sprintf("Listening on port %d", app.Exporter.Port))
 	}
 	logger.Log.Info("Starting the exporter")
 	err := http.ListenAndServe(addr, nil)
@@ -58,7 +57,7 @@ func main() {
 func metrics(w http.ResponseWriter, req *http.Request, allRequestsFunc func(*prometheus.Registry) error) {
 	ip, _, err := net.SplitHostPort(req.RemoteAddr)
 	if err == nil {
-		logger.Log.Trace("New request from " + ip)
+		logger.Log.Trace(fmt.Sprintf("New request from %s", ip))
 	} else {
 		logger.Log.Trace("New request")
 	}

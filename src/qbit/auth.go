@@ -9,64 +9,56 @@ import (
 	API "qbit-exp/api"
 	app "qbit-exp/app"
 	"qbit-exp/logger"
-	"strconv"
 	"strings"
 )
 
-func Auth() {
+func Auth() error {
 	ctx, cancel := context.WithTimeout(context.Background(), app.QBittorrent.Timeout)
 	defer cancel()
 	params := url.Values{
 		"username": {app.QBittorrent.Username},
 		"password": {app.QBittorrent.Password},
 	}
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, app.QBittorrent.BaseUrl+"/api/v2/auth/login", strings.NewReader(params.Encode()))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, fmt.Sprintf("%s/api/v2/auth/login", app.QBittorrent.BaseUrl), strings.NewReader(params.Encode()))
 	if err != nil {
-		panic(API.ErrorWithUrl + err.Error())
+		panic(fmt.Sprintf("%s %s", API.ErrorWithUrl, err.Error()))
 	}
-	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
 
 	if ctx.Err() == context.DeadlineExceeded {
-		if app.ShouldShowError {
-			app.ShouldShowError = false
-			logger.Log.Error(API.QbittorrentTimeOut)
-		}
-	}
+		logger.Log.Error(API.QbittorrentTimeOut)
 
+		return context.DeadlineExceeded
+	}
 	if err != nil {
 		err := fmt.Errorf("%s: %v", API.ErrorConnect, err)
-		if app.ShouldShowError {
-			logger.Log.Error(err.Error())
-			app.ShouldShowError = false
-		}
-		return
+		logger.Log.Error(err.Error())
+		return err
 	}
 
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		logger.Log.Error("Unknown error, status code " + strconv.Itoa(resp.StatusCode))
-		return
+		err := fmt.Errorf("Authentication failed, status code: %d", resp.StatusCode)
+		logger.Log.Error(err.Error())
+		return err
 	}
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		panic("Error reading the body" + err.Error())
+		panic(fmt.Sprintf("Error reading the body %s", err.Error()))
 	}
-
 	if string(body) == "Fails." {
 		panic("Authentication Error, check your qBittorrent username / password")
 	}
-	logFunc := logger.Log.Info
-	if app.ShouldShowError {
-		logFunc = logger.Log.Debug
-	}
-	logFunc("New cookie for auth stored")
+
+	logger.Log.Info("New cookie for auth stored")
 
 	cookie := resp.Header.Get("Set-Cookie")
 	cookieValue := strings.Split(strings.Split(cookie, ";")[0], "=")[1]
-	app.QBittorrent.Cookie = cookieValue
+	app.QBittorrent.Cookie = &cookieValue
+	return nil
 }

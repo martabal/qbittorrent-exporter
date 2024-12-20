@@ -16,10 +16,9 @@ import (
 var loadEnvOnce sync.Once
 
 var (
-	QBittorrent     QBittorrentSettings
-	Exporter        ExporterSettings
-	ShouldShowError bool = true
-	UsingEnvFile    bool
+	QBittorrent  QBittorrentSettings
+	Exporter     ExporterSettings
+	UsingEnvFile bool
 )
 
 type ExporterSettings struct {
@@ -32,7 +31,7 @@ type ExporterSettings struct {
 type QBittorrentSettings struct {
 	Timeout  time.Duration
 	BaseUrl  string
-	Cookie   string
+	Cookie   *string
 	Username string
 	Password string
 }
@@ -94,6 +93,7 @@ func LoadEnv() {
 		Username: qbitUsername,
 		Password: qbitPassword,
 		Timeout:  time.Duration(timeoutDuration) * time.Second,
+		Cookie:   nil,
 	}
 
 	Exporter = ExporterSettings{
@@ -141,7 +141,7 @@ func GetFeaturesEnabled() string {
 		features += "Label with hash (experimental)"
 	}
 
-	features = "[" + features + "]"
+	features = fmt.Sprintf("[%s]", features)
 
 	return features
 }

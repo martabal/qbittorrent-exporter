@@ -37,11 +37,6 @@ type UniqueTracker struct {
 
 const unmarshError = "Can not unmarshal JSON for"
 
-var (
-	wg        sync.WaitGroup
-	wgTracker sync.WaitGroup
-)
-
 const (
 	RefQbitVersion = "qbitversion"
 	RefPreference  = "preference"
@@ -84,10 +79,10 @@ var info = []Data{
 	},
 }
 
-func getData(r *prometheus.Registry, data *Data, goroutine bool, c chan func() (bool, error)) {
-	if goroutine {
-		defer wg.Done()
-	}
+var firstAPIRequest = info[0]
+var otherAPIRequests = info[1:]
+
+func getData(r *prometheus.Registry, data *Data, c chan func() (bool, error)) {
 	body, retry, err := apiRequest(data.URL, data.HTTPMethod, data.QueryParams)
 	if retry {
 		c <- (func() (bool, error) { return true, nil })
@@ -134,14 +129,13 @@ func getData(r *prometheus.Registry, data *Data, goroutine bool, c chan func() (
 			prom.Transfer(result, r)
 		}
 	default:
-		errormessage := "Unknown reference: " + data.Ref
+		errormessage := fmt.Sprintf("Unknown reference: %s", data.Ref)
 		panic(errormessage)
 	}
 	c <- (func() (bool, error) { return false, nil })
 }
 
 func getTrackersInfo(data *Data, c chan func() (*API.Trackers, error)) {
-	defer wgTracker.Done()
 	body, _, err := apiRequest(data.URL, data.HTTPMethod, data.QueryParams)
 
 	if err != nil {
@@ -158,6 +152,7 @@ func getTrackersInfo(data *Data, c chan func() (*API.Trackers, error)) {
 }
 
 func getTrackers(torrentList *API.Info, r *prometheus.Registry) {
+	var wg sync.WaitGroup
 	uniqueValues := make(map[string]struct{})
 	var uniqueTrackers []UniqueTracker
 	for _, obj := range *torrentList {
@@ -168,7 +163,11 @@ func getTrackers(torrentList *API.Info, r *prometheus.Registry) {
 	}
 
 	responses := new([]*API.Trackers)
-	tracker := make(chan func() (*API.Trackers, error))
+	tracker := make(chan func() (*API.Trackers, error), len(uniqueTrackers))
+	processData := func(trackerInfo Data) {
+		defer wg.Done()
+		getTrackersInfo(&trackerInfo, tracker)
+	}
 	for i := 0; i < len(uniqueTrackers); i++ {
 		var trackerInfo = Data{
 			URL:        "/api/v2/torrents/trackers",
@@ -181,11 +180,11 @@ func getTrackers(torrentList *API.Info, r *prometheus.Registry) {
 				},
 			},
 		}
-		wgTracker.Add(1)
-		go getTrackersInfo(&trackerInfo, tracker)
+		wg.Add(1)
+		processData(trackerInfo)
 	}
 	go func() {
-		wgTracker.Wait()
+		wg.Wait()
 		close(tracker)
 	}()
 	for respFunc := range tracker {
@@ -202,28 +201,44 @@ func getTrackers(torrentList *API.Info, r *prometheus.Registry) {
 }
 
 func AllRequests(r *prometheus.Registry) error {
-	c := make(chan func() (bool, error))
+	var wg sync.WaitGroup
+	c := make(chan func() (bool, error), 1)
+	defer close(c)
 
-	go getData(r, &info[0], false, c)
-	retry, err := (<-c)()
+	retry, err := func() (bool, error) {
+		getData(r, &firstAPIRequest, c)
+		return (<-c)()
+	}()
 	if retry {
 		logger.Log.Debug("Retrying ...")
-		go getData(r, &info[0], false, c)
-		_, err = (<-c)()
+		_, err = func() (bool, error) {
+			getData(r, &info[0], c)
+			return (<-c)()
+		}()
 	}
 	if err != nil {
 		return err
 	}
-	for i := 1; i < len(info); i++ {
+	newc := make(chan func() (bool, error), len(otherAPIRequests))
+	processData := func(data Data) {
+		defer wg.Done()
+		defer func() {
+			if r := recover(); r != nil {
+				logger.Log.Error(fmt.Sprintf("Recovered panic: %s", r))
+			}
+		}()
+		getData(r, &data, newc)
+	}
+	for _, request := range otherAPIRequests {
 		wg.Add(1)
-		go getData(r, &info[i], true, c)
+		go processData(request)
 	}
 	go func() {
 		wg.Wait()
-		close(c)
+		close(newc)
 	}()
 
-	for respFunc := range c {
+	for respFunc := range newc {
 		_, err := respFunc()
 		if err != nil {
 			return err
@@ -242,13 +257,21 @@ func errorHelper(body []byte, errMsg string) {
 // - retry (if it should retry that query)
 // - err (the error if there was one during the request)
 func apiRequest(uri string, method string, queryParams *[]QueryParams) ([]byte, bool, error) {
+	if app.QBittorrent.Cookie == nil {
+		logger.Log.Debug("no cookie set")
+		err := Auth()
+		if err != nil {
+			return nil, false, err
+		}
+	}
+
 	ctx, cancel := context.WithTimeout(context.Background(), app.QBittorrent.Timeout)
 	defer cancel()
 
 	req, err := http.NewRequest(method, app.QBittorrent.BaseUrl+uri, nil)
 	req = req.WithContext(ctx)
 	if err != nil {
-		panic(API.ErrorWithUrl + err.Error())
+		panic(fmt.Sprintf("%s %s", API.ErrorWithUrl, err.Error()))
 	}
 	if queryParams != nil {
 		q := req.URL.Query()
@@ -258,9 +281,9 @@ func apiRequest(uri string, method string, queryParams *[]QueryParams) ([]byte, 
 		req.URL.RawQuery = q.Encode()
 	}
 
-	req.AddCookie(&http.Cookie{Name: "SID", Value: app.QBittorrent.Cookie})
+	req.AddCookie(&http.Cookie{Name: "SID", Value: *app.QBittorrent.Cookie})
 	client := &http.Client{}
-	logger.Log.Trace("New request to " + req.URL.String())
+	logger.Log.Trace(fmt.Sprintf("New request to %s", req.URL.String()))
 	resp, err := client.Do(req)
 	if ctx.Err() == context.DeadlineExceeded {
 		logger.Log.Error(API.QbittorrentTimeOut)
@@ -269,10 +292,7 @@ func apiRequest(uri string, method string, queryParams *[]QueryParams) ([]byte, 
 
 	if err != nil {
 		err := fmt.Errorf("%s: %v", API.ErrorConnect, err)
-		if app.ShouldShowError {
-			logger.Log.Error(err.Error())
-			app.ShouldShowError = false
-		}
+		logger.Log.Error(err.Error())
 		return nil, false, err
 	}
 
@@ -280,9 +300,6 @@ func apiRequest(uri string, method string, queryParams *[]QueryParams) ([]byte, 
 
 	switch resp.StatusCode {
 	case http.StatusOK:
-		if !app.ShouldShowError {
-			app.ShouldShowError = true
-		}
 		body, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return nil, false, err
@@ -290,18 +307,12 @@ func apiRequest(uri string, method string, queryParams *[]QueryParams) ([]byte, 
 		return body, false, nil
 	case http.StatusForbidden:
 		err := fmt.Errorf("%d", resp.StatusCode)
-		if app.ShouldShowError {
-			app.ShouldShowError = false
-			logger.Log.Warn("Cookie changed, try to reconnect ...")
-		}
-		Auth()
+		logger.Log.Warn("Cookie changed, try to reconnect ...")
+		_ = Auth()
 		return nil, true, err
 	default:
 		err := fmt.Errorf("%d", resp.StatusCode)
-		if app.ShouldShowError {
-			app.ShouldShowError = false
-			logger.Log.Error("Error code " + strconv.Itoa(resp.StatusCode))
-		}
+		logger.Log.Error("Error code " + strconv.Itoa(resp.StatusCode))
 		return nil, false, err
 	}
 }
