@@ -2,6 +2,7 @@ package qbit
 
 import (
 	"bytes"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
@@ -35,7 +36,7 @@ func TestAuthSuccess(t *testing.T) {
 		w.WriteHeader(http.StatusOK)
 		_, err := w.Write([]byte("Success"))
 		if err != nil {
-			panic("Error with the response" + err.Error())
+			panic(fmt.Sprintf("Error with the response %s", err.Error()))
 		}
 	}))
 	defer ts.Close()
@@ -62,7 +63,7 @@ func TestAuthFail(t *testing.T) {
 		w.WriteHeader(http.StatusOK)
 		_, err := w.Write([]byte("Fails."))
 		if err != nil {
-			panic("Error with the response" + err.Error())
+			panic(fmt.Sprintf("Error with the response %s", err.Error()))
 		}
 	}))
 	defer ts.Close()

@@ -141,7 +141,7 @@ func GetFeaturesEnabled() string {
 		features += "Label with hash (experimental)"
 	}
 
-	features = "[" + features + "]"
+	features = fmt.Sprintf("[%s]", features)
 
 	return features
 }

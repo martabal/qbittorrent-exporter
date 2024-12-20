@@ -129,7 +129,7 @@ func getData(r *prometheus.Registry, data *Data, wg *sync.WaitGroup, c chan func
 			prom.Transfer(result, r)
 		}
 	default:
-		errormessage := "Unknown reference: " + data.Ref
+		errormessage := fmt.Sprintf("Unknown reference: %s", data.Ref)
 		panic(errormessage)
 	}
 	c <- (func() (bool, error) { return false, nil })
@@ -253,7 +253,7 @@ func apiRequest(uri string, method string, queryParams *[]QueryParams) ([]byte, 
 	req, err := http.NewRequest(method, app.QBittorrent.BaseUrl+uri, nil)
 	req = req.WithContext(ctx)
 	if err != nil {
-		panic(API.ErrorWithUrl + err.Error())
+		panic(fmt.Sprintf("%s %s", API.ErrorWithUrl, err.Error()))
 	}
 	if queryParams != nil {
 		q := req.URL.Query()
@@ -265,7 +265,7 @@ func apiRequest(uri string, method string, queryParams *[]QueryParams) ([]byte, 
 
 	req.AddCookie(&http.Cookie{Name: "SID", Value: *app.QBittorrent.Cookie})
 	client := &http.Client{}
-	logger.Log.Trace("New request to " + req.URL.String())
+	logger.Log.Trace(fmt.Sprintf("New request to %s", req.URL.String()))
 	resp, err := client.Do(req)
 	if ctx.Err() == context.DeadlineExceeded {
 		logger.Log.Error(API.QbittorrentTimeOut)

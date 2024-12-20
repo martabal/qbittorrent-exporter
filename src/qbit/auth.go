@@ -19,9 +19,9 @@ func Auth() error {
 		"username": {app.QBittorrent.Username},
 		"password": {app.QBittorrent.Password},
 	}
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, app.QBittorrent.BaseUrl+"/api/v2/auth/login", strings.NewReader(params.Encode()))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, fmt.Sprintf("%s/api/v2/auth/login", app.QBittorrent.BaseUrl), strings.NewReader(params.Encode()))
 	if err != nil {
-		panic(API.ErrorWithUrl + err.Error())
+		panic(fmt.Sprintf("%s %s", API.ErrorWithUrl, err.Error()))
 	}
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
@@ -49,7 +49,7 @@ func Auth() error {
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		panic("Error reading the body" + err.Error())
+		panic(fmt.Sprintf("Error reading the body %s", err.Error()))
 	}
 	if string(body) == "Fails." {
 		panic("Authentication Error, check your qBittorrent username / password")
