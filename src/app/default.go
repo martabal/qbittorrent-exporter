@@ -6,8 +6,9 @@ import (
 	"strconv"
 )
 
-const DEFAULT_PORT = 8090
-const DEFAULT_TIMEOUT = 30
+const DefaultExporterPort = 8090
+const DefaultTimeout = 30
+const DefaultExporterPath = "/metrics"
 
 type Env struct {
 	Key          string
@@ -23,13 +24,13 @@ var defaultLogLevel = Env{
 
 var defaultPort = Env{
 	Key:          "EXPORTER_PORT",
-	DefaultValue: strconv.Itoa(DEFAULT_PORT),
+	DefaultValue: strconv.Itoa(DefaultExporterPort),
 	Help:         "",
 }
 
 var defaultTimeout = Env{
 	Key:          "QBITTORRENT_TIMEOUT",
-	DefaultValue: strconv.Itoa(DEFAULT_TIMEOUT),
+	DefaultValue: strconv.Itoa(DefaultTimeout),
 	Help:         "",
 }
 
@@ -72,6 +73,12 @@ var defaultLabelWithHash = Env{
 var defaultExporterURL = Env{
 	Key:          "EXPORTER_URL",
 	DefaultValue: "",
+	Help:         "",
+}
+
+var defaultExporterPath = Env{
+	Key:          "EXPORTER_PATH",
+	DefaultValue: DefaultExporterPath,
 	Help:         "",
 }
 

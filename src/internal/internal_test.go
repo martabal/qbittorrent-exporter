@@ -33,3 +33,55 @@ func TestIsValidURL(t *testing.T) {
 		})
 	}
 }
+
+func TestEnsureLeadingSlash(t *testing.T) {
+	tests := []struct {
+		name           string
+		input          *string
+		expectedOutput string
+		expectPanic    bool
+	}{
+		{
+			name:           "already has leading slash",
+			input:          strPtr("/example"),
+			expectedOutput: "/example",
+		},
+		{
+			name:           "missing leading slash",
+			input:          strPtr("example"),
+			expectedOutput: "/example",
+		},
+		{
+			name:           "empty string",
+			input:          strPtr(""),
+			expectedOutput: "/",
+		},
+		{
+			name:        "Nil input",
+			input:       nil,
+			expectPanic: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.expectPanic {
+				defer func() {
+					if r := recover(); r == nil {
+						t.Errorf("Expected panic but did not panic")
+					}
+				}()
+				EnsureLeadingSlash(tt.input)
+			} else {
+				EnsureLeadingSlash(tt.input)
+				if *tt.input != tt.expectedOutput {
+					t.Errorf("Expected %q, got %q", tt.expectedOutput, *tt.input)
+				}
+			}
+		})
+	}
+}
+
+func strPtr(s string) *string {
+	return &s
+}

@@ -55,7 +55,7 @@ services:
 
 ```sh
 git clone https://github.com/martabal/qbittorrent-exporter.git
-cd qbittorrent-exporter 
+cd qbittorrent-exporter
 go get -d -v
 cd src
 go build -o ./qbittorrent-exporter
@@ -129,6 +129,8 @@ Docker compressed size is ~10 MB.
 |     `-e ENABLE_TRACKER`      | get tracker infos,                                                                         | `true`                  |
 | `-e ENABLE_HIGH_CARDINALITY` | enable high cardinality metric (`qbittorrent_torrent_info` and `qbittorrent_tracker_info`) | `false`                 |
 | `-e ENABLE_LABEL_WITH_HASH`  | **[EXPERIMENTAL]** add the torrent hash to the `qbittorrent_torrent_*` metrics label       | `false`                 |
+|      `-e EXPORTER_URL`       | the URL shown in the logs when starting the exporter                                       | ``                      |
+|      `-e EXPORTER_PATH`      | the path where the metrics are exposed                                                     | `/metrics`              |
 
 ### Arguments
 

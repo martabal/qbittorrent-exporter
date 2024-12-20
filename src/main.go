@@ -42,19 +42,21 @@ func main() {
 
 	_ = qbit.Auth()
 
-	http.HandleFunc("/metrics", func(w http.ResponseWriter, req *http.Request) {
+	http.HandleFunc(app.Exporter.Path, func(w http.ResponseWriter, req *http.Request) {
 		metrics(w, req, qbit.AllRequests)
 	})
 	addr := fmt.Sprintf(":%d", app.Exporter.Port)
-	if app.Exporter.Port != app.DEFAULT_PORT {
+	if app.Exporter.Port != app.DefaultExporterPort {
 		logger.Log.Info(fmt.Sprintf("Listening on port %d", app.Exporter.Port))
 	}
 
 	if Version == devVersion {
-		app.Exporter.URL = fmt.Sprintf("http://localhost:%d", app.Exporter.Port)
+		app.Exporter.URL = fmt.Sprintf("http://localhost:%d%s", app.Exporter.Port, app.Exporter.Path)
 	}
 
-	logger.Log.Info(fmt.Sprintf("qbittorrent-exporter URL: %s/metrics", app.Exporter.URL))
+	if app.Exporter.URL != "" {
+		logger.Log.Info(fmt.Sprintf("qbittorrent-exporter URL: %s", app.Exporter.URL))
+	}
 
 	logger.Log.Info("Starting the exporter")
 	err := http.ListenAndServe(addr, nil)

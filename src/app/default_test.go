@@ -31,7 +31,7 @@ func TestGetEnvReturnsEnvValue(t *testing.T) {
 
 func TestGetEnvReturnsDefaultWhenEnvNotSet(t *testing.T) {
 	envVar := "EXPORTER_PORT"
-	expectedValue := strconv.Itoa(DEFAULT_PORT)
+	expectedValue := strconv.Itoa(DefaultExporterPort)
 	os.Unsetenv(envVar)
 	value := getEnv(defaultPort)
 
@@ -58,8 +58,8 @@ func TestGetEnvWithDifferentDefaults(t *testing.T) {
 		expectedValue string
 	}{
 		{"DefaultLogLevel", defaultLogLevel, "INFO"},
-		{"DefaultPort", defaultPort, strconv.Itoa(DEFAULT_PORT)},
-		{"DefaultTimeout", defaultTimeout, strconv.Itoa(DEFAULT_TIMEOUT)},
+		{"DefaultPort", defaultPort, strconv.Itoa(DefaultExporterPort)},
+		{"DefaultTimeout", defaultTimeout, strconv.Itoa(DefaultTimeout)},
 		{"DefaultUsername", defaultUsername, "admin"},
 		{"DefaultPassword", defaultPassword, "adminadmin"},
 		{"DefaultBaseUrl", defaultBaseUrl, "http://localhost:8080"},
@@ -67,6 +67,7 @@ func TestGetEnvWithDifferentDefaults(t *testing.T) {
 		{"DefaultHighCardinality", defaultHighCardinality, "false"},
 		{"DefaultLabelWithHash", defaultLabelWithHash, "false"},
 		{"DefaultExporterURL", defaultExporterURL, ""},
+		{"DefaultExporterPath", defaultExporterPath, DefaultExporterPath},
 	}
 
 	for _, tt := range tests {
