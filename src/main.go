@@ -39,7 +39,7 @@ func main() {
 	logger.Log.Info("Features enabled: " + app.GetFeaturesEnabled())
 	logger.Log.Info("Started")
 
-	qbit.Auth()
+	_ = qbit.Auth()
 
 	http.HandleFunc("/metrics", func(w http.ResponseWriter, req *http.Request) {
 		metrics(w, req, qbit.AllRequests)

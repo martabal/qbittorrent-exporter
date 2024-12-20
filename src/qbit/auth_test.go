@@ -26,6 +26,7 @@ func init() {
 
 func TestAuthSuccess(t *testing.T) {
 	t.Cleanup(resetState)
+	password := "abc123"
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			t.Errorf("expected POST request, got %s", r.Method)
@@ -44,10 +45,14 @@ func TestAuthSuccess(t *testing.T) {
 	app.QBittorrent.Password = "testpass"
 	app.QBittorrent.Timeout = tenMs
 
-	Auth()
+	err := Auth()
 
-	if app.QBittorrent.Cookie != "abc123" {
-		t.Errorf("expected cookie value to be 'abc123', got '%s'", app.QBittorrent.Cookie)
+	if err != nil {
+		t.Errorf("There was an error: %s", err.Error())
+	}
+
+	if *app.QBittorrent.Cookie != password {
+		t.Errorf("expected cookie value to be 'abc123', got '%s'", *app.QBittorrent.Cookie)
 	}
 }
 
@@ -73,7 +78,11 @@ func TestAuthFail(t *testing.T) {
 		}
 	}()
 
-	Auth()
+	err := Auth()
+
+	if err == nil {
+		t.Errorf("There wasn't an error")
+	}
 }
 
 func TestAuthInvalidUrl(t *testing.T) {
@@ -94,7 +103,7 @@ func TestAuthInvalidUrl(t *testing.T) {
 		}
 	}()
 
-	Auth()
+	_ = Auth()
 }
 
 func TestAuthTimeout(t *testing.T) {
@@ -108,7 +117,7 @@ func TestAuthTimeout(t *testing.T) {
 	app.QBittorrent.Username = ""
 	app.QBittorrent.Password = ""
 	app.QBittorrent.Timeout = tenMs
-	Auth()
+	_ = Auth()
 
 	if !strings.Contains(buff.String(), API.QbittorrentTimeOut) {
 		t.Errorf("expected timeout log, got: %s", buff.String())
@@ -126,7 +135,7 @@ func TestUnknownStatusCode(t *testing.T) {
 	app.QBittorrent.Username = ""
 	app.QBittorrent.Password = ""
 	app.QBittorrent.Timeout = tenMs
-	Auth()
+	_ = Auth()
 
 	if !strings.Contains(buff.String(), strconv.Itoa(http.StatusCreated)) {
 		t.Errorf("expected %d, got: %s", http.StatusCreated, buff.String())
@@ -134,7 +143,6 @@ func TestUnknownStatusCode(t *testing.T) {
 }
 
 func resetState() {
-	app.QBittorrent.Cookie = ""
-	app.ShouldShowError = true
+	app.QBittorrent.Cookie = nil
 	buff.Reset()
 }

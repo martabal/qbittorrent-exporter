@@ -12,7 +12,7 @@ import (
 	"strings"
 )
 
-func Auth() {
+func Auth() error {
 	ctx, cancel := context.WithTimeout(context.Background(), app.QBittorrent.Timeout)
 	defer cancel()
 	params := url.Values{
@@ -29,25 +29,22 @@ func Auth() {
 	resp, err := client.Do(req)
 
 	if ctx.Err() == context.DeadlineExceeded {
-		if app.ShouldShowError {
-			logger.Log.Error(API.QbittorrentTimeOut)
-			app.ShouldShowError = false
-		}
-		return
+		logger.Log.Error(API.QbittorrentTimeOut)
+
+		return context.DeadlineExceeded
 	}
 	if err != nil {
-		if app.ShouldShowError {
-			logger.Log.Error(fmt.Sprintf("%s: %v", API.ErrorConnect, err))
-			app.ShouldShowError = false
-		}
-		return
+		err := fmt.Errorf("%s: %v", API.ErrorConnect, err)
+		logger.Log.Error(err.Error())
+		return err
 	}
 
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		logger.Log.Error(fmt.Sprintf("Authentication failed, status code: %d", resp.StatusCode))
-		return
+		err := fmt.Errorf("Authentication failed, status code: %d", resp.StatusCode)
+		logger.Log.Error(err.Error())
+		return err
 	}
 
 	body, err := io.ReadAll(resp.Body)
@@ -62,5 +59,6 @@ func Auth() {
 
 	cookie := resp.Header.Get("Set-Cookie")
 	cookieValue := strings.Split(strings.Split(cookie, ";")[0], "=")[1]
-	app.QBittorrent.Cookie = cookieValue
+	app.QBittorrent.Cookie = &cookieValue
+	return nil
 }

@@ -239,6 +239,14 @@ func errorHelper(body []byte, errMsg string) {
 // - retry (if it should retry that query)
 // - err (the error if there was one during the request)
 func apiRequest(uri string, method string, queryParams *[]QueryParams) ([]byte, bool, error) {
+	if app.QBittorrent.Cookie == nil {
+		logger.Log.Debug("no cookie set")
+		err := Auth()
+		if err != nil {
+			return nil, false, err
+		}
+	}
+
 	ctx, cancel := context.WithTimeout(context.Background(), app.QBittorrent.Timeout)
 	defer cancel()
 
@@ -255,7 +263,7 @@ func apiRequest(uri string, method string, queryParams *[]QueryParams) ([]byte, 
 		req.URL.RawQuery = q.Encode()
 	}
 
-	req.AddCookie(&http.Cookie{Name: "SID", Value: app.QBittorrent.Cookie})
+	req.AddCookie(&http.Cookie{Name: "SID", Value: *app.QBittorrent.Cookie})
 	client := &http.Client{}
 	logger.Log.Trace("New request to " + req.URL.String())
 	resp, err := client.Do(req)
@@ -266,10 +274,7 @@ func apiRequest(uri string, method string, queryParams *[]QueryParams) ([]byte, 
 
 	if err != nil {
 		err := fmt.Errorf("%s: %v", API.ErrorConnect, err)
-		if app.ShouldShowError {
-			logger.Log.Error(err.Error())
-			app.ShouldShowError = false
-		}
+		logger.Log.Error(err.Error())
 		return nil, false, err
 	}
 
@@ -277,9 +282,6 @@ func apiRequest(uri string, method string, queryParams *[]QueryParams) ([]byte, 
 
 	switch resp.StatusCode {
 	case http.StatusOK:
-		if !app.ShouldShowError {
-			app.ShouldShowError = true
-		}
 		body, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return nil, false, err
@@ -287,18 +289,12 @@ func apiRequest(uri string, method string, queryParams *[]QueryParams) ([]byte, 
 		return body, false, nil
 	case http.StatusForbidden:
 		err := fmt.Errorf("%d", resp.StatusCode)
-		if app.ShouldShowError {
-			app.ShouldShowError = false
-			logger.Log.Warn("Cookie changed, try to reconnect ...")
-		}
-		Auth()
+		logger.Log.Warn("Cookie changed, try to reconnect ...")
+		_ = Auth()
 		return nil, true, err
 	default:
 		err := fmt.Errorf("%d", resp.StatusCode)
-		if app.ShouldShowError {
-			app.ShouldShowError = false
-			logger.Log.Error("Error code " + strconv.Itoa(resp.StatusCode))
-		}
+		logger.Log.Error("Error code " + strconv.Itoa(resp.StatusCode))
 		return nil, false, err
 	}
 }

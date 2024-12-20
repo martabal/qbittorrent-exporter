@@ -10,10 +10,11 @@ import (
 	"time"
 )
 
+var cookie = "SID"
+
 func setupMockApp() {
 	app.QBittorrent.Timeout = 10 * time.Millisecond
-	app.QBittorrent.Cookie = "SID"
-	app.ShouldShowError = true
+	app.QBittorrent.Cookie = &cookie
 }
 
 func TestApiRequest_Success(t *testing.T) {
