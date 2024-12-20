@@ -13,8 +13,10 @@ format :
 lint: 
 	docker run --rm -v ./src:/app -w /app golangci/golangci-lint:latest golangci-lint run -v
 
-test: 
-	cd src && go test -v ./...
+test:
+	cd src && go test -v ./... | \
+	sed '/PASS/s//$(shell printf "\033[32mPASS\033[0m")/' | \
+	sed '/FAIL/s//$(shell printf "\033[31mFAIL\033[0m")/'
 
 test-count:
 	cd src && go test ./... -v | grep -c RUN
