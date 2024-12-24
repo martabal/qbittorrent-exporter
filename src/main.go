@@ -35,7 +35,11 @@ func main() {
 	logger.Log.Debug(envFileMessage)
 	logger.Log.Info(fmt.Sprintf("qBittorrent URL: %s", app.QBittorrent.BaseUrl))
 	logger.Log.Info(fmt.Sprintf("username: %s", app.QBittorrent.Username))
-	logger.Log.Info(fmt.Sprintf("password: %s", app.GetPasswordMasked()))
+	password := app.GetPasswordMasked()
+	if app.Exporter.Feature.ShowPassword {
+		password = app.QBittorrent.Password
+	}
+	logger.Log.Info(fmt.Sprintf("password: %s", password))
 	logger.Log.Info(fmt.Sprintf("Features enabled: %s", app.GetFeaturesEnabled()))
 	logger.Log.Info("Started")
 

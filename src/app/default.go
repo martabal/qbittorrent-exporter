@@ -82,6 +82,12 @@ var defaultExporterPath = Env{
 	Help:         "",
 }
 
+var defaultExporterShowPassword = Env{
+	Key:          "DANGEROUS_SHOW_PASSWORD",
+	DefaultValue: "false",
+	Help:         "",
+}
+
 func getEnv(env Env) string {
 	value, ok := os.LookupEnv(env.Key)
 	if !ok || value == "" {

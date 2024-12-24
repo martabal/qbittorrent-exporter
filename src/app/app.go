@@ -46,6 +46,7 @@ type ExperimentalFeatures struct {
 type Features struct {
 	EnableHighCardinality bool
 	EnableTracker         bool
+	ShowPassword          bool
 }
 
 func LoadEnv() {
@@ -76,6 +77,7 @@ func LoadEnv() {
 	labelWithHash := getEnv(defaultLabelWithHash)
 	exporterUrl := getEnv(defaultExporterURL)
 	exporterPath := getEnv(defaultExporterPath)
+	showPassword := getEnv(defaultExporterShowPassword)
 
 	exporterPort, errExporterPort := strconv.Atoi(exporterPortEnv)
 	if errExporterPort != nil {
@@ -114,6 +116,7 @@ func LoadEnv() {
 		Feature: Features{
 			EnableHighCardinality: envSetToTrue(enableHighCardinality),
 			EnableTracker:         envSetToTrue(enableTracker),
+			ShowPassword:          envSetToTrue(showPassword),
 		},
 		ExperimentalFeature: ExperimentalFeatures{
 			EnableLabelWithHash: envSetToTrue(labelWithHash),
@@ -150,6 +153,11 @@ func GetFeaturesEnabled() string {
 	if Exporter.Feature.EnableTracker {
 		addComma()
 		features += "Trackers"
+	}
+
+	if Exporter.Feature.ShowPassword {
+		addComma()
+		features += "Show password"
 	}
 
 	if Exporter.ExperimentalFeature.EnableLabelWithHash {
