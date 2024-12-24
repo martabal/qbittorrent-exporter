@@ -131,6 +131,7 @@ Docker compressed size is ~10 MB.
 | `-e ENABLE_LABEL_WITH_HASH`  | **[EXPERIMENTAL]** add the torrent hash to the `qbittorrent_torrent_*` metrics label       | `false`                 |
 |      `-e EXPORTER_URL`       | the URL shown in the logs when starting the exporter                                       | ``                      |
 |      `-e EXPORTER_PATH`      | the path where the metrics are exposed                                                     | `/metrics`              |
+| `-e DANGEROUS_SHOW_PASSWORD` | show the qBittorrent password in the logs when starting the exporter                       | `false`                 |
 
 ### Arguments
 
