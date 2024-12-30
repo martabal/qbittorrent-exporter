@@ -48,6 +48,7 @@ func TestApiRequest_Forbidden(t *testing.T) {
 	defer server.Close()
 
 	app.QBittorrent.BaseUrl = server.URL
+	app.QBittorrent.Cookie = &cookie
 	url := createUrl("/test")
 
 	_, reAuth, err := apiRequest(url, "GET", nil)
