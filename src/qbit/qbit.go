@@ -112,7 +112,7 @@ func getData(r *prometheus.Registry, data *Data, c chan func() (bool, error)) {
 		result := new(API.Info)
 		if handleUnmarshal(result, body) {
 			prom.Torrent(result, r)
-			if app.Exporter.Feature.EnableTracker {
+			if app.Exporter.Features.EnableTracker {
 				getTrackers(result, r)
 			}
 		}

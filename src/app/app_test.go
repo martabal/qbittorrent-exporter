@@ -84,11 +84,11 @@ func TestGetFeaturesEnabled(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			// Set main features
-			Exporter.Feature.EnableHighCardinality = test.features.EnableHighCardinality
-			Exporter.Feature.EnableTracker = test.features.EnableTracker
+			Exporter.Features.EnableHighCardinality = test.features.EnableHighCardinality
+			Exporter.Features.EnableTracker = test.features.EnableTracker
 
 			// Set experimental features
-			Exporter.ExperimentalFeature.EnableLabelWithHash = test.experimentalFeature.EnableLabelWithHash
+			Exporter.ExperimentalFeatures.EnableLabelWithHash = test.experimentalFeature.EnableLabelWithHash
 
 			result := GetFeaturesEnabled()
 			if result != test.expectedOutput {

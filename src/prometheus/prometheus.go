@@ -125,7 +125,7 @@ func Torrent(result *API.Info, r *prometheus.Registry) {
 	)
 
 	labels := []string{LabelName}
-	if app.Exporter.ExperimentalFeature.EnableLabelWithHash {
+	if app.Exporter.ExperimentalFeatures.EnableLabelWithHash {
 		labels = append(labels, TorrentLabelHash)
 	}
 	labelsWithTag := append(labels, TorrentLabelTag)
@@ -151,9 +151,9 @@ func Torrent(result *API.Info, r *prometheus.Registry) {
 
 	metrics := registerGauge(&gauges, r)
 
-	if app.Exporter.Feature.EnableHighCardinality {
+	if app.Exporter.Features.EnableHighCardinality {
 		torrentInfoLabels := []string{LabelName, TorrentLabelCategory, TorrentLabelState, TorrentLabelSize, TorrentLabelProgress, LabelSeeders, TorrentLabelLeechers, TorrentLabelDlSpeed, TorrentLabelUpSpeed, TorrentLabelAmountLeft, TorrentLabelTimeActive, TorrentLabelEta, TorrentLabelUploaded, TorrentLabelUploadedSession, LabelDownloaded, TorrentLabelDownloadedSession, TorrentLabelMaxRatio, TorrentLabelRatio, TorrentLabelTracker}
-		if app.Exporter.ExperimentalFeature.EnableLabelWithHash {
+		if app.Exporter.ExperimentalFeatures.EnableLabelWithHash {
 			torrentInfoLabels = append(torrentInfoLabels, TorrentLabelHash)
 		}
 		metrics[TorrentInfo] = newGaugeVec(TorrentInfo, "All info for torrents",
@@ -171,7 +171,7 @@ func Torrent(result *API.Info, r *prometheus.Registry) {
 	countStalledUP, countUploading := 0, 0
 	for _, torrent := range *result {
 		torrentLabels := prometheus.Labels{LabelName: torrent.Name}
-		if app.Exporter.ExperimentalFeature.EnableLabelWithHash {
+		if app.Exporter.ExperimentalFeatures.EnableLabelWithHash {
 			torrentLabels[TorrentLabelHash] = torrent.Hash
 		}
 
@@ -196,7 +196,7 @@ func Torrent(result *API.Info, r *prometheus.Registry) {
 			countUploading++
 		}
 
-		if app.Exporter.Feature.EnableHighCardinality {
+		if app.Exporter.Features.EnableHighCardinality {
 			infoLabels := prometheus.Labels{
 				LabelName:                     torrent.Name,
 				TorrentLabelCategory:          torrent.Category,
@@ -218,7 +218,7 @@ func Torrent(result *API.Info, r *prometheus.Registry) {
 				TorrentLabelRatio:             strconv.FormatFloat(torrent.Ratio, 'f', 3, 64),
 				TorrentLabelTracker:           torrent.Tracker,
 			}
-			if app.Exporter.ExperimentalFeature.EnableLabelWithHash {
+			if app.Exporter.ExperimentalFeatures.EnableLabelWithHash {
 				infoLabels[TorrentLabelHash] = torrent.Hash
 			}
 			metrics[TorrentInfo].With(infoLabels).Set(1)
@@ -227,7 +227,7 @@ func Torrent(result *API.Info, r *prometheus.Registry) {
 		if torrent.Tags != "" {
 			for _, tag := range strings.Split(torrent.Tags, ", ") {
 				tagLabels := prometheus.Labels{LabelName: torrent.Name, TorrentLabelTag: tag}
-				if app.Exporter.ExperimentalFeature.EnableLabelWithHash {
+				if app.Exporter.ExperimentalFeatures.EnableLabelWithHash {
 					tagLabels[TorrentLabelHash] = torrent.Hash
 				}
 				metrics[TorrentTags].With(tagLabels).Set(1)
@@ -299,7 +299,7 @@ func Trackers(result []*API.Trackers, r *prometheus.Registry) {
 
 	metrics := registerGauge(&gauges, r)
 
-	if app.Exporter.Feature.EnableHighCardinality {
+	if app.Exporter.Features.EnableHighCardinality {
 		metrics[QbittorrentTrackerInfo] = newGaugeVec(QbittorrentTrackerInfo, "All info for trackers",
 			[]string{TrackerLabelMessage, LabelDownloaded, TrackerLabelLeeches, TrackerLabelPeers, LabelSeeders, TrackerLabelStatus, TrackerLabelTier, TrackerLabelURL})
 	}
@@ -319,7 +319,7 @@ func Trackers(result []*API.Trackers, r *prometheus.Registry) {
 				metrics[QbittorrentTrackerStatus].With(labels).Set((float64(tracker.Status)))
 				metrics[QbittorrentTrackerTier].With(labels).Set((float64(tier)))
 
-				if app.Exporter.Feature.EnableHighCardinality {
+				if app.Exporter.Features.EnableHighCardinality {
 					qbittorrentTrackerInfoLabels := prometheus.Labels{
 						TrackerLabelMessage: tracker.Message,
 						LabelDownloaded:     strconv.Itoa(tracker.NumDownloaded),

@@ -23,12 +23,18 @@ var (
 )
 
 type ExporterSettings struct {
-	Port                int
-	LogLevel            string
-	ExperimentalFeature ExperimentalFeatures
-	Feature             Features
-	URL                 string
-	Path                string
+	Port                 int
+	LogLevel             string
+	ExperimentalFeatures ExperimentalFeatures
+	Features             Features
+	URL                  string
+	Path                 string
+	BasicAuth            BasicAuth
+}
+
+type BasicAuth struct {
+	Username *string
+	Password *string
 }
 
 type QBittorrentSettings struct {
@@ -78,6 +84,8 @@ func LoadEnv() {
 	exporterUrl := getEnv(defaultExporterURL)
 	exporterPath := getEnv(defaultExporterPath)
 	showPassword := getEnv(defaultExporterShowPassword)
+	basicAuthUsername := getEnv(defaultBasicAuthUsername)
+	basicAuthPassword := getEnv(defaultBasicAuthPassword)
 
 	exporterPort, errExporterPort := strconv.Atoi(exporterPortEnv)
 	if errExporterPort != nil {
@@ -102,6 +110,18 @@ func LoadEnv() {
 		}
 	}
 
+	basicAuth := BasicAuth{Username: nil, Password: nil}
+	if basicAuthUsername != "" && basicAuthPassword == "" {
+		logger.Log.Warn("You set a basic auth username but not password")
+	} else if basicAuthUsername == "" && basicAuthPassword != "" {
+		logger.Log.Warn("You set a basic auth password but not username")
+	} else if basicAuthUsername != "" && basicAuthPassword != "" {
+		basicAuth = BasicAuth{
+			Username: &basicAuthUsername,
+			Password: &basicAuthPassword,
+		}
+	}
+
 	internal.EnsureLeadingSlash(&exporterPath)
 
 	QBittorrent = QBittorrentSettings{
@@ -113,18 +133,19 @@ func LoadEnv() {
 	}
 
 	Exporter = ExporterSettings{
-		Feature: Features{
+		Features: Features{
 			EnableHighCardinality: envSetToTrue(enableHighCardinality),
 			EnableTracker:         envSetToTrue(enableTracker),
 			ShowPassword:          envSetToTrue(showPassword),
 		},
-		ExperimentalFeature: ExperimentalFeatures{
+		ExperimentalFeatures: ExperimentalFeatures{
 			EnableLabelWithHash: envSetToTrue(labelWithHash),
 		},
-		LogLevel: loglevel,
-		Port:     exporterPort,
-		URL:      exporterUrl,
-		Path:     exporterPath,
+		LogLevel:  loglevel,
+		Port:      exporterPort,
+		URL:       exporterUrl,
+		Path:      exporterPath,
+		BasicAuth: basicAuth,
 	}
 
 }
@@ -146,21 +167,21 @@ func GetFeaturesEnabled() string {
 		}
 	}
 
-	if Exporter.Feature.EnableHighCardinality {
+	if Exporter.Features.EnableHighCardinality {
 		features += "High cardinality"
 	}
 
-	if Exporter.Feature.EnableTracker {
+	if Exporter.Features.EnableTracker {
 		addComma()
 		features += "Trackers"
 	}
 
-	if Exporter.Feature.ShowPassword {
+	if Exporter.Features.ShowPassword {
 		addComma()
 		features += "Show password"
 	}
 
-	if Exporter.ExperimentalFeature.EnableLabelWithHash {
+	if Exporter.ExperimentalFeatures.EnableLabelWithHash {
 		addComma()
 		features += "Label with hash (experimental)"
 	}

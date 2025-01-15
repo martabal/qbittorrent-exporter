@@ -88,6 +88,18 @@ var defaultExporterShowPassword = Env{
 	Help:         "",
 }
 
+var defaultBasicAuthUsername = Env{
+	Key:          "EXPORTER_BASIC_AUTH_USERNAME",
+	DefaultValue: "",
+	Help:         "",
+}
+
+var defaultBasicAuthPassword = Env{
+	Key:          "EXPORTER_BASIC_AUTH_PASSWORD",
+	DefaultValue: "",
+	Help:         "",
+}
+
 func getEnv(env Env) string {
 	value, ok := os.LookupEnv(env.Key)
 	if !ok || value == "" {

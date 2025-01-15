@@ -36,7 +36,7 @@ func main() {
 	logger.Log.Info(fmt.Sprintf("qBittorrent URL: %s", app.QBittorrent.BaseUrl))
 	logger.Log.Info(fmt.Sprintf("username: %s", app.QBittorrent.Username))
 	password := app.GetPasswordMasked()
-	if app.Exporter.Feature.ShowPassword {
+	if app.Exporter.Features.ShowPassword {
 		password = app.QBittorrent.Password
 	}
 	logger.Log.Info(fmt.Sprintf("password: %s", password))
@@ -45,9 +45,16 @@ func main() {
 
 	_ = qbit.Auth()
 
-	http.HandleFunc(app.Exporter.Path, func(w http.ResponseWriter, req *http.Request) {
+	metrics := func(w http.ResponseWriter, req *http.Request) {
 		metrics(w, req, qbit.AllRequests)
-	})
+	}
+	if app.Exporter.BasicAuth.Username != nil && app.Exporter.BasicAuth.Password != nil {
+		metrics = basicAuth(metrics)
+		logger.Log.Info("Using basic auth")
+	} else {
+		logger.Log.Trace("Not using basic auth")
+	}
+	http.HandleFunc(app.Exporter.Path, metrics)
 	addr := fmt.Sprintf(":%d", app.Exporter.Port)
 	if app.Exporter.Port != app.DefaultExporterPort {
 		logger.Log.Info(fmt.Sprintf("Listening on port %d", app.Exporter.Port))
@@ -85,4 +92,20 @@ func metrics(w http.ResponseWriter, req *http.Request, allRequestsFunc func(*pro
 		h.ServeHTTP(w, req)
 	}
 
+}
+
+func basicAuth(h http.HandlerFunc) http.HandlerFunc {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		username, password, ok := r.BasicAuth()
+		if ok {
+
+			if username == *app.Exporter.BasicAuth.Username && password == *app.Exporter.BasicAuth.Password {
+				h.ServeHTTP(w, r)
+				return
+			}
+		}
+
+		w.Header().Set("WWW-Authenticate", `Basic realm="restricted", charset="UTF-8"`)
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+	})
 }
