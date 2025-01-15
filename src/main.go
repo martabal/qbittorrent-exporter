@@ -77,11 +77,11 @@ func main() {
 
 func metrics(w http.ResponseWriter, req *http.Request, allRequestsFunc func(*prometheus.Registry) error) {
 	ip, _, err := net.SplitHostPort(req.RemoteAddr)
+	logMsg := "New request"
 	if err == nil {
-		logger.Log.Trace(fmt.Sprintf("New request from %s", ip))
-	} else {
-		logger.Log.Trace("New request")
+		logMsg = fmt.Sprintf("%s from %s", logMsg, ip)
 	}
+	logger.Log.Trace(logMsg)
 
 	registry := prometheus.NewRegistry()
 	err = allRequestsFunc(registry)
@@ -98,12 +98,17 @@ func basicAuth(h http.HandlerFunc) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		username, password, ok := r.BasicAuth()
 		if ok {
-
 			if username == *app.Exporter.BasicAuth.Username && password == *app.Exporter.BasicAuth.Password {
 				h.ServeHTTP(w, r)
 				return
 			}
 		}
+		logErr := "Invalid auth"
+		ip, _, err := net.SplitHostPort(r.RemoteAddr)
+		if err == nil {
+			logErr = fmt.Sprintf("%s from %s", logErr, ip)
+		}
+		logger.Log.Warn(logErr)
 
 		w.Header().Set("WWW-Authenticate", `Basic realm="restricted", charset="UTF-8"`)
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
