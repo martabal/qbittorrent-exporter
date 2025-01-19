@@ -115,7 +115,7 @@ var defaultInsecureSkipVerify = Env{
 
 var defaultMinTlsVersion = Env{
 	Key:          "MIN_TLS_VERSION",
-	DefaultValue: "TLS_1_2",
+	DefaultValue: "TLS_1_3",
 	Help:         "",
 }
 

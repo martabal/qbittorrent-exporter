@@ -169,16 +169,12 @@ func LoadEnv() {
 
 	var minTlsVersion uint16
 	switch minTlsVersionStr {
-	case "TLS_1_0":
-		minTlsVersion = tls.VersionTLS10
-	case "TLS_1_1":
-		minTlsVersion = tls.VersionTLS11
 	case "TLS_1_2":
 		minTlsVersion = tls.VersionTLS12
 	case "TLS_1_3":
 		minTlsVersion = tls.VersionTLS13
 	default:
-		panic(fmt.Sprintf("Invalid minimum TLS version: %s (valid options are TLS_1_0, TLS_1_1, TLS_1_2, TLS_1_3) (check %s)",
+		panic(fmt.Sprintf("Invalid minimum TLS version: %s (valid options are TLS_1_2 and TLS_1_3) (check %s)",
 			minTlsVersionStr, defaultMinTlsVersion.Key))
 	}
 

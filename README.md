@@ -136,7 +136,7 @@ Docker compressed size is ~10 MB.
 |   `-e DANGEROUS_SHOW_PASSWORD`    | show the qBittorrent password in the logs when starting the exporter                       | `false`                 |
 |  `-e CERTIFICATE_AUTHORITY_PATH`  | path to a CA (`.crt`) that is used to verify the qBittorrent TLS certificate against       |                         |
 |     `-e INSECURE_SKIP_VERIFY`     | don't validate the TLS certificate presented by qBittorrent                                | `false`                 |
-|       `-e MIN_TLS_VERSION`        | only connect to qBittorrent if it supports at least this TLS version                       | `TLS_1_2`               |
+|       `-e MIN_TLS_VERSION`        | only connect to qBittorrent if it supports at least this TLS version                       | `TLS_1_3`               |
 
 ### Arguments
 
