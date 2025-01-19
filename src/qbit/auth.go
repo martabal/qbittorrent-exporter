@@ -25,8 +25,7 @@ func Auth() error {
 	}
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	client := &http.Client{}
-	resp, err := client.Do(req)
+	resp, err := app.HttpClient.Do(req)
 
 	if ctx.Err() == context.DeadlineExceeded {
 		logger.Log.Error(API.QbittorrentTimeOut)

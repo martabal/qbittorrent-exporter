@@ -289,9 +289,8 @@ func apiRequest(url string, method string, queryParams *[]QueryParams) ([]byte, 
 	}
 
 	req.AddCookie(&http.Cookie{Name: "SID", Value: *app.QBittorrent.Cookie})
-	client := &http.Client{}
 	logger.Log.Trace(fmt.Sprintf("New request to %s", req.URL.String()))
-	resp, err := client.Do(req)
+	resp, err := app.HttpClient.Do(req)
 	if ctx.Err() == context.DeadlineExceeded {
 		logger.Log.Error(API.QbittorrentTimeOut)
 		return nil, false, context.DeadlineExceeded

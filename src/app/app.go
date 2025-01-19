@@ -1,8 +1,11 @@
 package app
 
 import (
+	"crypto/tls"
+	"crypto/x509"
 	"flag"
 	"fmt"
+	"net/http"
 	"os"
 	"qbit-exp/internal"
 	"qbit-exp/logger"
@@ -19,6 +22,7 @@ var loadEnvOnce sync.Once
 var (
 	QBittorrent  QBittorrentSettings
 	Exporter     ExporterSettings
+	HttpClient   http.Client
 	UsingEnvFile bool
 )
 
@@ -86,40 +90,102 @@ func LoadEnv() {
 	showPassword := getEnv(defaultExporterShowPassword)
 	basicAuthUsername := getEnv(defaultBasicAuthUsername)
 	basicAuthPassword := getEnv(defaultBasicAuthPassword)
+	certificateAuthorityPath := getEnv(defaultCertificateAuthorityPath)
+	insecureSkipVerify := getEnv(defaultInsecureSkipVerify)
+	minTlsVersionStr := getEnv(defaultMinTlsVersion)
 
 	exporterPort, errExporterPort := strconv.Atoi(exporterPortEnv)
 	if errExporterPort != nil {
-		panic(fmt.Sprintf("%s must be an integer", exporterPortEnv))
+		panic(fmt.Sprintf("%s must be an integer (check %s)", exporterPortEnv, defaultPort.Key))
 	}
 	if exporterPort < 0 || exporterPort > 65353 {
-		panic(fmt.Sprintf("%d must be > 0 and < 65353", exporterPort))
+		panic(fmt.Sprintf("%d must be > 0 and < 65353 (check %s)", exporterPort, defaultPort.Key))
 	}
 
 	timeoutDuration, errTimeoutDuration := strconv.Atoi(timeoutDurationEnv)
 	if errTimeoutDuration != nil {
-		panic(fmt.Sprintf("%s must be an integer", timeoutDurationEnv))
+		panic(fmt.Sprintf("%s must be an integer (check %s)", timeoutDurationEnv, defaultTimeout.Key))
 	}
 	if timeoutDuration < 0 {
-		panic(fmt.Sprintf("%d must be > 0", timeoutDuration))
+		panic(fmt.Sprintf("%d must be > 0 (check %s)", timeoutDuration, defaultTimeout.Key))
 	}
 
 	if exporterUrl != "" {
 		exporterUrl = strings.TrimSuffix(exporterUrl, "/")
 		if !internal.IsValidURL(exporterUrl) {
-			panic(fmt.Sprintf("%s is not a valid URL", exporterUrl))
+			panic(fmt.Sprintf("%s is not a valid URL (check %s)", exporterUrl, defaultExporterURL.Key))
 		}
 	}
 
 	basicAuth := BasicAuth{Username: nil, Password: nil}
 	if basicAuthUsername != "" && basicAuthPassword == "" {
-		logger.Log.Warn("You set a basic auth username but not password")
+		logger.Log.Warn(fmt.Sprintf("You set a basic auth username but not password (check %s and %s)",
+			defaultBasicAuthUsername.Key, defaultBasicAuthPassword.Key))
 	} else if basicAuthUsername == "" && basicAuthPassword != "" {
-		logger.Log.Warn("You set a basic auth password but not username")
+		logger.Log.Warn(fmt.Sprintf("You set a basic auth password but not username (check %s and %s)",
+			defaultBasicAuthUsername.Key, defaultBasicAuthPassword.Key))
 	} else if basicAuthUsername != "" && basicAuthPassword != "" {
 		basicAuth = BasicAuth{
 			Username: &basicAuthUsername,
 			Password: &basicAuthPassword,
 		}
+	}
+
+	if !internal.IsValidURL(baseUrl) {
+		panic(fmt.Sprintf("%s is not a valid URL (check %s)", baseUrl, defaultBaseUrl.Key))
+	}
+
+	// If a custom CA is provided and INSECURE_SKIP_VERIFY is set, that's kinda sus
+	if certificateAuthorityPath != "" && envSetToTrue(insecureSkipVerify) {
+		logger.Log.Warn(fmt.Sprintf("You provided a custom CA and disabled certificate validation (check %s and %s)",
+			defaultCertificateAuthorityPath.Key, defaultInsecureSkipVerify.Key))
+	}
+
+	// If a custom CA is provided or INSECURE_SKIP_VERIFY is set and the exporter URL is not HTTPS, that's kinda sus
+	if (certificateAuthorityPath != "" || envSetToTrue(insecureSkipVerify)) && !internal.IsValidHttpsURL(baseUrl) {
+		logger.Log.Warn(fmt.Sprintf("You provided a custom CA or disabled certificate validation but the qBittorrent URL is not HTTPS. (check %s, %s and %s)",
+			defaultCertificateAuthorityPath.Key, defaultInsecureSkipVerify.Key, defaultBaseUrl.Key))
+	}
+
+	// If a custom CA is provided, load the root CAs from the system and append the custom CA
+	var caCertPool *x509.CertPool
+	if certificateAuthorityPath != "" {
+		caCert, errCaCert := os.ReadFile(certificateAuthorityPath)
+		if errCaCert != nil {
+			panic(fmt.Sprintf("Error reading certificate authority file: %s (check %s)",
+				errCaCert, defaultCertificateAuthorityPath.Key))
+		}
+
+		var errCaCertPool error
+		caCertPool, errCaCertPool = x509.SystemCertPool()
+		if errCaCertPool != nil {
+			panic(fmt.Sprintf("Error getting system certificate pool: %s", errCaCertPool))
+		}
+
+		if !caCertPool.AppendCertsFromPEM(caCert) {
+			panic(fmt.Sprintf("Error adding custom certificate authority to pool: %s", errCaCert))
+		}
+	}
+
+	var minTlsVersion uint16
+	switch minTlsVersionStr {
+	case "TLS_1_2":
+		minTlsVersion = tls.VersionTLS12
+	case "TLS_1_3":
+		minTlsVersion = tls.VersionTLS13
+	default:
+		panic(fmt.Sprintf("Invalid minimum TLS version: %s (valid options are TLS_1_2 and TLS_1_3) (check %s)",
+			minTlsVersionStr, defaultMinTlsVersion.Key))
+	}
+
+	HttpClient = http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				RootCAs:            caCertPool,
+				InsecureSkipVerify: envSetToTrue(insecureSkipVerify),
+				MinVersion:         minTlsVersion,
+			},
+		},
 	}
 
 	internal.EnsureLeadingSlash(&exporterPath)
