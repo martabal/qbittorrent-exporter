@@ -44,6 +44,14 @@ jobs:
         with:
           dockerfile: Dockerfile
 
+      - name: staticcheck
+        uses: dominikh/staticcheck-action@v1
+        if: ${{ !cancelled() }}
+        with:
+          version: v0.5.1
+          install-go: false
+          working-directory: src
+
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v6
         if: ${{ !cancelled() }}
