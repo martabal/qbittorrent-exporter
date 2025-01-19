@@ -122,7 +122,7 @@ func getEnv(env Env) string {
 	value, ok := os.LookupEnv(env.Key)
 	if !ok || value == "" {
 		if env.Help != "" {
-			logger.Log.Warn(env.Help)
+			logger.Log.Warn("%s (%s)", env.Help, env.Key)
 		}
 		return env.DefaultValue
 	}

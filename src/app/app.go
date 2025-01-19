@@ -96,32 +96,34 @@ func LoadEnv() {
 
 	exporterPort, errExporterPort := strconv.Atoi(exporterPortEnv)
 	if errExporterPort != nil {
-		panic(fmt.Sprintf("%s must be an integer", exporterPortEnv))
+		panic(fmt.Sprintf("%s must be an integer (check %s)", exporterPortEnv, defaultPort.Key))
 	}
 	if exporterPort < 0 || exporterPort > 65353 {
-		panic(fmt.Sprintf("%d must be > 0 and < 65353", exporterPort))
+		panic(fmt.Sprintf("%d must be > 0 and < 65353 (check %s)", exporterPort, defaultPort.Key))
 	}
 
 	timeoutDuration, errTimeoutDuration := strconv.Atoi(timeoutDurationEnv)
 	if errTimeoutDuration != nil {
-		panic(fmt.Sprintf("%s must be an integer", timeoutDurationEnv))
+		panic(fmt.Sprintf("%s must be an integer (check %s)", timeoutDurationEnv, defaultTimeout.Key))
 	}
 	if timeoutDuration < 0 {
-		panic(fmt.Sprintf("%d must be > 0", timeoutDuration))
+		panic(fmt.Sprintf("%d must be > 0 (check %s)", timeoutDuration, defaultTimeout.Key))
 	}
 
 	if exporterUrl != "" {
 		exporterUrl = strings.TrimSuffix(exporterUrl, "/")
 		if !internal.IsValidURL(exporterUrl) {
-			panic(fmt.Sprintf("%s is not a valid URL", exporterUrl))
+			panic(fmt.Sprintf("%s is not a valid URL (check %s)", exporterUrl, defaultExporterURL.Key))
 		}
 	}
 
 	basicAuth := BasicAuth{Username: nil, Password: nil}
 	if basicAuthUsername != "" && basicAuthPassword == "" {
-		logger.Log.Warn("You set a basic auth username but not password")
+		logger.Log.Warn(fmt.Sprintf("You set a basic auth username but not password (check %s and %s)",
+			defaultBasicAuthUsername.Key, defaultBasicAuthPassword.Key))
 	} else if basicAuthUsername == "" && basicAuthPassword != "" {
-		logger.Log.Warn("You set a basic auth password but not username")
+		logger.Log.Warn(fmt.Sprintf("You set a basic auth password but not username (check %s and %s)",
+			defaultBasicAuthUsername.Key, defaultBasicAuthPassword.Key))
 	} else if basicAuthUsername != "" && basicAuthPassword != "" {
 		basicAuth = BasicAuth{
 			Username: &basicAuthUsername,
@@ -150,7 +152,8 @@ func LoadEnv() {
 	if certificateAuthorityPath != "" {
 		caCert, errCaCert := os.ReadFile(certificateAuthorityPath)
 		if errCaCert != nil {
-			panic(fmt.Sprintf("Error reading certificate authority file: %s", errCaCert))
+			panic(fmt.Sprintf("Error reading certificate authority file: %s (check %s)",
+				errCaCert, defaultCertificateAuthorityPath.Key))
 		}
 
 		var errCaCertPool error
@@ -175,7 +178,8 @@ func LoadEnv() {
 	case "TLS_1_3":
 		minTlsVersion = tls.VersionTLS13
 	default:
-		panic(fmt.Sprintf("Invalid minimum TLS version: %s (valid options are TLS_1_0, TLS_1_1, TLS_1_2, TLS_1_3)", minTlsVersionStr))
+		panic(fmt.Sprintf("Invalid minimum TLS version: %s (valid options are TLS_1_0, TLS_1_1, TLS_1_2, TLS_1_3) (check %s)",
+			minTlsVersionStr, defaultMinTlsVersion.Key))
 	}
 
 	HttpClient = http.Client{
