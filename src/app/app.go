@@ -128,6 +128,11 @@ func LoadEnv() {
 		}
 	}
 
+	// If a custom CA is provided and INSECURE_SKIP_VERIFY is set, that's kinda sus
+	if certificateAuthorityPath != "" && envSetToTrue(insecureSkipVerify) {
+		logger.Log.Warn("You provided a custom CA and set INSECURE_SKIP_VERIFY to true.")
+	}
+
 	// If a custom CA is provided, load the root CAs from the system and append the custom CA
 	var caCertPool *x509.CertPool
 	if certificateAuthorityPath != "" {
