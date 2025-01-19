@@ -41,7 +41,7 @@ func Auth() error {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		err := fmt.Errorf("Authentication failed, status code: %d", resp.StatusCode)
+		err := fmt.Errorf("authentication failed, status code: %d", resp.StatusCode)
 		if resp.StatusCode == http.StatusForbidden && app.QBittorrent.Cookie == nil {
 			panic(fmt.Sprintf("%s. qBittorrent has probably banned your IP", err.Error()))
 		}

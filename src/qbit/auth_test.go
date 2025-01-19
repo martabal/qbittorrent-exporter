@@ -18,8 +18,7 @@ import (
 
 var buff = &bytes.Buffer{}
 
-const tenMs = time.Duration(10 * time.Millisecond)
-const fiftyMs = time.Duration(50 * time.Millisecond)
+const defaultTimeout = 10 * time.Millisecond
 
 func init() {
 	logger.Log = &logger.Logger{Logger: slog.New(slog.NewTextHandler(buff, &slog.HandlerOptions{}))}
@@ -44,7 +43,7 @@ func TestAuthSuccess(t *testing.T) {
 	app.QBittorrent.BaseUrl = ts.URL
 	app.QBittorrent.Username = "testuser"
 	app.QBittorrent.Password = "testpass"
-	app.QBittorrent.Timeout = tenMs
+	app.QBittorrent.Timeout = defaultTimeout
 
 	err := Auth()
 
@@ -71,7 +70,7 @@ func TestAuthFail(t *testing.T) {
 	app.QBittorrent.BaseUrl = ts.URL
 	app.QBittorrent.Username = "wronguser"
 	app.QBittorrent.Password = "wrongpass"
-	app.QBittorrent.Timeout = tenMs
+	app.QBittorrent.Timeout = defaultTimeout
 
 	defer func() {
 		if r := recover(); r == nil {
@@ -96,7 +95,7 @@ func TestAuthInvalidUrl(t *testing.T) {
 	app.QBittorrent.BaseUrl = ts.URL + "//"
 	app.QBittorrent.Username = ""
 	app.QBittorrent.Password = ""
-	app.QBittorrent.Timeout = tenMs
+	app.QBittorrent.Timeout = defaultTimeout
 
 	defer func() {
 		if r := recover(); r == nil {
@@ -110,14 +109,14 @@ func TestAuthInvalidUrl(t *testing.T) {
 func TestAuthTimeout(t *testing.T) {
 	t.Cleanup(resetState)
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		time.Sleep(fiftyMs)
+		time.Sleep(defaultTimeout * 5)
 	}))
 	defer ts.Close()
 
 	app.QBittorrent.BaseUrl = ts.URL
 	app.QBittorrent.Username = ""
 	app.QBittorrent.Password = ""
-	app.QBittorrent.Timeout = tenMs
+	app.QBittorrent.Timeout = defaultTimeout
 	_ = Auth()
 
 	if !strings.Contains(buff.String(), API.QbittorrentTimeOut) {
@@ -135,7 +134,7 @@ func TestUnknownStatusCode(t *testing.T) {
 	app.QBittorrent.BaseUrl = ts.URL
 	app.QBittorrent.Username = ""
 	app.QBittorrent.Password = ""
-	app.QBittorrent.Timeout = tenMs
+	app.QBittorrent.Timeout = defaultTimeout
 	_ = Auth()
 
 	if !strings.Contains(buff.String(), strconv.Itoa(http.StatusCreated)) {
