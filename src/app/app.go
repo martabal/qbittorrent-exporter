@@ -129,9 +129,20 @@ func LoadEnv() {
 		}
 	}
 
+	if !internal.IsValidURL(baseUrl) {
+		panic(fmt.Sprintf("%s is not a valid URL (check %s)", baseUrl, defaultBaseUrl.Key))
+	}
+
 	// If a custom CA is provided and INSECURE_SKIP_VERIFY is set, that's kinda sus
 	if certificateAuthorityPath != "" && envSetToTrue(insecureSkipVerify) {
-		logger.Log.Warn("You provided a custom CA and set INSECURE_SKIP_VERIFY to true.")
+		logger.Log.Warn(fmt.Sprintf("You provided a custom CA and disabled certificate validation (check %s and %s)",
+			defaultCertificateAuthorityPath.Key, defaultInsecureSkipVerify.Key))
+	}
+
+	// If a custom CA is provided or INSECURE_SKIP_VERIFY is set and the exporter URL is not HTTPS, that's kinda sus
+	if (certificateAuthorityPath != "" || envSetToTrue(insecureSkipVerify)) && !internal.IsValidHttpsURL(baseUrl) {
+		logger.Log.Warn(fmt.Sprintf("You provided a custom CA or disabled certificate validation but the qBittorrent URL is not HTTPS. (check %s, %s and %s)",
+			defaultCertificateAuthorityPath.Key, defaultInsecureSkipVerify.Key, defaultBaseUrl.Key))
 	}
 
 	// If a custom CA is provided, load the root CAs from the system and append the custom CA
