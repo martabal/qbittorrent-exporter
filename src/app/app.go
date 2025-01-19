@@ -5,6 +5,7 @@ import (
 	"crypto/x509"
 	"flag"
 	"fmt"
+	"net/http"
 	"os"
 	"qbit-exp/internal"
 	"qbit-exp/logger"
@@ -21,7 +22,7 @@ var loadEnvOnce sync.Once
 var (
 	QBittorrent  QBittorrentSettings
 	Exporter     ExporterSettings
-	TlsConfig    tls.Config
+	HttpClient   http.Client
 	UsingEnvFile bool
 )
 
@@ -166,10 +167,14 @@ func LoadEnv() {
 		panic(fmt.Sprintf("Invalid minimum TLS version: %s (valid options are TLS_1_0, TLS_1_1, TLS_1_2, TLS_1_3)", minTlsVersionStr))
 	}
 
-	TlsConfig = tls.Config{
-		RootCAs:            caCertPool,
-		InsecureSkipVerify: envSetToTrue(insecureSkipVerify),
-		MinVersion:         minTlsVersion,
+	HttpClient = http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				RootCAs:            caCertPool,
+				InsecureSkipVerify: envSetToTrue(insecureSkipVerify),
+				MinVersion:         minTlsVersion,
+			},
+		},
 	}
 
 	internal.EnsureLeadingSlash(&exporterPath)
