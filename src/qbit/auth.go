@@ -25,7 +25,11 @@ func Auth() error {
 	}
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	client := &http.Client{}
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &app.TlsConfig,
+		},
+	}
 	resp, err := client.Do(req)
 
 	if ctx.Err() == context.DeadlineExceeded {

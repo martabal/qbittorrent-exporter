@@ -1,6 +1,8 @@
 package app
 
 import (
+	"crypto/tls"
+	"crypto/x509"
 	"flag"
 	"fmt"
 	"os"
@@ -19,6 +21,7 @@ var loadEnvOnce sync.Once
 var (
 	QBittorrent  QBittorrentSettings
 	Exporter     ExporterSettings
+	TlsConfig    tls.Config
 	UsingEnvFile bool
 )
 
@@ -86,6 +89,9 @@ func LoadEnv() {
 	showPassword := getEnv(defaultExporterShowPassword)
 	basicAuthUsername := getEnv(defaultBasicAuthUsername)
 	basicAuthPassword := getEnv(defaultBasicAuthPassword)
+	certificateAuthorityPath := getEnv(defaultCertificateAuthorityPath)
+	insecureSkipVerify := getEnv(defaultInsecureSkipVerify)
+	minTlsVersionStr := getEnv(defaultMinTlsVersion)
 
 	exporterPort, errExporterPort := strconv.Atoi(exporterPortEnv)
 	if errExporterPort != nil {
@@ -120,6 +126,45 @@ func LoadEnv() {
 			Username: &basicAuthUsername,
 			Password: &basicAuthPassword,
 		}
+	}
+
+	// If a custom CA is provided, load the root CAs from the system and append the custom CA
+	var caCertPool *x509.CertPool
+	if certificateAuthorityPath != "" {
+		caCert, errCaCert := os.ReadFile(certificateAuthorityPath)
+		if errCaCert != nil {
+			panic(fmt.Sprintf("Error reading certificate authority file: %s", errCaCert))
+		}
+
+		var errCaCertPool error
+		caCertPool, errCaCertPool = x509.SystemCertPool()
+		if errCaCertPool != nil {
+			panic(fmt.Sprintf("Error getting system certificate pool: %s", errCaCertPool))
+		}
+
+		if !caCertPool.AppendCertsFromPEM(caCert) {
+			panic(fmt.Sprintf("Error adding custom certificate authority to pool: %s", errCaCert))
+		}
+	}
+
+	var minTlsVersion uint16
+	switch minTlsVersionStr {
+	case "TLS_1_0":
+		minTlsVersion = tls.VersionTLS10
+	case "TLS_1_1":
+		minTlsVersion = tls.VersionTLS11
+	case "TLS_1_2":
+		minTlsVersion = tls.VersionTLS12
+	case "TLS_1_3":
+		minTlsVersion = tls.VersionTLS13
+	default:
+		panic(fmt.Sprintf("Invalid minimum TLS version: %s (valid options are TLS_1_0, TLS_1_1, TLS_1_2, TLS_1_3)", minTlsVersionStr))
+	}
+
+	TlsConfig = tls.Config{
+		RootCAs:            caCertPool,
+		InsecureSkipVerify: envSetToTrue(insecureSkipVerify),
+		MinVersion:         minTlsVersion,
 	}
 
 	internal.EnsureLeadingSlash(&exporterPath)

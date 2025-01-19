@@ -100,6 +100,24 @@ var defaultBasicAuthPassword = Env{
 	Help:         "",
 }
 
+var defaultCertificateAuthorityPath = Env{
+	Key:          "CERTIFICATE_AUTHORITY_PATH",
+	DefaultValue: "",
+	Help:         "Using default set of root certificates",
+}
+
+var defaultInsecureSkipVerify = Env{
+	Key:          "INSECURE_SKIP_VERIFY",
+	DefaultValue: "false",
+	Help:         "",
+}
+
+var defaultMinTlsVersion = Env{
+	Key:          "MIN_TLS_VERSION",
+	DefaultValue: "TLS_1_2",
+	Help:         "Setting minimum TLS version to 1.2",
+}
+
 func getEnv(env Env) string {
 	value, ok := os.LookupEnv(env.Key)
 	if !ok || value == "" {
