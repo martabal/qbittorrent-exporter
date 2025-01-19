@@ -1,17 +1,18 @@
-build: 
+build:
 	cd src && go build -o ../qbittorrent-exporter.out .
 
-dev : 
+dev:
 	cd src && go run .
 
-dev-env : 
+dev-env:
 	cd src && go run . -e
 
-format : 
+format:
 	cd src && test -z $(gofmt -l .)
 
-lint: 
+lint:
 	docker run --rm -v ./src:/app -w /app golangci/golangci-lint:latest golangci-lint run -v
+	docker run --rm -v ./src:/app -w /app golang:alpine sh -c 'go install honnef.co/go/tools/cmd/staticcheck@latest && staticcheck ./...'
 
 test:
 	cd src && go test -v ./... | \
@@ -27,5 +28,5 @@ test-coverage:
 test-coverage-web:
 	cd src && go test ./... -coverprofile=cover.out && go tool cover -html=cover.out && rm cover.out
 
-update: 
+update:
 	cd src && go get -u . && go mod tidy
