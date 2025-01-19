@@ -1,6 +1,7 @@
 package app
 
 import (
+	"fmt"
 	"os"
 	"qbit-exp/logger"
 	"strconv"
@@ -103,7 +104,7 @@ var defaultBasicAuthPassword = Env{
 var defaultCertificateAuthorityPath = Env{
 	Key:          "CERTIFICATE_AUTHORITY_PATH",
 	DefaultValue: "",
-	Help:         "Using default set of root certificates",
+	Help:         "",
 }
 
 var defaultInsecureSkipVerify = Env{
@@ -115,14 +116,14 @@ var defaultInsecureSkipVerify = Env{
 var defaultMinTlsVersion = Env{
 	Key:          "MIN_TLS_VERSION",
 	DefaultValue: "TLS_1_2",
-	Help:         "Setting minimum TLS version to 1.2",
+	Help:         "",
 }
 
 func getEnv(env Env) string {
 	value, ok := os.LookupEnv(env.Key)
 	if !ok || value == "" {
 		if env.Help != "" {
-			logger.Log.Warn("%s (%s)", env.Help, env.Key)
+			logger.Log.Warn(fmt.Sprintf("%s (%s)", env.Help, env.Key))
 		}
 		return env.DefaultValue
 	}
