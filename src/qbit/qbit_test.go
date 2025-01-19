@@ -9,6 +9,8 @@ import (
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"errors"
+	"io"
+	"log"
 	"math/big"
 	"net"
 	"net/http"
@@ -26,7 +28,7 @@ func setupMockApp() {
 	app.QBittorrent.Cookie = &cookie
 }
 
-func createTlsServer(t *testing.T, maxTlsVersion uint16, handler http.Handler) (*httptest.Server, *x509.Certificate) {
+func createTlsServer(t *testing.T, discardServerLogs bool, maxTlsVersion uint16, handler http.Handler) (*httptest.Server, *x509.Certificate) {
 	// Generate ECC private key for CA
 	caPrivKey, err := ecdsa.GenerateKey(elliptic.P384(), rand.Reader)
 	if err != nil {
@@ -87,6 +89,9 @@ func createTlsServer(t *testing.T, maxTlsVersion uint16, handler http.Handler) (
 	server.TLS = &tls.Config{
 		Certificates: []tls.Certificate{serverCert},
 		MaxVersion:   maxTlsVersion,
+	}
+	if discardServerLogs {
+		server.Config.ErrorLog = log.New(io.Discard, "", 0)
 	}
 	server.StartTLS()
 
@@ -215,7 +220,7 @@ func TestApiRequest_Non200Status(t *testing.T) {
 func TestCustomCA(t *testing.T) {
 	setupMockApp()
 
-	server, caCert := createTlsServer(t, 0,
+	server, caCert := createTlsServer(t, false, 0,
 		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusOK)
 		}))
@@ -247,7 +252,7 @@ func TestCustomCA(t *testing.T) {
 func TestSkipCertValidation(t *testing.T) {
 	setupMockApp()
 
-	server, _ := createTlsServer(t, 0,
+	server, _ := createTlsServer(t, false, 0,
 		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusOK)
 		}))
@@ -273,7 +278,7 @@ func TestSkipCertValidation(t *testing.T) {
 func TestMinTlsVersion(t *testing.T) {
 	setupMockApp()
 
-	server, _ := createTlsServer(t, tls.VersionTLS12,
+	server, _ := createTlsServer(t, true, tls.VersionTLS12,
 		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusOK)
 		}))
