@@ -25,7 +25,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version: "1.23.5"
+          go-version: "1.24.0"
 
       - name: Install dependencies
         run: go get .
@@ -48,7 +48,7 @@ jobs:
         uses: dominikh/staticcheck-action@v1
         if: ${{ !cancelled() }}
         with:
-          version: v0.5.1
+          version: v0.6.0
           install-go: false
           working-directory: src
 
@@ -56,5 +56,5 @@ jobs:
         uses: golangci/golangci-lint-action@v6
         if: ${{ !cancelled() }}
         with:
-          version: v1.63.4
+          version: v1.64.4
           working-directory: src
