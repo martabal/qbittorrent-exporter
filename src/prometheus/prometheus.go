@@ -202,7 +202,7 @@ func Torrent(result *API.Info, r *prometheus.Registry) {
 				TorrentLabelCategory:          torrent.Category,
 				TorrentLabelState:             torrent.State,
 				TorrentLabelSize:              strconv.FormatInt(torrent.Size, 10),
-				TorrentLabelProgress:          strconv.Itoa(int(torrent.Progress)),
+				TorrentLabelProgress:          strconv.FormatFloat(torrent.Progress, 'f', 4, 64),
 				LabelSeeders:                  strconv.FormatInt(torrent.NumSeeds, 10),
 				TorrentLabelLeechers:          strconv.FormatInt(torrent.NumLeechs, 10),
 				TorrentLabelDlSpeed:           strconv.FormatInt(torrent.Dlspeed, 10),
