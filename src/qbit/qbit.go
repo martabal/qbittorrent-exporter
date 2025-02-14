@@ -289,7 +289,7 @@ func apiRequest(url string, method string, queryParams *[]QueryParams) ([]byte, 
 	}
 
 	if app.QBittorrent.BasicAuth.Username != nil && app.QBittorrent.BasicAuth.Password != nil {
-		req.SetBasicAuth(app.QBittorrent.Username, app.QBittorrent.Password)
+		req.SetBasicAuth(*app.QBittorrent.BasicAuth.Username, *app.QBittorrent.BasicAuth.Password)
 	}
 	req.AddCookie(&http.Cookie{Name: "SID", Value: *app.QBittorrent.Cookie})
 	logger.Log.Trace(fmt.Sprintf("New request to %s", req.URL.String()))
