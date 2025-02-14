@@ -53,6 +53,18 @@ var defaultBaseUrl = Env{
 	Help:         "qBittorrent base_url is not set. Using default base_url",
 }
 
+var defaultQbitBasicAuthUsername = Env{
+	Key:          "QBITTORRENT_BASIC_AUTH_USERNAME",
+	DefaultValue: "",
+	Help:         "",
+}
+
+var defaultQbitBasicAuthPassword = Env{
+	Key:          "QBITTORRENT_BASIC_AUTH_PASSWORD",
+	DefaultValue: "",
+	Help:         "",
+}
+
 var defaultDisableTracker = Env{
 	Key:          "ENABLE_TRACKER",
 	DefaultValue: "true",
