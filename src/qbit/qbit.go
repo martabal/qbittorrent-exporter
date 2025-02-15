@@ -11,6 +11,7 @@ import (
 	"net/http"
 	API "qbit-exp/api"
 	"qbit-exp/app"
+	"qbit-exp/internal"
 	"qbit-exp/logger"
 
 	prom "qbit-exp/prometheus"
@@ -288,9 +289,10 @@ func apiRequest(url string, method string, queryParams *[]QueryParams) ([]byte, 
 		req.URL.RawQuery = q.Encode()
 	}
 
-	if app.QBittorrent.BasicAuth.Username != nil && app.QBittorrent.BasicAuth.Password != nil {
+	if internal.IsNonEmptyString(app.QBittorrent.BasicAuth.Username) && internal.IsNonEmptyString(app.QBittorrent.BasicAuth.Password) {
 		req.SetBasicAuth(*app.QBittorrent.BasicAuth.Username, *app.QBittorrent.BasicAuth.Password)
 	}
+
 	req.AddCookie(&http.Cookie{Name: "SID", Value: *app.QBittorrent.Cookie})
 	logger.Log.Trace(fmt.Sprintf("New request to %s", req.URL.String()))
 	resp, err := app.HttpClient.Do(req)

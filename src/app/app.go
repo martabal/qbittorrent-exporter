@@ -49,7 +49,6 @@ type QBittorrentSettings struct {
 	Password string
 
 	// BasicAuth sets the Authorization header for requests to BaseUrl.
-	// Unlike ExporterSettings.BasicAuth which protects the exporter instance with HTTP Basic Auth.
 	BasicAuth BasicAuth
 }
 

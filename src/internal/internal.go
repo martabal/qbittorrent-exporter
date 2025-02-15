@@ -21,3 +21,7 @@ func EnsureLeadingSlash(input *string) {
 		*input = fmt.Sprintf("/%s", *input)
 	}
 }
+
+func IsNonEmptyString(input *string) bool {
+	return input != nil && *input != ""
+}

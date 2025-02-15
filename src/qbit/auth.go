@@ -8,6 +8,7 @@ import (
 	"net/url"
 	API "qbit-exp/api"
 	app "qbit-exp/app"
+	"qbit-exp/internal"
 	"qbit-exp/logger"
 	"strings"
 )
@@ -25,7 +26,7 @@ func Auth() error {
 	}
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	if app.QBittorrent.BasicAuth.Username != nil && app.QBittorrent.BasicAuth.Password != nil {
+	if internal.IsNonEmptyString(app.QBittorrent.BasicAuth.Username) && internal.IsNonEmptyString(app.QBittorrent.BasicAuth.Password) {
 		req.SetBasicAuth(*app.QBittorrent.BasicAuth.Username, *app.QBittorrent.BasicAuth.Password)
 	}
 
