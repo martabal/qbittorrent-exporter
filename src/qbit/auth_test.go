@@ -23,6 +23,12 @@ const defaultTimeout = 10 * time.Millisecond
 
 func init() {
 	logger.Log = &logger.Logger{Logger: slog.New(slog.NewTextHandler(buff, &slog.HandlerOptions{}))}
+
+	// Setting default values due to *string
+	app.QBittorrent.BasicAuth = app.BasicAuth{
+		Username: &app.DefaultQbitBasicAuthUsername,
+		Password: &app.DefaultQbitBasicAuthPassword,
+	}
 }
 
 func TestAuthSuccess(t *testing.T) {
@@ -145,6 +151,7 @@ func TestUnknownStatusCode(t *testing.T) {
 
 func TestAuth_BasicAuthSuccess(t *testing.T) {
 	t.Cleanup(resetState)
+	app.Exporter.Features.EnableBasicAuthRequestHeader = true
 	httpBasicAuthUsername := "your-username"
 	httpBasicAuthPassword := "your-password"
 	password := "abc123"
@@ -189,6 +196,7 @@ func TestAuth_BasicAuthSuccess(t *testing.T) {
 
 func TestAuth_BasicAuthInvalidAuthentication(t *testing.T) {
 	t.Cleanup(resetState)
+	app.Exporter.Features.EnableBasicAuthRequestHeader = true
 	httpBasicAuthUsername := "wrong-username"
 	httpBasicAuthPassword := "wrong-password"
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

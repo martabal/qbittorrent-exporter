@@ -11,6 +11,9 @@ const DefaultExporterPort = 8090
 const DefaultTimeout = 30
 const DefaultExporterPath = "/metrics"
 
+var DefaultQbitBasicAuthUsername string = ""
+var DefaultQbitBasicAuthPassword string = ""
+
 type Env struct {
 	Key          string
 	DefaultValue string
@@ -53,15 +56,21 @@ var defaultBaseUrl = Env{
 	Help:         "qBittorrent base_url is not set. Using default base_url",
 }
 
+var defaultEnableQbittorrentBasicAuth = Env{
+	Key:          "ENABLE_QBITTORRENT_BASIC_AUTH_REQUEST_HEADER",
+	DefaultValue: "false",
+	Help:         "",
+}
+
 var defaultQbitBasicAuthUsername = Env{
 	Key:          "QBITTORRENT_BASIC_AUTH_USERNAME",
-	DefaultValue: "",
+	DefaultValue: DefaultQbitBasicAuthUsername,
 	Help:         "",
 }
 
 var defaultQbitBasicAuthPassword = Env{
 	Key:          "QBITTORRENT_BASIC_AUTH_PASSWORD",
-	DefaultValue: "",
+	DefaultValue: DefaultQbitBasicAuthPassword,
 	Help:         "",
 }
 

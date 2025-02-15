@@ -11,7 +11,6 @@ import (
 	"net/http"
 	API "qbit-exp/api"
 	"qbit-exp/app"
-	"qbit-exp/internal"
 	"qbit-exp/logger"
 
 	prom "qbit-exp/prometheus"
@@ -289,7 +288,7 @@ func apiRequest(url string, method string, queryParams *[]QueryParams) ([]byte, 
 		req.URL.RawQuery = q.Encode()
 	}
 
-	if internal.IsNonEmptyString(app.QBittorrent.BasicAuth.Username) && internal.IsNonEmptyString(app.QBittorrent.BasicAuth.Password) {
+	if app.Exporter.Features.EnableBasicAuthRequestHeader {
 		req.SetBasicAuth(*app.QBittorrent.BasicAuth.Username, *app.QBittorrent.BasicAuth.Password)
 	}
 

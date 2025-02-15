@@ -22,6 +22,14 @@ import (
 	"time"
 )
 
+func init() {
+	// Setting default values due to *string
+	app.QBittorrent.BasicAuth = app.BasicAuth{
+		Username: &app.DefaultQbitBasicAuthUsername,
+		Password: &app.DefaultQbitBasicAuthPassword,
+	}
+}
+
 var cookie = "SID"
 
 func setupMockApp() {
@@ -220,6 +228,7 @@ func TestApiRequest_Non200Status(t *testing.T) {
 
 func TestApiRequest_WithRequestAuthorization_Success(t *testing.T) {
 	setupMockApp()
+	app.Exporter.Features.EnableBasicAuthRequestHeader = true
 	httpBasicAuthUsername := "your-username"
 	httpBasicAuthPassword := "your-password"
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -257,6 +266,7 @@ func TestApiRequest_WithRequestAuthorization_Success(t *testing.T) {
 
 func TestApiRequest_ServerWithoutAuthRequirement(t *testing.T) {
 	setupMockApp()
+	app.Exporter.Features.EnableBasicAuthRequestHeader = true
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Auth header should be ignored, server doesn't require authentication
@@ -289,12 +299,12 @@ func TestApiRequest_ServerWithoutAuthRequirement(t *testing.T) {
 
 func TestApiRequest_EmptyCredentials(t *testing.T) {
 	setupMockApp()
+	app.Exporter.Features.EnableBasicAuthRequestHeader = true
 	httpBasicAuthUsername := ""
 	httpBasicAuthPassword := ""
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
-
 	}))
 	defer server.Close()
 
@@ -317,6 +327,7 @@ func TestApiRequest_EmptyCredentials(t *testing.T) {
 
 func TestApiRequest_InvalidAuthorization(t *testing.T) {
 	setupMockApp()
+	app.Exporter.Features.EnableBasicAuthRequestHeader = true
 	httpBasicAuthUsername := "wrong-user"
 	httpBasicAuthPassword := "wrong-pass"
 

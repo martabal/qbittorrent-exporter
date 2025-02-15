@@ -5,7 +5,6 @@ import (
 	"net"
 	"net/http"
 
-	"qbit-exp/internal"
 	"qbit-exp/qbit"
 
 	app "qbit-exp/app"
@@ -34,10 +33,8 @@ func main() {
 		envFileMessage = "Using .env"
 	}
 	logger.Log.Debug(envFileMessage)
-	if internal.IsNonEmptyString(app.QBittorrent.BasicAuth.Username) != internal.IsNonEmptyString(app.Exporter.BasicAuth.Password) {
-		logger.Log.Warn("Only one of qBittorrent Basic Auth request header username / password is set")
-	} else if internal.IsNonEmptyString(app.QBittorrent.BasicAuth.Username) && internal.IsNonEmptyString(app.Exporter.BasicAuth.Password) {
-		logger.Log.Info("qBittorrent Basic Auth request header is set")
+	if app.Exporter.Features.EnableBasicAuthRequestHeader {
+		logger.Log.Info("Enabling qBittorrent Basic Auth request header.")
 	}
 	logger.Log.Info(fmt.Sprintf("qBittorrent URL: %s", app.QBittorrent.BaseUrl))
 	logger.Log.Info(fmt.Sprintf("username: %s", app.QBittorrent.Username))
