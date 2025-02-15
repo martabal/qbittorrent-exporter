@@ -2,6 +2,7 @@ package prom
 
 import (
 	"fmt"
+	"math"
 	API "qbit-exp/api"
 	"qbit-exp/app"
 	"qbit-exp/internal"
@@ -178,7 +179,7 @@ func Torrent(result *API.Info, r *prometheus.Registry) {
 		metrics[TorrentEta].With(torrentLabels).Set(float64(torrent.Eta))
 		metrics[TorrentDownloadSpeed].With(torrentLabels).Set(float64(torrent.Dlspeed))
 		metrics[TorrentUploadSpeed].With(torrentLabels).Set(float64(torrent.Upspeed))
-		metrics[TorrentProgress].With(torrentLabels).Set(float64(torrent.Progress))
+		metrics[TorrentProgress].With(torrentLabels).Set(math.Round(float64(torrent.Progress)*10000) / 10000)
 		metrics[TorrentTimeActive].With(torrentLabels).Set(float64(torrent.TimeActive))
 		metrics[TorrentSeeders].With(torrentLabels).Set(float64(torrent.NumSeeds))
 		metrics[TorrentLeechers].With(torrentLabels).Set(float64(torrent.NumLeechs))
