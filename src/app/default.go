@@ -141,12 +141,24 @@ var defaultMinTlsVersion = Env{
 }
 
 func getEnv(env Env) string {
-	value, ok := os.LookupEnv(env.Key)
-	if !ok || value == "" {
-		if env.Help != "" {
-			logger.Log.Warn(fmt.Sprintf("%s (%s)", env.Help, env.Key))
-		}
-		return env.DefaultValue
+	if value, ok := os.LookupEnv(env.Key); ok && value != "" {
+		return value
 	}
-	return value
+	if env.Help != "" {
+		logger.Log.Warn(fmt.Sprintf("%s (%s)", env.Help, env.Key))
+	}
+	return env.DefaultValue
+}
+
+func getOptionalEnv(env Env) *string {
+	if value, ok := os.LookupEnv(env.Key); ok {
+		if value != "" {
+			return &value
+		}
+		return nil
+	}
+	if env.Help != "" {
+		logger.Log.Warn(fmt.Sprintf("%s (%s)", env.Help, env.Key))
+	}
+	return &env.DefaultValue
 }

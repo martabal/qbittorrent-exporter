@@ -51,7 +51,7 @@ func main() {
 	metrics := func(w http.ResponseWriter, req *http.Request) {
 		metrics(w, req, qbit.AllRequests)
 	}
-	if app.Exporter.BasicAuth.Username != nil && app.Exporter.BasicAuth.Password != nil {
+	if app.Exporter.BasicAuth != nil {
 		metrics = basicAuth(metrics)
 		logger.Log.Info("Using basic auth to protect the exporter instance")
 	} else {
@@ -101,7 +101,7 @@ func basicAuth(h http.HandlerFunc) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		username, password, ok := r.BasicAuth()
 		if ok {
-			if username == *app.Exporter.BasicAuth.Username && password == *app.Exporter.BasicAuth.Password {
+			if username == app.Exporter.BasicAuth.Username && password == app.Exporter.BasicAuth.Password {
 				h.ServeHTTP(w, r)
 				return
 			}
