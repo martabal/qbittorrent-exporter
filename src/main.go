@@ -33,7 +33,7 @@ func main() {
 		envFileMessage = "Using .env"
 	}
 	logger.Log.Debug(envFileMessage)
-	if app.Exporter.Features.EnableBasicAuthRequestHeader {
+	if app.QBittorrent.BasicAuth != nil {
 		logger.Log.Info("Enabling qBittorrent Basic Auth request header.")
 	}
 	logger.Log.Info(fmt.Sprintf("qBittorrent URL: %s", app.QBittorrent.BaseUrl))
