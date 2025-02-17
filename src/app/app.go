@@ -85,9 +85,8 @@ func LoadEnv() {
 	qbitUsername := getEnv(defaultUsername)
 	qbitPassword := getEnv(defaultPassword)
 	baseUrl := strings.TrimSuffix(getEnv(defaultBaseUrl), "/")
-	enableQbittorrentBasicAuth := getEnv(defaultEnableQbittorrentBasicAuth)
-	qbitBasicAuthUsername := getEnv(defaultQbitBasicAuthUsername)
-	qbitBasicAuthPassword := getEnv(defaultQbitBasicAuthPassword)
+	qbitBasicAuthUsername := getOptionalEnv(defaultQbitBasicAuthUsername)
+	qbitBasicAuthPassword := getOptionalEnv(defaultQbitBasicAuthPassword)
 	exporterPortEnv := getEnv(defaultPort)
 	timeoutDurationEnv := getEnv(defaultTimeout)
 	enableTracker := getEnv(defaultDisableTracker)
@@ -192,10 +191,7 @@ func LoadEnv() {
 		Password: qbitPassword,
 		Timeout:  time.Duration(timeoutDuration) * time.Second,
 		Cookie:   nil,
-		BasicAuth: BasicAuth{
-			Username: &qbitBasicAuthUsername,
-			Password: &qbitBasicAuthPassword,
-		},
+		BasicAuth: getBasicAuth(qbitBasicAuthUsername, qbitBasicAuthPassword, defaultBasicAuthUsername, defaultBasicAuthPassword),
 	}
 
 	Exporter = ExporterSettings{
@@ -203,7 +199,6 @@ func LoadEnv() {
 			EnableHighCardinality:        envSetToTrue(enableHighCardinality),
 			EnableTracker:                envSetToTrue(enableTracker),
 			ShowPassword:                 envSetToTrue(showPassword),
-			EnableBasicAuthRequestHeader: envSetToTrue(enableQbittorrentBasicAuth),
 		},
 		ExperimentalFeatures: ExperimentalFeatures{
 			EnableLabelWithHash: envSetToTrue(labelWithHash),
@@ -275,11 +270,6 @@ func GetFeaturesEnabled() string {
 	if Exporter.ExperimentalFeatures.EnableLabelWithHash {
 		addComma()
 		features += "Label with hash (experimental)"
-	}
-
-	if Exporter.Features.EnableBasicAuthRequestHeader {
-		addComma()
-		features += "Send HTTP Basic Authorization request header to qBittorrent"
 	}
 
 	features = fmt.Sprintf("[%s]", features)

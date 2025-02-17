@@ -288,8 +288,8 @@ func apiRequest(url string, method string, queryParams *[]QueryParams) ([]byte, 
 		req.URL.RawQuery = q.Encode()
 	}
 
-	if app.Exporter.Features.EnableBasicAuthRequestHeader {
-		req.SetBasicAuth(*app.QBittorrent.BasicAuth.Username, *app.QBittorrent.BasicAuth.Password)
+	if app.QBittorrent.BasicAuth != nil {
+		req.SetBasicAuth(app.QBittorrent.BasicAuth.Username, app.QBittorrent.BasicAuth.Password)
 	}
 
 	req.AddCookie(&http.Cookie{Name: "SID", Value: *app.QBittorrent.Cookie})

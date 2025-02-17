@@ -23,12 +23,6 @@ const defaultTimeout = 10 * time.Millisecond
 
 func init() {
 	logger.Log = &logger.Logger{Logger: slog.New(slog.NewTextHandler(buff, &slog.HandlerOptions{}))}
-
-	// Setting default values due to *string
-	app.QBittorrent.BasicAuth = app.BasicAuth{
-		Username: &app.DefaultQbitBasicAuthUsername,
-		Password: &app.DefaultQbitBasicAuthPassword,
-	}
 }
 
 func TestAuthSuccess(t *testing.T) {
@@ -178,9 +172,9 @@ func TestAuth_BasicAuthSuccess(t *testing.T) {
 	app.QBittorrent.Username = "testuser"
 	app.QBittorrent.Password = "testpass"
 	app.QBittorrent.Timeout = defaultTimeout
-	app.QBittorrent.BasicAuth = app.BasicAuth{
-		Username: &httpBasicAuthUsername,
-		Password: &httpBasicAuthPassword,
+	app.QBittorrent.BasicAuth = &app.BasicAuth{
+		Username: httpBasicAuthUsername,
+		Password: httpBasicAuthPassword,
 	}
 
 	err := Auth()
@@ -224,9 +218,9 @@ func TestAuth_BasicAuthInvalidAuthentication(t *testing.T) {
 	app.QBittorrent.Username = "testuser"
 	app.QBittorrent.Password = "testpass"
 	app.QBittorrent.Timeout = defaultTimeout
-	app.QBittorrent.BasicAuth = app.BasicAuth{
-		Username: &httpBasicAuthUsername,
-		Password: &httpBasicAuthPassword,
+	app.QBittorrent.BasicAuth = &app.BasicAuth{
+		Username: httpBasicAuthUsername,
+		Password: httpBasicAuthPassword,
 	}
 
 	err := Auth()

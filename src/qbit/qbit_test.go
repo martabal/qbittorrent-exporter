@@ -22,14 +22,6 @@ import (
 	"time"
 )
 
-func init() {
-	// Setting default values due to *string
-	app.QBittorrent.BasicAuth = app.BasicAuth{
-		Username: &app.DefaultQbitBasicAuthUsername,
-		Password: &app.DefaultQbitBasicAuthPassword,
-	}
-}
-
 var cookie = "SID"
 
 func setupMockApp() {
@@ -245,9 +237,9 @@ func TestApiRequest_WithRequestAuthorization_Success(t *testing.T) {
 
 	// Set base URL with mock server
 	app.QBittorrent.BaseUrl = server.URL
-	app.QBittorrent.BasicAuth = app.BasicAuth{
-		Username: &httpBasicAuthUsername,
-		Password: &httpBasicAuthPassword,
+	app.QBittorrent.BasicAuth = &app.BasicAuth{
+		Username: httpBasicAuthUsername,
+		Password: httpBasicAuthPassword,
 	}
 
 	url := createUrl("/test")
@@ -278,9 +270,9 @@ func TestApiRequest_ServerWithoutAuthRequirement(t *testing.T) {
 	app.QBittorrent.BaseUrl = server.URL
 	httpBasicAuthUsername := "user"
 	httpBasicAuthPassword := "pass"
-	app.QBittorrent.BasicAuth = app.BasicAuth{
-		Username: &httpBasicAuthUsername,
-		Password: &httpBasicAuthPassword,
+	app.QBittorrent.BasicAuth = &app.BasicAuth{
+		Username: httpBasicAuthUsername,
+		Password: httpBasicAuthPassword,
 	}
 
 	url := createUrl("/test")
@@ -309,9 +301,9 @@ func TestApiRequest_EmptyCredentials(t *testing.T) {
 	defer server.Close()
 
 	app.QBittorrent.BaseUrl = server.URL
-	app.QBittorrent.BasicAuth = app.BasicAuth{
-		Username: &httpBasicAuthUsername,
-		Password: &httpBasicAuthPassword,
+	app.QBittorrent.BasicAuth = &app.BasicAuth{
+		Username: httpBasicAuthUsername,
+		Password: httpBasicAuthPassword,
 	}
 
 	url := createUrl("/test")
@@ -345,9 +337,9 @@ func TestApiRequest_InvalidAuthorization(t *testing.T) {
 	defer server.Close()
 
 	app.QBittorrent.BaseUrl = server.URL
-	app.QBittorrent.BasicAuth = app.BasicAuth{
-		Username: &httpBasicAuthUsername,
-		Password: &httpBasicAuthPassword,
+	app.QBittorrent.BasicAuth = &app.BasicAuth{
+		Username: httpBasicAuthUsername,
+		Password: httpBasicAuthPassword,
 	}
 
 	url := createUrl("/test")
