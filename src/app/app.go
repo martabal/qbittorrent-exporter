@@ -33,12 +33,12 @@ type ExporterSettings struct {
 	Features             Features
 	URL                  string
 	Path                 string
-	BasicAuth            BasicAuth
+	BasicAuth            *BasicAuth
 }
 
 type BasicAuth struct {
-	Username *string
-	Password *string
+	Username string
+	Password string
 }
 
 type QBittorrentSettings struct {
@@ -88,8 +88,8 @@ func LoadEnv() {
 	exporterUrl := getEnv(defaultExporterURL)
 	exporterPath := getEnv(defaultExporterPath)
 	showPassword := getEnv(defaultExporterShowPassword)
-	basicAuthUsername := getEnv(defaultBasicAuthUsername)
-	basicAuthPassword := getEnv(defaultBasicAuthPassword)
+	basicAuthUsername := getOptionalEnv(defaultBasicAuthUsername)
+	basicAuthPassword := getOptionalEnv(defaultBasicAuthPassword)
 	certificateAuthorityPath := getEnv(defaultCertificateAuthorityPath)
 	insecureSkipVerify := getEnv(defaultInsecureSkipVerify)
 	minTlsVersionStr := getEnv(defaultMinTlsVersion)
@@ -117,19 +117,7 @@ func LoadEnv() {
 		}
 	}
 
-	basicAuth := BasicAuth{Username: nil, Password: nil}
-	if basicAuthUsername != "" && basicAuthPassword == "" {
-		logger.Log.Warn(fmt.Sprintf("You set a basic auth username but not password (check %s and %s)",
-			defaultBasicAuthUsername.Key, defaultBasicAuthPassword.Key))
-	} else if basicAuthUsername == "" && basicAuthPassword != "" {
-		logger.Log.Warn(fmt.Sprintf("You set a basic auth password but not username (check %s and %s)",
-			defaultBasicAuthUsername.Key, defaultBasicAuthPassword.Key))
-	} else if basicAuthUsername != "" && basicAuthPassword != "" {
-		basicAuth = BasicAuth{
-			Username: &basicAuthUsername,
-			Password: &basicAuthPassword,
-		}
-	}
+	basicAuth := getBasicAuth(basicAuthUsername, basicAuthPassword, defaultBasicAuthUsername, defaultBasicAuthPassword)
 
 	if !internal.IsValidURL(baseUrl) {
 		panic(fmt.Sprintf("%s is not a valid URL (check %s)", baseUrl, defaultBaseUrl.Key))
@@ -214,6 +202,30 @@ func LoadEnv() {
 		BasicAuth: basicAuth,
 	}
 
+}
+
+func getBasicAuth(basicAuthUsername *string, basicAuthPassword *string, defaultBasicAuth Env, defaultBasicPassword Env) *BasicAuth {
+	var basicAuth *BasicAuth
+	if basicAuthUsername != nil || basicAuthPassword != nil {
+		var username, password string
+
+		if basicAuthUsername != nil {
+			username = *basicAuthUsername
+		} else {
+			logger.Log.Info(fmt.Sprintf("You set a basic auth username but not password (check %s and %s)",
+				defaultBasicAuth.Key, defaultBasicAuth.Key))
+		}
+
+		if basicAuthPassword != nil {
+			password = *basicAuthPassword
+		} else {
+			logger.Log.Info(fmt.Sprintf("You set a basic auth password but not username (check %s and %s)",
+				defaultBasicPassword.Key, defaultBasicPassword.Key))
+		}
+
+		basicAuth = &BasicAuth{Username: username, Password: password}
+	}
+	return basicAuth
 }
 
 func envSetToTrue(env string) bool {
