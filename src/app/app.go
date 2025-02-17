@@ -60,8 +60,6 @@ type Features struct {
 	EnableHighCardinality bool
 	EnableTracker         bool
 	ShowPassword          bool
-	// SendBasicAuthRequestHeader sets the Authorization basic request header to qBittorrent endpoint.
-	EnableBasicAuthRequestHeader bool
 }
 
 func LoadEnv() {
@@ -186,19 +184,19 @@ func LoadEnv() {
 	internal.EnsureLeadingSlash(&exporterPath)
 
 	QBittorrent = QBittorrentSettings{
-		BaseUrl:  baseUrl,
-		Username: qbitUsername,
-		Password: qbitPassword,
-		Timeout:  time.Duration(timeoutDuration) * time.Second,
-		Cookie:   nil,
+		BaseUrl:   baseUrl,
+		Username:  qbitUsername,
+		Password:  qbitPassword,
+		Timeout:   time.Duration(timeoutDuration) * time.Second,
+		Cookie:    nil,
 		BasicAuth: getBasicAuth(qbitBasicAuthUsername, qbitBasicAuthPassword, defaultBasicAuthUsername, defaultBasicAuthPassword),
 	}
 
 	Exporter = ExporterSettings{
 		Features: Features{
-			EnableHighCardinality:        envSetToTrue(enableHighCardinality),
-			EnableTracker:                envSetToTrue(enableTracker),
-			ShowPassword:                 envSetToTrue(showPassword),
+			EnableHighCardinality: envSetToTrue(enableHighCardinality),
+			EnableTracker:         envSetToTrue(enableTracker),
+			ShowPassword:          envSetToTrue(showPassword),
 		},
 		ExperimentalFeatures: ExperimentalFeatures{
 			EnableLabelWithHash: envSetToTrue(labelWithHash),
