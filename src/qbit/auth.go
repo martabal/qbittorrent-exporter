@@ -25,7 +25,7 @@ func Auth() error {
 	}
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	if app.Exporter.Features.EnableBasicAuthRequestHeader {
+	if app.QBittorrent.BasicAuth != nil {
 		req.SetBasicAuth(*app.QBittorrent.BasicAuth.Username, *app.QBittorrent.BasicAuth.Password)
 	}
 
