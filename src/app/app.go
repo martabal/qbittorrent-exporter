@@ -49,7 +49,7 @@ type QBittorrentSettings struct {
 	Password string
 
 	// BasicAuth sets the Authorization header for requests to BaseUrl.
-	BasicAuth BasicAuth
+	BasicAuth *BasicAuth
 }
 
 type ExperimentalFeatures struct {
