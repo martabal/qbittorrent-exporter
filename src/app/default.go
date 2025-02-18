@@ -13,9 +13,9 @@ type Env struct {
 	Help         string
 }
 
-const DefaultExporterPort = 8090
+const defaultExporterPort = 8090
 const DefaultTimeout = 30
-const DefaultExporterPath = "/metrics"
+const defaultExporterPath = "/metrics"
 
 const TLS12 = "TLS_1_2"
 const TLS13 = "TLS_1_3"
@@ -30,9 +30,9 @@ var defaultDisableTracker = Env{
 
 var defaultExporterURL = "EXPORTER_URL"
 
-var defaultExporterPath = Env{
+var defaultExporterPathEnv = Env{
 	Key:          "EXPORTER_PATH",
-	DefaultValue: DefaultExporterPath,
+	DefaultValue: defaultExporterPath,
 	Help:         "",
 }
 
@@ -61,7 +61,7 @@ var defaultLogLevel = Env{
 }
 var defaultPort = Env{
 	Key:          "EXPORTER_PORT",
-	DefaultValue: strconv.Itoa(DefaultExporterPort),
+	DefaultValue: strconv.Itoa(defaultExporterPort),
 	Help:         "",
 }
 
@@ -113,14 +113,14 @@ var defaultTimeout = Env{
 	Help:         "",
 }
 
-func getEnv(env Env) string {
+func getEnv(env Env) (string, bool) {
 	if value, ok := os.LookupEnv(env.Key); ok && value != "" {
-		return value
+		return value, false
 	}
 	if env.Help != "" {
-		logger.Log.Warn(fmt.Sprintf("%s (%s)", env.Help, env.Key))
+		logger.Log.Warn(fmt.Sprintf("%s (%s)", env.Help, env.DefaultValue))
 	}
-	return env.DefaultValue
+	return env.DefaultValue, true
 }
 
 func getOptionalEnv(env string) *string {

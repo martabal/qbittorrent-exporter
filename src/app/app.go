@@ -11,19 +11,23 @@ import (
 	"qbit-exp/logger"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/joho/godotenv"
 )
 
-var loadEnvOnce sync.Once
+const devVersion = "dev"
 
 var (
-	QBittorrent  QBittorrentSettings
-	Exporter     ExporterSettings
-	HttpClient   http.Client
-	UsingEnvFile bool
+	version     = devVersion
+	author      = "martabal"
+	projectName = "qbittorrent-exporter"
+)
+
+var (
+	QBittorrent QBittorrentSettings
+	Exporter    ExporterSettings
+	HttpClient  http.Client
 )
 
 type ExporterSettings struct {
@@ -31,7 +35,6 @@ type ExporterSettings struct {
 	LogLevel             string
 	ExperimentalFeatures ExperimentalFeatures
 	Features             Features
-	URL                  string
 	Path                 string
 	BasicAuth            *BasicAuth
 }
@@ -63,41 +66,65 @@ type Features struct {
 }
 
 func LoadEnv() {
-	loadEnvOnce.Do(func() {
-		var envfile bool
-		flag.BoolVar(&envfile, "e", false, "Use .env file")
-		flag.Parse()
-		_, err := os.Stat(".env")
-		UsingEnvFile = false
-		if !os.IsNotExist(err) && !envfile {
-			UsingEnvFile = true
-			err := godotenv.Load(".env")
-			if err != nil {
-				errormessage := "Error loading .env file:" + err.Error()
-				panic(errormessage)
-			}
-		}
-	})
+	envfile := flag.Bool("e", false, "Use .env file")
+	flag.Parse()
 
-	loglevel := logger.SetLogLevel(getEnv(defaultLogLevel))
-	qbitUsername := getEnv(defaultUsername)
-	qbitPassword := getEnv(defaultPassword)
-	baseUrl := strings.TrimSuffix(getEnv(defaultBaseUrl), "/")
+	envFileMessage := "Using environment variables"
+
+	if _, err := os.Stat(".env"); err == nil && !*envfile {
+		if err := godotenv.Load(".env"); err != nil {
+			errormessage := "Error loading .env file:" + err.Error()
+			panic(errormessage)
+		}
+		envFileMessage = "Using .env file"
+	}
+	defaultLogLevelEnv, _ := getEnv(defaultLogLevel)
+	loglevel := logger.SetLogLevel(defaultLogLevelEnv)
+
+	fmt.Printf("%s (version %s)\n", projectName, version)
+	fmt.Printf("Author: %s\n", author)
+	fmt.Printf("Using log level: %s%s%s\n", logger.ColorLogLevel[logger.LogLevels[loglevel]], loglevel, logger.Reset)
+
+	qbitUsername, usingDefaultValue := getEnv(defaultUsername)
+	if !usingDefaultValue {
+		logger.Log.Info(fmt.Sprintf("username: %s", qbitUsername))
+	}
+	showPasswordString, _ := getEnv(defaultExporterShowPassword)
+	showPassword := envSetToTrue(showPasswordString)
+	qbitPassword, usingDefaultValue := getEnv(defaultPassword)
+	if !usingDefaultValue {
+		password := GetPasswordMasked()
+		if showPassword {
+			password = qbitPassword
+		}
+		logger.Log.Info(fmt.Sprintf("password: %s", password))
+	}
+	baseUrlEnv, usingDefaultValue := getEnv(defaultBaseUrl)
+	baseUrl := strings.TrimSuffix(baseUrlEnv, "/")
+	if !internal.IsValidURL(baseUrl) {
+		panic(fmt.Sprintf("%s is not a valid URL (check %s)", baseUrl, defaultBaseUrl.Key))
+	}
+	if !usingDefaultValue {
+		logger.Log.Info(fmt.Sprintf("qBittorrent URL: %s", baseUrl))
+	}
+
 	qbitBasicAuthUsername := getOptionalEnv(defaultQbitBasicAuthUsername)
 	qbitBasicAuthPassword := getOptionalEnv(defaultQbitBasicAuthPassword)
-	exporterPortEnv := getEnv(defaultPort)
-	timeoutDurationEnv := getEnv(defaultTimeout)
-	enableTracker := getEnv(defaultDisableTracker)
-	enableHighCardinality := getEnv(defaultHighCardinality)
-	labelWithHash := getEnv(defaultLabelWithHash)
+	exporterPortEnv, _ := getEnv(defaultPort)
+	timeoutDurationEnv, _ := getEnv(defaultTimeout)
+	enableTracker, _ := getEnv(defaultDisableTracker)
+	enableHighCardinality, _ := getEnv(defaultHighCardinality)
+	labelWithHash, _ := getEnv(defaultLabelWithHash)
 	exporterUrlEnv := getOptionalEnv(defaultExporterURL)
-	exporterPath := getEnv(defaultExporterPath)
-	showPassword := getEnv(defaultExporterShowPassword)
+	exporterPath, _ := getEnv(defaultExporterPathEnv)
+
 	basicAuthUsername := getOptionalEnv(defaultBasicAuthUsername)
 	basicAuthPassword := getOptionalEnv(defaultBasicAuthPassword)
 	certificateAuthorityPath := getOptionalEnv(defaultCertificateAuthorityPath)
-	insecureSkipVerify := getEnv(defaultInsecureSkipVerify)
-	minTlsVersionStr := getEnv(defaultMinTlsVersion)
+	insecureSkipVerify, _ := getEnv(defaultInsecureSkipVerify)
+	minTlsVersionStr, _ := getEnv(defaultMinTlsVersion)
+
+	logger.Log.Debug(envFileMessage)
 
 	exporterPort, errExporterPort := strconv.Atoi(exporterPortEnv)
 	if errExporterPort != nil {
@@ -105,6 +132,9 @@ func LoadEnv() {
 	}
 	if exporterPort < 0 || exporterPort > 65353 {
 		panic(fmt.Sprintf("%d must be > 0 and < 65353 (check %s)", exporterPort, defaultPort.Key))
+	}
+	if exporterPort != defaultExporterPort {
+		logger.Log.Info(fmt.Sprintf("Listening on port %d", exporterPort))
 	}
 
 	timeoutDuration, errTimeoutDuration := strconv.Atoi(timeoutDurationEnv)
@@ -116,15 +146,17 @@ func LoadEnv() {
 	}
 
 	exporterUrl := ""
+	if version == devVersion {
+		exporterUrl = fmt.Sprintf("http://localhost:%d%s", exporterPort, exporterPath)
+	}
 	if exporterUrlEnv != nil {
 		exporterUrl = strings.TrimSuffix(*exporterUrlEnv, "/")
 		if !internal.IsValidURL(exporterUrl) {
 			panic(fmt.Sprintf("%s is not a valid URL (check %s)", exporterUrl, defaultExporterURL))
 		}
 	}
-
-	if !internal.IsValidURL(baseUrl) {
-		panic(fmt.Sprintf("%s is not a valid URL (check %s)", baseUrl, defaultBaseUrl.Key))
+	if exporterUrl != "" {
+		logger.Log.Info(fmt.Sprintf("qbittorrent-exporter URL: %s", exporterUrl))
 	}
 
 	// If a custom CA is provided and INSECURE_SKIP_VERIFY is set, that's kinda sus
@@ -170,6 +202,21 @@ func LoadEnv() {
 			minTlsVersionStr, TLS12, TLS13, defaultMinTlsVersion.Key))
 	}
 
+	qbittorrentBasicAuth := getBasicAuth(qbitBasicAuthUsername, qbitBasicAuthPassword, defaultBasicAuthUsername, defaultBasicAuthPassword)
+	exporterBasicAuth := getBasicAuth(basicAuthUsername, basicAuthPassword, defaultBasicAuthUsername, defaultBasicAuthPassword)
+
+	if qbittorrentBasicAuth != nil {
+		logger.Log.Info("Enabling qBittorrent Basic Auth request header.")
+	}
+
+	if exporterBasicAuth != nil {
+		logger.Log.Info("Using basic auth to protect the exporter instance")
+	} else {
+		logger.Log.Trace("Not using basic auth to protect the exporter instance")
+	}
+
+	logger.Log.Info(fmt.Sprintf("Features enabled: %s", getFeaturesEnabled()))
+
 	HttpClient = http.Client{
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
@@ -188,23 +235,22 @@ func LoadEnv() {
 		Password:  qbitPassword,
 		Timeout:   time.Duration(timeoutDuration) * time.Second,
 		Cookie:    nil,
-		BasicAuth: getBasicAuth(qbitBasicAuthUsername, qbitBasicAuthPassword, defaultBasicAuthUsername, defaultBasicAuthPassword),
+		BasicAuth: qbittorrentBasicAuth,
 	}
 
 	Exporter = ExporterSettings{
 		Features: Features{
 			EnableHighCardinality: envSetToTrue(enableHighCardinality),
 			EnableTracker:         envSetToTrue(enableTracker),
-			ShowPassword:          envSetToTrue(showPassword),
+			ShowPassword:          showPassword,
 		},
 		ExperimentalFeatures: ExperimentalFeatures{
 			EnableLabelWithHash: envSetToTrue(labelWithHash),
 		},
 		LogLevel:  loglevel,
 		Port:      exporterPort,
-		URL:       exporterUrl,
 		Path:      exporterPath,
-		BasicAuth: getBasicAuth(basicAuthUsername, basicAuthPassword, defaultBasicAuthUsername, defaultBasicAuthPassword),
+		BasicAuth: exporterBasicAuth,
 	}
 
 }
@@ -241,7 +287,7 @@ func GetPasswordMasked() string {
 	return strings.Repeat("*", len(QBittorrent.Password))
 }
 
-func GetFeaturesEnabled() string {
+func getFeaturesEnabled() string {
 	features := ""
 
 	addComma := func() {

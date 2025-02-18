@@ -22,7 +22,7 @@ func TestGetEnvReturnsEnvValue(t *testing.T) {
 	expectedValue := "9090"
 	os.Setenv(envVar, expectedValue)
 	defer os.Unsetenv(envVar)
-	value := getEnv(defaultPort)
+	value, _ := getEnv(defaultPort)
 
 	if value != expectedValue {
 		t.Errorf("Expected %s, got %s", expectedValue, value)
@@ -31,9 +31,9 @@ func TestGetEnvReturnsEnvValue(t *testing.T) {
 
 func TestGetEnvReturnsDefaultWhenEnvNotSet(t *testing.T) {
 	envVar := "EXPORTER_PORT"
-	expectedValue := strconv.Itoa(DefaultExporterPort)
+	expectedValue := strconv.Itoa(defaultExporterPort)
 	os.Unsetenv(envVar)
-	value := getEnv(defaultPort)
+	value, _ := getEnv(defaultPort)
 
 	if value != expectedValue {
 		t.Errorf("Expected default %s, got %s", expectedValue, value)
@@ -58,7 +58,7 @@ func TestGetEnvWithDifferentDefaults(t *testing.T) {
 		expectedValue string
 	}{
 		{"DefaultLogLevel", defaultLogLevel, "INFO"},
-		{"DefaultPort", defaultPort, strconv.Itoa(DefaultExporterPort)},
+		{"DefaultPort", defaultPort, strconv.Itoa(defaultExporterPort)},
 		{"DefaultTimeout", defaultTimeout, strconv.Itoa(DefaultTimeout)},
 		{"DefaultUsername", defaultUsername, "admin"},
 		{"DefaultPassword", defaultPassword, "adminadmin"},
@@ -66,13 +66,13 @@ func TestGetEnvWithDifferentDefaults(t *testing.T) {
 		{"DefaultDisableTracker", defaultDisableTracker, "true"},
 		{"DefaultHighCardinality", defaultHighCardinality, "false"},
 		{"DefaultLabelWithHash", defaultLabelWithHash, "false"},
-		{"DefaultExporterPath", defaultExporterPath, DefaultExporterPath},
+		{"DefaultExporterPath", defaultExporterPathEnv, defaultExporterPath},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			os.Unsetenv(tt.env.Key)
-			value := getEnv(tt.env)
+			value, _ := getEnv(tt.env)
 			if value != tt.expectedValue {
 				t.Errorf("Expected %s, got %s", tt.expectedValue, value)
 			}
@@ -96,7 +96,7 @@ func TestGetEnvReturnsBooleanValues(t *testing.T) {
 			cleanup := setAndClearEnv(tt.envVar.Key, tt.setValue)
 			defer cleanup()
 
-			value := getEnv(tt.envVar)
+			value, _ := getEnv(tt.envVar)
 			if value != tt.expectVal {
 				t.Errorf("Expected %s, got %s", tt.expectVal, value)
 			}
@@ -110,7 +110,7 @@ func TestGetEnvHandlesEmptyEnvVarGracefully(t *testing.T) {
 	defer os.Unsetenv(envVar)
 	expectedValue := defaultUsername.DefaultValue
 
-	value := getEnv(defaultUsername)
+	value, _ := getEnv(defaultUsername)
 
 	if value != expectedValue {
 		t.Errorf("Expected %s, got %s", expectedValue, value)

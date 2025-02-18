@@ -90,7 +90,7 @@ func TestGetFeaturesEnabled(t *testing.T) {
 			// Set experimental features
 			Exporter.ExperimentalFeatures.EnableLabelWithHash = test.experimentalFeature.EnableLabelWithHash
 
-			result := GetFeaturesEnabled()
+			result := getFeaturesEnabled()
 			if result != test.expectedOutput {
 				t.Errorf("expected %s, got %s", test.expectedOutput, result)
 			}
