@@ -90,12 +90,12 @@ func LoadEnv() {
 	enableTracker := getEnv(defaultDisableTracker)
 	enableHighCardinality := getEnv(defaultHighCardinality)
 	labelWithHash := getEnv(defaultLabelWithHash)
-	exporterUrl := getEnv(defaultExporterURL)
+	exporterUrlEnv := getOptionalEnv(defaultExporterURL)
 	exporterPath := getEnv(defaultExporterPath)
 	showPassword := getEnv(defaultExporterShowPassword)
 	basicAuthUsername := getOptionalEnv(defaultBasicAuthUsername)
 	basicAuthPassword := getOptionalEnv(defaultBasicAuthPassword)
-	certificateAuthorityPath := getEnv(defaultCertificateAuthorityPath)
+	certificateAuthorityPath := getOptionalEnv(defaultCertificateAuthorityPath)
 	insecureSkipVerify := getEnv(defaultInsecureSkipVerify)
 	minTlsVersionStr := getEnv(defaultMinTlsVersion)
 
@@ -115,38 +115,37 @@ func LoadEnv() {
 		panic(fmt.Sprintf("%d must be > 0 (check %s)", timeoutDuration, defaultTimeout.Key))
 	}
 
-	if exporterUrl != "" {
-		exporterUrl = strings.TrimSuffix(exporterUrl, "/")
+	exporterUrl := ""
+	if exporterUrlEnv != nil {
+		exporterUrl = strings.TrimSuffix(*exporterUrlEnv, "/")
 		if !internal.IsValidURL(exporterUrl) {
-			panic(fmt.Sprintf("%s is not a valid URL (check %s)", exporterUrl, defaultExporterURL.Key))
+			panic(fmt.Sprintf("%s is not a valid URL (check %s)", exporterUrl, defaultExporterURL))
 		}
 	}
-
-	basicAuth := getBasicAuth(basicAuthUsername, basicAuthPassword, defaultBasicAuthUsername, defaultBasicAuthPassword)
 
 	if !internal.IsValidURL(baseUrl) {
 		panic(fmt.Sprintf("%s is not a valid URL (check %s)", baseUrl, defaultBaseUrl.Key))
 	}
 
 	// If a custom CA is provided and INSECURE_SKIP_VERIFY is set, that's kinda sus
-	if certificateAuthorityPath != "" && envSetToTrue(insecureSkipVerify) {
+	if certificateAuthorityPath != nil && envSetToTrue(insecureSkipVerify) {
 		logger.Log.Warn(fmt.Sprintf("You provided a custom CA and disabled certificate validation (check %s and %s)",
-			defaultCertificateAuthorityPath.Key, defaultInsecureSkipVerify.Key))
+			defaultCertificateAuthorityPath, defaultInsecureSkipVerify.Key))
 	}
 
 	// If a custom CA is provided or INSECURE_SKIP_VERIFY is set and the exporter URL is not HTTPS, that's kinda sus
-	if (certificateAuthorityPath != "" || envSetToTrue(insecureSkipVerify)) && !internal.IsValidHttpsURL(baseUrl) {
+	if (certificateAuthorityPath != nil || envSetToTrue(insecureSkipVerify)) && !internal.IsValidHttpsURL(baseUrl) {
 		logger.Log.Warn(fmt.Sprintf("You provided a custom CA or disabled certificate validation but the qBittorrent URL is not HTTPS. (check %s, %s and %s)",
-			defaultCertificateAuthorityPath.Key, defaultInsecureSkipVerify.Key, defaultBaseUrl.Key))
+			defaultCertificateAuthorityPath, defaultInsecureSkipVerify.Key, defaultBaseUrl.Key))
 	}
 
 	// If a custom CA is provided, load the root CAs from the system and append the custom CA
 	var caCertPool *x509.CertPool
-	if certificateAuthorityPath != "" {
-		caCert, errCaCert := os.ReadFile(certificateAuthorityPath)
+	if certificateAuthorityPath != nil {
+		caCert, errCaCert := os.ReadFile(*certificateAuthorityPath)
 		if errCaCert != nil {
 			panic(fmt.Sprintf("Error reading certificate authority file: %s (check %s)",
-				errCaCert, defaultCertificateAuthorityPath.Key))
+				errCaCert, defaultCertificateAuthorityPath))
 		}
 
 		var errCaCertPool error
@@ -162,13 +161,13 @@ func LoadEnv() {
 
 	var minTlsVersion uint16
 	switch minTlsVersionStr {
-	case "TLS_1_2":
+	case TLS12:
 		minTlsVersion = tls.VersionTLS12
-	case "TLS_1_3":
+	case TLS13:
 		minTlsVersion = tls.VersionTLS13
 	default:
-		panic(fmt.Sprintf("Invalid minimum TLS version: %s (valid options are TLS_1_2 and TLS_1_3) (check %s)",
-			minTlsVersionStr, defaultMinTlsVersion.Key))
+		panic(fmt.Sprintf("Invalid minimum TLS version: %s (valid options are %s and %s) (check %s)",
+			minTlsVersionStr, TLS12, TLS13, defaultMinTlsVersion.Key))
 	}
 
 	HttpClient = http.Client{
@@ -205,12 +204,12 @@ func LoadEnv() {
 		Port:      exporterPort,
 		URL:       exporterUrl,
 		Path:      exporterPath,
-		BasicAuth: basicAuth,
+		BasicAuth: getBasicAuth(basicAuthUsername, basicAuthPassword, defaultBasicAuthUsername, defaultBasicAuthPassword),
 	}
 
 }
 
-func getBasicAuth(basicAuthUsername *string, basicAuthPassword *string, defaultBasicAuth Env, defaultBasicPassword Env) *BasicAuth {
+func getBasicAuth(basicAuthUsername *string, basicAuthPassword *string, defaultBasicAuth string, defaultBasicPassword string) *BasicAuth {
 	var basicAuth *BasicAuth
 	if basicAuthUsername != nil || basicAuthPassword != nil {
 		var username, password string
@@ -219,14 +218,14 @@ func getBasicAuth(basicAuthUsername *string, basicAuthPassword *string, defaultB
 			username = *basicAuthUsername
 		} else {
 			logger.Log.Info(fmt.Sprintf("You set a basic auth username but not password (check %s and %s)",
-				defaultBasicAuth.Key, defaultBasicAuth.Key))
+				defaultBasicAuth, defaultBasicAuth))
 		}
 
 		if basicAuthPassword != nil {
 			password = *basicAuthPassword
 		} else {
 			logger.Log.Info(fmt.Sprintf("You set a basic auth password but not username (check %s and %s)",
-				defaultBasicPassword.Key, defaultBasicPassword.Key))
+				defaultBasicPassword, defaultBasicPassword))
 		}
 
 		basicAuth = &BasicAuth{Username: username, Password: password}

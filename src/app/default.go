@@ -7,67 +7,38 @@ import (
 	"strconv"
 )
 
-const DefaultExporterPort = 8090
-const DefaultTimeout = 30
-const DefaultExporterPath = "/metrics"
-
 type Env struct {
 	Key          string
 	DefaultValue string
 	Help         string
 }
 
-var defaultLogLevel = Env{
-	Key:          "LOG_LEVEL",
-	DefaultValue: "INFO",
-	Help:         "",
-}
+const DefaultExporterPort = 8090
+const DefaultTimeout = 30
+const DefaultExporterPath = "/metrics"
 
-var defaultPort = Env{
-	Key:          "EXPORTER_PORT",
-	DefaultValue: strconv.Itoa(DefaultExporterPort),
-	Help:         "",
-}
+const TLS12 = "TLS_1_2"
+const TLS13 = "TLS_1_3"
 
-var defaultTimeout = Env{
-	Key:          "QBITTORRENT_TIMEOUT",
-	DefaultValue: strconv.Itoa(DefaultTimeout),
-	Help:         "",
-}
-
-var defaultUsername = Env{
-	Key:          "QBITTORRENT_USERNAME",
-	DefaultValue: "admin",
-	Help:         "qBittorrent username is not set. Using default username",
-}
-
-var defaultPassword = Env{
-	Key:          "QBITTORRENT_PASSWORD",
-	DefaultValue: "adminadmin",
-	Help:         "qBittorrent password is not set. Using default password",
-}
-
-var defaultBaseUrl = Env{
-	Key:          "QBITTORRENT_BASE_URL",
-	DefaultValue: "http://localhost:8080",
-	Help:         "qBittorrent base_url is not set. Using default base_url",
-}
-
-var defaultQbitBasicAuthUsername = Env{
-	Key:          "QBITTORRENT_BASIC_AUTH_USERNAME",
-	DefaultValue: "",
-	Help:         "",
-}
-
-var defaultQbitBasicAuthPassword = Env{
-	Key:          "QBITTORRENT_BASIC_AUTH_PASSWORD",
-	DefaultValue: "",
-	Help:         "",
-}
+// Exporter
 
 var defaultDisableTracker = Env{
 	Key:          "ENABLE_TRACKER",
 	DefaultValue: "true",
+	Help:         "",
+}
+
+var defaultExporterURL = "EXPORTER_URL"
+
+var defaultExporterPath = Env{
+	Key:          "EXPORTER_PATH",
+	DefaultValue: DefaultExporterPath,
+	Help:         "",
+}
+
+var defaultExporterShowPassword = Env{
+	Key:          "DANGEROUS_SHOW_PASSWORD",
+	DefaultValue: "false",
 	Help:         "",
 }
 
@@ -83,41 +54,30 @@ var defaultLabelWithHash = Env{
 	Help:         "",
 }
 
-var defaultExporterURL = Env{
-	Key:          "EXPORTER_URL",
-	DefaultValue: "",
+var defaultLogLevel = Env{
+	Key:          "LOG_LEVEL",
+	DefaultValue: "INFO",
+	Help:         "",
+}
+var defaultPort = Env{
+	Key:          "EXPORTER_PORT",
+	DefaultValue: strconv.Itoa(DefaultExporterPort),
 	Help:         "",
 }
 
-var defaultExporterPath = Env{
-	Key:          "EXPORTER_PATH",
-	DefaultValue: DefaultExporterPath,
-	Help:         "",
+// QBittorrent
+
+var defaultBaseUrl = Env{
+	Key:          "QBITTORRENT_BASE_URL",
+	DefaultValue: "http://localhost:8080",
+	Help:         "qBittorrent base_url is not set. Using default base_url",
 }
 
-var defaultExporterShowPassword = Env{
-	Key:          "DANGEROUS_SHOW_PASSWORD",
-	DefaultValue: "false",
-	Help:         "",
-}
+var defaultBasicAuthUsername = "EXPORTER_BASIC_AUTH_USERNAME"
 
-var defaultBasicAuthUsername = Env{
-	Key:          "EXPORTER_BASIC_AUTH_USERNAME",
-	DefaultValue: "",
-	Help:         "",
-}
+var defaultBasicAuthPassword = "EXPORTER_BASIC_AUTH_PASSWORD"
 
-var defaultBasicAuthPassword = Env{
-	Key:          "EXPORTER_BASIC_AUTH_PASSWORD",
-	DefaultValue: "",
-	Help:         "",
-}
-
-var defaultCertificateAuthorityPath = Env{
-	Key:          "CERTIFICATE_AUTHORITY_PATH",
-	DefaultValue: "",
-	Help:         "",
-}
+var defaultCertificateAuthorityPath = "CERTIFICATE_AUTHORITY_PATH"
 
 var defaultInsecureSkipVerify = Env{
 	Key:          "INSECURE_SKIP_VERIFY",
@@ -127,7 +87,29 @@ var defaultInsecureSkipVerify = Env{
 
 var defaultMinTlsVersion = Env{
 	Key:          "MIN_TLS_VERSION",
-	DefaultValue: "TLS_1_3",
+	DefaultValue: TLS13,
+	Help:         "",
+}
+
+var defaultPassword = Env{
+	Key:          "QBITTORRENT_PASSWORD",
+	DefaultValue: "adminadmin",
+	Help:         "qBittorrent password is not set. Using default password",
+}
+
+var defaultQbitBasicAuthUsername = "QBITTORRENT_BASIC_AUTH_USERNAME"
+
+var defaultQbitBasicAuthPassword = "QBITTORRENT_BASIC_AUTH_PASSWORD"
+
+var defaultUsername = Env{
+	Key:          "QBITTORRENT_USERNAME",
+	DefaultValue: "admin",
+	Help:         "qBittorrent username is not set. Using default username",
+}
+
+var defaultTimeout = Env{
+	Key:          "QBITTORRENT_TIMEOUT",
+	DefaultValue: strconv.Itoa(DefaultTimeout),
 	Help:         "",
 }
 
@@ -141,15 +123,9 @@ func getEnv(env Env) string {
 	return env.DefaultValue
 }
 
-func getOptionalEnv(env Env) *string {
-	if value, ok := os.LookupEnv(env.Key); ok {
-		if value != "" {
-			return &value
-		}
-		return nil
+func getOptionalEnv(env string) *string {
+	if value, ok := os.LookupEnv(env); ok {
+		return &value
 	}
-	if env.Help != "" {
-		logger.Log.Warn(fmt.Sprintf("%s (%s)", env.Help, env.Key))
-	}
-	return &env.DefaultValue
+	return nil
 }
