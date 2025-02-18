@@ -47,6 +47,9 @@ type QBittorrentSettings struct {
 	Cookie   *string
 	Username string
 	Password string
+
+	// BasicAuth sets the Authorization header for requests to BaseUrl.
+	BasicAuth *BasicAuth
 }
 
 type ExperimentalFeatures struct {
@@ -80,6 +83,8 @@ func LoadEnv() {
 	qbitUsername := getEnv(defaultUsername)
 	qbitPassword := getEnv(defaultPassword)
 	baseUrl := strings.TrimSuffix(getEnv(defaultBaseUrl), "/")
+	qbitBasicAuthUsername := getOptionalEnv(defaultQbitBasicAuthUsername)
+	qbitBasicAuthPassword := getOptionalEnv(defaultQbitBasicAuthPassword)
 	exporterPortEnv := getEnv(defaultPort)
 	timeoutDurationEnv := getEnv(defaultTimeout)
 	enableTracker := getEnv(defaultDisableTracker)
@@ -179,11 +184,12 @@ func LoadEnv() {
 	internal.EnsureLeadingSlash(&exporterPath)
 
 	QBittorrent = QBittorrentSettings{
-		BaseUrl:  baseUrl,
-		Username: qbitUsername,
-		Password: qbitPassword,
-		Timeout:  time.Duration(timeoutDuration) * time.Second,
-		Cookie:   nil,
+		BaseUrl:   baseUrl,
+		Username:  qbitUsername,
+		Password:  qbitPassword,
+		Timeout:   time.Duration(timeoutDuration) * time.Second,
+		Cookie:    nil,
+		BasicAuth: getBasicAuth(qbitBasicAuthUsername, qbitBasicAuthPassword, defaultBasicAuthUsername, defaultBasicAuthPassword),
 	}
 
 	Exporter = ExporterSettings{

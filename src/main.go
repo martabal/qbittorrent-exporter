@@ -33,6 +33,9 @@ func main() {
 		envFileMessage = "Using .env"
 	}
 	logger.Log.Debug(envFileMessage)
+	if app.QBittorrent.BasicAuth != nil {
+		logger.Log.Info("Enabling qBittorrent Basic Auth request header.")
+	}
 	logger.Log.Info(fmt.Sprintf("qBittorrent URL: %s", app.QBittorrent.BaseUrl))
 	logger.Log.Info(fmt.Sprintf("username: %s", app.QBittorrent.Username))
 	password := app.GetPasswordMasked()
@@ -50,9 +53,9 @@ func main() {
 	}
 	if app.Exporter.BasicAuth != nil {
 		metrics = basicAuth(metrics)
-		logger.Log.Info("Using basic auth")
+		logger.Log.Info("Using basic auth to protect the exporter instance")
 	} else {
-		logger.Log.Trace("Not using basic auth")
+		logger.Log.Trace("Not using basic auth to protect the exporter instance")
 	}
 	http.HandleFunc(app.Exporter.Path, metrics)
 	addr := fmt.Sprintf(":%d", app.Exporter.Port)

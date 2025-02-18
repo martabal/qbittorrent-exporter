@@ -2,6 +2,7 @@ package qbit
 
 import (
 	"bytes"
+	"encoding/base64"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -139,6 +140,94 @@ func TestUnknownStatusCode(t *testing.T) {
 
 	if !strings.Contains(buff.String(), strconv.Itoa(http.StatusCreated)) {
 		t.Errorf("expected %d, got: %s", http.StatusCreated, buff.String())
+	}
+}
+
+func TestAuth_BasicAuthSuccess(t *testing.T) {
+	t.Cleanup(resetState)
+	httpBasicAuthUsername := "your-username"
+	httpBasicAuthPassword := "your-password"
+	password := "abc123"
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			t.Errorf("expected POST request, got %s", r.Method)
+		}
+
+		expectedAuth := "Basic " + base64.StdEncoding.EncodeToString([]byte(httpBasicAuthUsername+":"+httpBasicAuthPassword))
+		if r.Header.Get("Authorization") != expectedAuth {
+			t.Fatalf("Expected Authorization header %q, got %q", expectedAuth, r.Header.Get("Authorization"))
+		}
+
+		w.Header().Set("Set-Cookie", "SID=abc123; Path=/")
+		w.WriteHeader(http.StatusOK)
+		_, err := w.Write([]byte("Success"))
+		if err != nil {
+			panic(fmt.Sprintf("Error with the response %s", err.Error()))
+		}
+	}))
+	defer ts.Close()
+
+	app.QBittorrent.BaseUrl = ts.URL
+	app.QBittorrent.Username = "testuser"
+	app.QBittorrent.Password = "testpass"
+	app.QBittorrent.Timeout = defaultTimeout
+	app.QBittorrent.BasicAuth = &app.BasicAuth{
+		Username: httpBasicAuthUsername,
+		Password: httpBasicAuthPassword,
+	}
+
+	err := Auth()
+
+	if err != nil {
+		t.Errorf("There was an error: %s", err.Error())
+	}
+
+	if *app.QBittorrent.Cookie != password {
+		t.Errorf("expected cookie value to be 'abc123', got '%s'", *app.QBittorrent.Cookie)
+	}
+}
+
+func TestAuth_BasicAuthInvalidAuthentication(t *testing.T) {
+	t.Cleanup(resetState)
+	httpBasicAuthUsername := "wrong-username"
+	httpBasicAuthPassword := "wrong-password"
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			t.Errorf("expected POST request, got %s", r.Method)
+		}
+
+		expectedAuth := "Basic " + base64.StdEncoding.EncodeToString([]byte("your-username:your-password"))
+		if r.Header.Get("Authorization") != expectedAuth {
+			w.WriteHeader(http.StatusUnauthorized)
+			_, _ = w.Write([]byte("invalid auth"))
+			return
+		}
+
+		w.Header().Set("Set-Cookie", "SID=abc123; Path=/")
+		w.WriteHeader(http.StatusOK)
+		_, err := w.Write([]byte("Success"))
+		if err != nil {
+			panic(fmt.Sprintf("Error with the response %s", err.Error()))
+		}
+	}))
+	defer ts.Close()
+
+	app.QBittorrent.BaseUrl = ts.URL
+	app.QBittorrent.Username = "testuser"
+	app.QBittorrent.Password = "testpass"
+	app.QBittorrent.Timeout = defaultTimeout
+	app.QBittorrent.BasicAuth = &app.BasicAuth{
+		Username: httpBasicAuthUsername,
+		Password: httpBasicAuthPassword,
+	}
+
+	err := Auth()
+	if err == nil {
+		t.Fatalf("Expected error due to invalid authentication, but got nil")
+	}
+	// Use string matching to check the expected 401, until we update Auth() to return status-code or body.
+	if err.Error() != "authentication failed, status code: 401" {
+		t.Fatalf("Expected error to be 'authentication failed, status code: 401', but got %s", err)
 	}
 }
 

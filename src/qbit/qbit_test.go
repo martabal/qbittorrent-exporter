@@ -8,6 +8,7 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"crypto/x509/pkix"
+	"encoding/base64"
 	"errors"
 	"io"
 	"log"
@@ -214,6 +215,137 @@ func TestApiRequest_Non200Status(t *testing.T) {
 	}
 	if retry {
 		t.Fatalf("Expected reAuth to be false, got %v", retry)
+	}
+}
+
+func TestApiRequest_WithRequestAuthorization_Success(t *testing.T) {
+	setupMockApp()
+	httpBasicAuthUsername := "your-username"
+	httpBasicAuthPassword := "your-password"
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		expectedAuth := "Basic " + base64.StdEncoding.EncodeToString([]byte(httpBasicAuthUsername+":"+httpBasicAuthPassword))
+		if r.Header.Get("Authorization") != expectedAuth {
+			t.Fatalf("Expected Authorization header %q, got %q", expectedAuth, r.Header.Get("Authorization"))
+		}
+
+		// Respond with success
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte("basic auth success"))
+	}))
+	defer server.Close()
+
+	// Set base URL with mock server
+	app.QBittorrent.BaseUrl = server.URL
+	app.QBittorrent.BasicAuth = &app.BasicAuth{
+		Username: httpBasicAuthUsername,
+		Password: httpBasicAuthPassword,
+	}
+
+	url := createUrl("/test")
+
+	body, retry, err := apiRequest(url, http.MethodGet, nil)
+	if err != nil {
+		t.Fatalf("Expected no error, got %v", err)
+	}
+	if retry {
+		t.Fatalf("Expected no retry, got %v", retry)
+	}
+	if string(body) != "basic auth success" {
+		t.Fatalf("Expected body to be 'basic auth success', got %s", body)
+	}
+}
+
+func TestApiRequest_ServerWithoutAuthRequirement(t *testing.T) {
+	setupMockApp()
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Auth header should be ignored, server doesn't require authentication
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte("no auth needed"))
+	}))
+	defer server.Close()
+
+	app.QBittorrent.BaseUrl = server.URL
+	httpBasicAuthUsername := "user"
+	httpBasicAuthPassword := "pass"
+	app.QBittorrent.BasicAuth = &app.BasicAuth{
+		Username: httpBasicAuthUsername,
+		Password: httpBasicAuthPassword,
+	}
+
+	url := createUrl("/test")
+
+	body, retry, err := apiRequest(url, http.MethodGet, nil)
+	if err != nil {
+		t.Fatalf("Expected no error, got %v", err)
+	}
+	if retry {
+		t.Fatalf("Expected no retry, got %v", retry)
+	}
+	if string(body) != "no auth needed" {
+		t.Fatalf("Expected body to be 'no auth needed', got %s", body)
+	}
+}
+
+func TestApiRequest_EmptyCredentials(t *testing.T) {
+	setupMockApp()
+	httpBasicAuthUsername := ""
+	httpBasicAuthPassword := ""
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusUnauthorized)
+	}))
+	defer server.Close()
+
+	app.QBittorrent.BaseUrl = server.URL
+	app.QBittorrent.BasicAuth = &app.BasicAuth{
+		Username: httpBasicAuthUsername,
+		Password: httpBasicAuthPassword,
+	}
+
+	url := createUrl("/test")
+
+	_, retry, err := apiRequest(url, http.MethodGet, nil)
+	if err == nil {
+		t.Fatalf("Expected error due to empty credentials, but got nil")
+	}
+	if retry {
+		t.Fatalf("Expected no retry when authentication failure, but got retry=%v", retry)
+	}
+}
+
+func TestApiRequest_InvalidAuthorization(t *testing.T) {
+	setupMockApp()
+	httpBasicAuthUsername := "wrong-user"
+	httpBasicAuthPassword := "wrong-pass"
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		expectedAuth := "Basic " + base64.StdEncoding.EncodeToString([]byte("your-username:your-password"))
+		if r.Header.Get("Authorization") != expectedAuth {
+			w.WriteHeader(http.StatusUnauthorized)
+			_, _ = w.Write([]byte("invalid auth"))
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte("basic auth success"))
+	}))
+	defer server.Close()
+
+	app.QBittorrent.BaseUrl = server.URL
+	app.QBittorrent.BasicAuth = &app.BasicAuth{
+		Username: httpBasicAuthUsername,
+		Password: httpBasicAuthPassword,
+	}
+
+	url := createUrl("/test")
+
+	_, retry, err := apiRequest(url, http.MethodGet, nil)
+	if err == nil {
+		t.Fatalf("Expected error due to invalid authentication, but got nil")
+	}
+	if retry {
+		t.Fatalf("Expected no retry when authentication failure, but got retry=%v", retry)
 	}
 }
 
