@@ -220,7 +220,6 @@ func TestApiRequest_Non200Status(t *testing.T) {
 
 func TestApiRequest_WithRequestAuthorization_Success(t *testing.T) {
 	setupMockApp()
-	app.Exporter.Features.EnableBasicAuthRequestHeader = true
 	httpBasicAuthUsername := "your-username"
 	httpBasicAuthPassword := "your-password"
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -258,7 +257,6 @@ func TestApiRequest_WithRequestAuthorization_Success(t *testing.T) {
 
 func TestApiRequest_ServerWithoutAuthRequirement(t *testing.T) {
 	setupMockApp()
-	app.Exporter.Features.EnableBasicAuthRequestHeader = true
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Auth header should be ignored, server doesn't require authentication
@@ -291,7 +289,6 @@ func TestApiRequest_ServerWithoutAuthRequirement(t *testing.T) {
 
 func TestApiRequest_EmptyCredentials(t *testing.T) {
 	setupMockApp()
-	app.Exporter.Features.EnableBasicAuthRequestHeader = true
 	httpBasicAuthUsername := ""
 	httpBasicAuthPassword := ""
 
@@ -319,7 +316,6 @@ func TestApiRequest_EmptyCredentials(t *testing.T) {
 
 func TestApiRequest_InvalidAuthorization(t *testing.T) {
 	setupMockApp()
-	app.Exporter.Features.EnableBasicAuthRequestHeader = true
 	httpBasicAuthUsername := "wrong-user"
 	httpBasicAuthPassword := "wrong-pass"
 

@@ -145,7 +145,6 @@ func TestUnknownStatusCode(t *testing.T) {
 
 func TestAuth_BasicAuthSuccess(t *testing.T) {
 	t.Cleanup(resetState)
-	app.Exporter.Features.EnableBasicAuthRequestHeader = true
 	httpBasicAuthUsername := "your-username"
 	httpBasicAuthPassword := "your-password"
 	password := "abc123"
@@ -190,7 +189,6 @@ func TestAuth_BasicAuthSuccess(t *testing.T) {
 
 func TestAuth_BasicAuthInvalidAuthentication(t *testing.T) {
 	t.Cleanup(resetState)
-	app.Exporter.Features.EnableBasicAuthRequestHeader = true
 	httpBasicAuthUsername := "wrong-username"
 	httpBasicAuthPassword := "wrong-password"
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
