@@ -37,7 +37,6 @@ docker run --name=qbittorrent-exporter \
 ### Docker-compose
 
 ```yaml
-version: "2.1"
 services:
   qbittorrent-exporter:
     image: ghcr.io/martabal/qbittorrent-exporter:latest
