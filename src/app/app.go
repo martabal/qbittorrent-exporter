@@ -263,14 +263,14 @@ func getBasicAuth(basicAuthUsername *string, basicAuthPassword *string, defaultB
 		if basicAuthUsername != nil {
 			username = *basicAuthUsername
 		} else {
-			logger.Log.Info(fmt.Sprintf("You set a basic auth username but not password (check %s and %s)",
+			logger.Log.Info(fmt.Sprintf("You set a basic auth password but not username (check %s and %s)",
 				defaultBasicAuth, defaultBasicAuth))
 		}
 
 		if basicAuthPassword != nil {
 			password = *basicAuthPassword
 		} else {
-			logger.Log.Info(fmt.Sprintf("You set a basic auth password but not username (check %s and %s)",
+			logger.Log.Info(fmt.Sprintf("You set a basic auth username but not password (check %s and %s)",
 				defaultBasicPassword, defaultBasicPassword))
 		}
 
