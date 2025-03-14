@@ -1,13 +1,22 @@
 package prom
 
 import (
+	"bytes"
+	"log/slog"
 	API "qbit-exp/api"
 	app "qbit-exp/app"
+	"qbit-exp/logger"
 	"testing"
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
 )
+
+var buff = &bytes.Buffer{}
+
+func init() {
+	logger.Log = &logger.Logger{Logger: slog.New(slog.NewTextHandler(buff, &slog.HandlerOptions{}))}
+}
 
 func TestMain(t *testing.T) {
 	app.QBittorrent = app.QBittorrentSettings{
@@ -209,7 +218,6 @@ func TestTorrent(t *testing.T) {
 		"qbittorrent_torrent_session_uploaded_bytes":   100000000,
 		"qbittorrent_torrent_total_downloaded_bytes":   1000000000,
 		"qbittorrent_torrent_total_uploaded_bytes":     500000000,
-		"qbittorrent_torrent_states":                   1,
 		"qbittorrent_global_torrents":                  1,
 	}
 
