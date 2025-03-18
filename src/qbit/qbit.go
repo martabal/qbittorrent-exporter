@@ -227,7 +227,7 @@ func AllRequests(r *prometheus.Registry) error {
 	if err != nil {
 		return err
 	}
-	newc := make(chan func() (bool, error), len(otherAPIRequests))
+	c := make(chan func() (bool, error), len(otherAPIRequests))
 	processData := func(data *Data) {
 		defer wg.Done()
 		defer func() {
@@ -235,7 +235,7 @@ func AllRequests(r *prometheus.Registry) error {
 				logger.Log.Error(fmt.Sprintf("Recovered panic: %s", r))
 			}
 		}()
-		getData(r, data, &webUIVersion, newc)
+		getData(r, data, &webUIVersion, c)
 	}
 	for _, request := range otherAPIRequests {
 		wg.Add(1)
@@ -243,10 +243,10 @@ func AllRequests(r *prometheus.Registry) error {
 	}
 	go func() {
 		wg.Wait()
-		close(newc)
+		close(c)
 	}()
 
-	for respFunc := range newc {
+	for respFunc := range c {
 		_, err := respFunc()
 		if err != nil {
 			return err
