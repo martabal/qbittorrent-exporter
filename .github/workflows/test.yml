@@ -48,7 +48,7 @@ jobs:
         uses: dominikh/staticcheck-action@v1
         if: ${{ !cancelled() }}
         with:
-          version: v0.6.0
+          version: v0.6.1
           install-go: false
           working-directory: src
 
@@ -56,5 +56,5 @@ jobs:
         uses: golangci/golangci-lint-action@v6
         if: ${{ !cancelled() }}
         with:
-          version: v1.64.6
+          version: v1.64.8
           working-directory: src
