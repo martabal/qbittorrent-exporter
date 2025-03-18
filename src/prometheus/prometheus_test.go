@@ -201,7 +201,9 @@ func TestTorrent(t *testing.T) {
 
 	registry := prometheus.NewRegistry()
 
-	Torrent(mockInfo, registry)
+	webuiversion := "2.11.2"
+
+	Torrent(mockInfo, &webuiversion, registry)
 
 	expectedMetrics := map[string]float64{
 		"qbittorrent_torrent_eta":                      120,

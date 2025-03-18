@@ -38,15 +38,22 @@ type UniqueTracker struct {
 const unmarshError = "Can not unmarshal JSON for"
 
 const (
-	RefQbitVersion = "qbitversion"
-	RefPreference  = "preference"
-	RefInfo        = "info"
-	RefTransfer    = "transfer"
-	RefMainData    = "maindata"
-	RefTracker     = "tracker"
+	RefQbitVersion  = "qbitversion"
+	RefPreference   = "preference"
+	RefInfo         = "info"
+	RefTransfer     = "transfer"
+	RefMainData     = "maindata"
+	RefTracker      = "tracker"
+	RefWebUIVersion = "webuiversion"
 )
 
 var info = []Data{
+	{
+		URL:         "/api/v2/app/webapiVersion",
+		HTTPMethod:  http.MethodGet,
+		Ref:         RefWebUIVersion,
+		QueryParams: nil,
+	},
 	{
 		URL:         "/api/v2/app/version",
 		HTTPMethod:  http.MethodGet,
@@ -86,7 +93,7 @@ func createUrl(url string) string {
 	return app.QBittorrent.BaseUrl + url
 }
 
-func getData(r *prometheus.Registry, data *Data, c chan func() (bool, error)) {
+func getData(r *prometheus.Registry, data *Data, webUIVersion *string, c chan func() (bool, error)) {
 	url := createUrl(data.URL)
 	body, retry, err := apiRequest(url, data.HTTPMethod, data.QueryParams)
 	if retry {
@@ -111,7 +118,7 @@ func getData(r *prometheus.Registry, data *Data, c chan func() (bool, error)) {
 	case RefInfo:
 		result := new(API.Info)
 		if handleUnmarshal(result, body) {
-			prom.Torrent(result, r)
+			prom.Torrent(result, webUIVersion, r)
 			if app.Exporter.Features.EnableTracker {
 				getTrackers(result, r)
 			}
@@ -209,20 +216,14 @@ func getTrackers(torrentList *API.Info, r *prometheus.Registry) {
 
 func AllRequests(r *prometheus.Registry) error {
 	var wg sync.WaitGroup
-	c := make(chan func() (bool, error), 1)
-	defer close(c)
-
-	retry, err := func() (bool, error) {
-		getData(r, &firstAPIRequest, c)
-		return (<-c)()
-	}()
+	firstRequestUrl := createUrl(firstAPIRequest.URL)
+	webUIVersionBytes, retry, err := apiRequest(firstRequestUrl, firstAPIRequest.HTTPMethod, firstAPIRequest.QueryParams)
 	if retry {
 		logger.Log.Debug("Retrying ...")
-		_, err = func() (bool, error) {
-			getData(r, &info[0], c)
-			return (<-c)()
-		}()
+		webUIVersionBytes, _, err = apiRequest(firstRequestUrl, firstAPIRequest.HTTPMethod, firstAPIRequest.QueryParams)
 	}
+	webUIVersion := string(webUIVersionBytes)
+	logger.Log.Trace(fmt.Sprintf("WebUI API version: %s", webUIVersion))
 	if err != nil {
 		return err
 	}
@@ -234,7 +235,7 @@ func AllRequests(r *prometheus.Registry) error {
 				logger.Log.Error(fmt.Sprintf("Recovered panic: %s", r))
 			}
 		}()
-		getData(r, data, newc)
+		getData(r, data, &webUIVersion, newc)
 	}
 	for _, request := range otherAPIRequests {
 		wg.Add(1)
