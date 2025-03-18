@@ -94,7 +94,6 @@ const (
 	stateError              = "error"
 	stateMissingFiles       = "missingFiles"
 	stateUploading          = "uploading"
-	statePausedUP           = "pausedUP"
 	stateQueuedUP           = "queuedUP"
 	stateStalledUP          = "stalledUP"
 	stateCheckingUP         = "checkingUP"
@@ -102,7 +101,6 @@ const (
 	stateAllocating         = "allocating"
 	stateDownloading        = "downloading"
 	stateMetaDL             = "metaDL"
-	statePausedDL           = "pausedDL"
 	stateQueuedDL           = "queuedDL"
 	stateStalledDL          = "stalledDL"
 	stateCheckingDL         = "checkingDL"
@@ -110,6 +108,18 @@ const (
 	stateCheckingResumeData = "checkingResumeData"
 	stateMoving             = "moving"
 	stateUnknown            = "unknown"
+)
+
+// Web API >= v2.11.0
+const (
+	stateStoppedUP = "stoppedUP"
+	stateStoppedDL = "stoppedDL"
+)
+
+// Web API < v2.11.0
+const (
+	statePausedUP = "pausedUP"
+	statePausedDL = "pausedDL"
 )
 
 func Version(result *[]byte, r *prometheus.Registry) {
@@ -124,7 +134,7 @@ func Version(result *[]byte, r *prometheus.Registry) {
 	qbittorrent_app_version.Set(1)
 }
 
-func Torrent(result *API.Info, r *prometheus.Registry) {
+func Torrent(result *API.Info, webUIVersion *string, r *prometheus.Registry) {
 
 	var (
 		torrentEta               = createMetricName(metricNameTorrent, torrentLabelEta)
@@ -195,7 +205,6 @@ func Torrent(result *API.Info, r *prometheus.Registry) {
 		stateError:              0.0,
 		stateMissingFiles:       0.0,
 		stateUploading:          0.0,
-		statePausedUP:           0.0,
 		stateQueuedUP:           0.0,
 		stateStalledUP:          0.0,
 		stateCheckingUP:         0.0,
@@ -203,7 +212,6 @@ func Torrent(result *API.Info, r *prometheus.Registry) {
 		stateAllocating:         0.0,
 		stateDownloading:        0.0,
 		stateMetaDL:             0.0,
-		statePausedDL:           0.0,
 		stateQueuedDL:           0.0,
 		stateStalledDL:          0.0,
 		stateCheckingDL:         0.0,
@@ -211,6 +219,14 @@ func Torrent(result *API.Info, r *prometheus.Registry) {
 		stateCheckingResumeData: 0.0,
 		stateMoving:             0.0,
 		stateUnknown:            0.0,
+	}
+	stateRenamed := "2.11.0"
+	if result := internal.CompareSemVer(webUIVersion, &stateRenamed); result == 1 || result == 0 {
+		countStates[stateStoppedUP] = 0.0
+		countStates[stateStoppedDL] = 0.0
+	} else {
+		countStates[statePausedUP] = 0.0
+		countStates[statePausedDL] = 0.0
 	}
 	countTotal := 0.0
 	for _, torrent := range *result {
