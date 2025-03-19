@@ -35,93 +35,96 @@ type GaugeSet []struct {
 }
 
 const (
-	labelName = "name"
+	labelName string = "name"
 
-	labelDownloaded = "downloaded"
-	labelSeeders    = "seeders"
+	labelDownloaded string = "downloaded"
+	labelSeeders    string = "seeders"
 
-	torrentLabelAmountLeft             = "amount_left"
-	torrentLabelAmountLeftBytes        = "amount_left_bytes"
-	torrentLabelCategory               = "category"
-	torrentLabelConnectionStatus       = "connection_status"
-	torrentLabelDlSpeed                = "dl_speed"
-	torrentLabelDownloadedSession      = "downloaded_session"
-	torrentLabelDownloadSpeed          = "download_speed_bytes"
-	torrentLabelEta                    = "eta"
-	torrentLabelHash                   = "hash"
-	torrentLabelInfo                   = "info"
-	torrentLabelLeechers               = "leechers"
-	torrentLabelMaxRatio               = "max_ratio"
-	torrentLabelTag                    = "tag"
-	torrentLabelTags                   = "tags"
-	torrentLabelProgress               = "progress"
-	torrentLabelRatio                  = "ratio"
-	torrentLabelSeeders                = "seeders"
-	torrentLabelSessionDownloadedBytes = "session_downloaded_bytes"
-	torrentLabelSessionUploadedBytes   = "session_uploaded_bytes"
-	torrentLabelSize                   = "size"
-	torrentLabelSizeBytes              = "size_bytes"
-	torrentLabelState                  = "state"
-	torrentLabelStates                 = "states"
-	torrentLabelTimeActive             = "time_active"
-	torrentLabelTorrents               = "torrents"
-	torrentLabelTotalDownloaded        = "total_downloaded_bytes"
-	torrentLabelTotalUploaded          = "total_uploaded_bytes"
-	torrentLabelTracker                = "tracker"
-	torrentLabelTransfer               = "transfer"
-	torrentLabelUploaded               = "uploaded"
-	torrentLabelUploadedSession        = "uploaded_session"
-	torrentLabelUploadSpeed            = "upload_speed_bytes"
-	torrentLabelUpSpeed                = "up_speed"
+	torrentLabelAmountLeft             string = "amount_left"
+	torrentLabelAmountLeftBytes        string = "amount_left_bytes"
+	torrentLabelCategory               string = "category"
+	torrentLabelConnectionStatus       string = "connection_status"
+	torrentLabelDlSpeed                string = "dl_speed"
+	torrentLabelDownloadedSession      string = "downloaded_session"
+	torrentLabelDownloadSpeed          string = "download_speed_bytes"
+	torrentLabelEta                    string = "eta"
+	torrentLabelHash                   string = "hash"
+	torrentLabelInfo                   string = "info"
+	torrentLabelLeechers               string = "leechers"
+	torrentLabelMaxRatio               string = "max_ratio"
+	torrentLabelTag                    string = "tag"
+	torrentLabelTags                   string = "tags"
+	torrentLabelProgress               string = "progress"
+	torrentLabelRatio                  string = "ratio"
+	torrentLabelSeeders                string = "seeders"
+	torrentLabelSessionDownloadedBytes string = "session_downloaded_bytes"
+	torrentLabelSessionUploadedBytes   string = "session_uploaded_bytes"
+	torrentLabelSize                   string = "size"
+	torrentLabelSizeBytes              string = "size_bytes"
+	torrentLabelState                  string = "state"
+	torrentLabelStates                 string = "states"
+	torrentLabelTimeActive             string = "time_active"
+	torrentLabelTorrents               string = "torrents"
+	torrentLabelTotalDownloaded        string = "total_downloaded_bytes"
+	torrentLabelTotalUploaded          string = "total_uploaded_bytes"
+	torrentLabelTracker                string = "tracker"
+	torrentLabelTransfer               string = "transfer"
+	torrentLabelUploaded               string = "uploaded"
+	torrentLabelUploadedSession        string = "uploaded_session"
+	torrentLabelUploadSpeed            string = "upload_speed_bytes"
+	torrentLabelUpSpeed                string = "up_speed"
 
-	trackerLabelURL     = "url"
-	trackerLabelMessage = "message"
-	trackerLabelLeeches = "leeches"
-	trackerLabelPeers   = "peers"
-	trackerLabelStatus  = "status"
-	trackerLabelTier    = "tier"
+	trackerLabelURL     string = "url"
+	trackerLabelMessage string = "message"
+	trackerLabelLeeches string = "leeches"
+	trackerLabelPeers   string = "peers"
+	trackerLabelStatus  string = "status"
+	trackerLabelTier    string = "tier"
 )
 
-const metricPrefix = "qbittorrent"
+const metricPrefix string = "qbittorrent"
 const (
-	metricNameTorrent = "torrent"
-	metricNameTracker = "tracker"
-	metricNameGlobal  = "global"
-	metricNameApp     = "app"
+	metricNameTorrent string = "torrent"
+	metricNameTracker string = "tracker"
+	metricNameGlobal  string = "global"
+	metricNameApp     string = "app"
 )
 
 const (
-	stateError              = "error"
-	stateMissingFiles       = "missingFiles"
-	stateUploading          = "uploading"
-	stateQueuedUP           = "queuedUP"
-	stateStalledUP          = "stalledUP"
-	stateCheckingUP         = "checkingUP"
-	stateForcedUP           = "forcedUP"
-	stateAllocating         = "allocating"
-	stateDownloading        = "downloading"
-	stateMetaDL             = "metaDL"
-	stateQueuedDL           = "queuedDL"
-	stateStalledDL          = "stalledDL"
-	stateCheckingDL         = "checkingDL"
-	stateForcedDL           = "forcedDL"
-	stateCheckingResumeData = "checkingResumeData"
-	stateMoving             = "moving"
-	stateUnknown            = "unknown"
+	stateError              string = "error"
+	stateMissingFiles       string = "missingFiles"
+	stateUploading          string = "uploading"
+	stateQueuedUP           string = "queuedUP"
+	stateStalledUP          string = "stalledUP"
+	stateCheckingUP         string = "checkingUP"
+	stateForcedUP           string = "forcedUP"
+	stateAllocating         string = "allocating"
+	stateDownloading        string = "downloading"
+	stateMetaDL             string = "metaDL"
+	stateQueuedDL           string = "queuedDL"
+	stateStalledDL          string = "stalledDL"
+	stateCheckingDL         string = "checkingDL"
+	stateForcedDL           string = "forcedDL"
+	stateCheckingResumeData string = "checkingResumeData"
+	stateMoving             string = "moving"
+	stateUnknown            string = "unknown"
 )
 
-var stateRenamed = "2.11.0"
+// Reference the API changes
+const (
+	stateRenamed string = "2.11.0" // https://qbittorrent-api.readthedocs.io/en/latest/apidoc/definitions.html#qbittorrentapi.definitions.TorrentState
+)
 
 // Web API >= v2.11.0
 const (
-	stateStoppedUP = "stoppedUP"
-	stateStoppedDL = "stoppedDL"
+	stateStoppedUP string = "stoppedUP"
+	stateStoppedDL string = "stoppedDL"
 )
 
 // Web API < v2.11.0
 const (
-	statePausedUP = "pausedUP"
-	statePausedDL = "pausedDL"
+	statePausedUP string = "pausedUP"
+	statePausedDL string = "pausedDL"
 )
 
 func Version(result *[]byte, r *prometheus.Registry) {
@@ -223,7 +226,7 @@ func Torrent(result *API.Info, webUIVersion *string, r *prometheus.Registry) {
 		stateUnknown:            0.0,
 	}
 
-	if result := internal.CompareSemVer(webUIVersion, &stateRenamed); result == 1 || result == 0 {
+	if result := internal.CompareSemVer(*webUIVersion, stateRenamed); result == 1 || result == 0 {
 		countStates[stateStoppedUP] = 0.0
 		countStates[stateStoppedDL] = 0.0
 	} else {

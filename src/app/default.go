@@ -13,12 +13,12 @@ type Env struct {
 	Help         string
 }
 
-const defaultExporterPort = 8090
-const DefaultTimeout = 30
-const defaultExporterPath = "/metrics"
+const defaultExporterPort int = 8090
+const DefaultTimeout int = 30
+const defaultExporterPath string = "/metrics"
 
-const TLS12 = "TLS_1_2"
-const TLS13 = "TLS_1_3"
+const TLS12 string = "TLS_1_2"
+const TLS13 string = "TLS_1_3"
 
 // Exporter
 

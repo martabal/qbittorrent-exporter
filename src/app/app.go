@@ -16,7 +16,7 @@ import (
 	"github.com/joho/godotenv"
 )
 
-const devVersion = "dev"
+const devVersion string = "dev"
 
 var (
 	version     = devVersion

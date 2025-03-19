@@ -23,9 +23,9 @@ func EnsureLeadingSlash(input *string) {
 	}
 }
 
-func CompareSemVer(v1, v2 *string) int {
-	v1Parts := strings.Split(*v1, ".")
-	v2Parts := strings.Split(*v2, ".")
+func CompareSemVer(v1, v2 string) int {
+	v1Parts := strings.Split(v1, ".")
+	v2Parts := strings.Split(v2, ".")
 
 	for i := 0; i < len(v1Parts) || i < len(v2Parts); i++ {
 		var n1 int

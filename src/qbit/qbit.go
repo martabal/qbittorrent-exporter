@@ -35,16 +35,16 @@ type UniqueTracker struct {
 	Hash    string
 }
 
-const unmarshError = "Can not unmarshal JSON for"
+const unmarshError string = "Can not unmarshal JSON for"
 
 const (
-	RefQbitVersion  = "qbitversion"
-	RefPreference   = "preference"
-	RefInfo         = "info"
-	RefTransfer     = "transfer"
-	RefMainData     = "maindata"
-	RefTracker      = "tracker"
-	RefWebUIVersion = "webuiversion"
+	RefQbitVersion  string = "qbitversion"
+	RefPreference   string = "preference"
+	RefInfo         string = "info"
+	RefTransfer     string = "transfer"
+	RefMainData     string = "maindata"
+	RefTracker      string = "tracker"
+	RefWebUIVersion string = "webuiversion"
 )
 
 var info = []Data{

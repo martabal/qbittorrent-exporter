@@ -138,7 +138,7 @@ func TestCompareSemVer(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.v1+"_"+tt.v2, func(t *testing.T) {
-			result := CompareSemVer(&tt.v1, &tt.v2)
+			result := CompareSemVer(tt.v1, tt.v2)
 			if result != tt.expected {
 				t.Errorf("compareSemVer(%q, %q) = %d; want %d", tt.v1, tt.v2, result, tt.expected)
 			}

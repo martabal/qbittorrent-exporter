@@ -50,12 +50,12 @@ const (
 )
 
 const (
-	Reset  = "\033[0m"
-	Red    = "\033[31m"
-	Green  = "\033[32m"
-	Yellow = "\033[33m"
-	Blue   = "\033[34m"
-	Purple = "\033[35m"
+	Reset  string = "\033[0m"
+	Red    string = "\033[31m"
+	Green  string = "\033[32m"
+	Yellow string = "\033[33m"
+	Blue   string = "\033[34m"
+	Purple string = "\033[35m"
 )
 
 func (h *PrettyHandler) Handle(ctx context.Context, r slog.Record) error {
