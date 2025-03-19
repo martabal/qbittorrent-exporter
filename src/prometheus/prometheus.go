@@ -110,6 +110,8 @@ const (
 	stateUnknown            = "unknown"
 )
 
+var stateRenamed = "2.11.0"
+
 // Web API >= v2.11.0
 const (
 	stateStoppedUP = "stoppedUP"
@@ -220,7 +222,7 @@ func Torrent(result *API.Info, webUIVersion *string, r *prometheus.Registry) {
 		stateMoving:             0.0,
 		stateUnknown:            0.0,
 	}
-	stateRenamed := "2.11.0"
+
 	if result := internal.CompareSemVer(webUIVersion, &stateRenamed); result == 1 || result == 0 {
 		countStates[stateStoppedUP] = 0.0
 		countStates[stateStoppedDL] = 0.0

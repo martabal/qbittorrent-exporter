@@ -155,3 +155,7 @@ scrape_configs:
     static_configs:
       - targets: ["<your_ip_address>:8090"]
 ```
+
+### Contribute
+
+Contributions are welcome! To get started, copy and rename the `.env.example` file to `.env`, move it to the `src` folder, and run `make dev` from the root directory.
