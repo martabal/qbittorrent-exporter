@@ -42,7 +42,11 @@ func Auth() error {
 		return err
 	}
 
-	defer resp.Body.Close()
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			logger.Log.Error(fmt.Sprintf("Error closing body %v", err))
+		}
+	}()
 
 	if resp.StatusCode != http.StatusOK {
 		err := fmt.Errorf("authentication failed, status code: %d", resp.StatusCode)

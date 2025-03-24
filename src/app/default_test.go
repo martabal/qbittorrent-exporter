@@ -2,6 +2,7 @@ package app
 
 import (
 	"bytes"
+	"fmt"
 	"log/slog"
 	"os"
 	"strconv"
@@ -20,8 +21,14 @@ func init() {
 func TestGetEnvReturnsEnvValue(t *testing.T) {
 	envVar := "EXPORTER_PORT"
 	expectedValue := "9090"
-	os.Setenv(envVar, expectedValue)
-	defer os.Unsetenv(envVar)
+	if err := os.Setenv(envVar, expectedValue); err != nil {
+		panic(fmt.Sprintf("Error setting %s: %s", envVar, expectedValue))
+	}
+	defer func() {
+		if err := os.Unsetenv(envVar); err != nil {
+			t.Fatalf("Error unsetting %s: %v", envVar, err)
+		}
+	}()
 	value, _ := getEnv(defaultPort)
 
 	if value != expectedValue {
@@ -32,7 +39,11 @@ func TestGetEnvReturnsEnvValue(t *testing.T) {
 func TestGetEnvReturnsDefaultWhenEnvNotSet(t *testing.T) {
 	envVar := "EXPORTER_PORT"
 	expectedValue := strconv.Itoa(defaultExporterPort)
-	os.Unsetenv(envVar)
+	defer func() {
+		if err := os.Unsetenv(envVar); err != nil {
+			t.Fatalf("Error unsetting %s: %v", envVar, err)
+		}
+	}()
 	value, _ := getEnv(defaultPort)
 
 	if value != expectedValue {
@@ -42,7 +53,9 @@ func TestGetEnvReturnsDefaultWhenEnvNotSet(t *testing.T) {
 
 func TestGetEnvLogsWarningIfHelpMessagePresent(t *testing.T) {
 	envVar := "QBITTORRENT_USERNAME"
-	os.Unsetenv(envVar)
+	if err := os.Unsetenv(envVar); err != nil {
+		t.Fatalf("Error unsetting %s: %v", envVar, err)
+	}
 	expectedLogMessage := defaultUsername.Help
 	getEnv(defaultUsername)
 
@@ -71,7 +84,9 @@ func TestGetEnvWithDifferentDefaults(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			os.Unsetenv(tt.env.Key)
+			if err := os.Unsetenv(tt.env.Key); err != nil {
+				t.Fatalf("Error unsetting %s: %v", tt.env.Key, err)
+			}
 			value, _ := getEnv(tt.env)
 			if value != tt.expectedValue {
 				t.Errorf("Expected %s, got %s", tt.expectedValue, value)
@@ -93,7 +108,7 @@ func TestGetEnvReturnsBooleanValues(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.envVar.Key, func(t *testing.T) {
-			cleanup := setAndClearEnv(tt.envVar.Key, tt.setValue)
+			cleanup := setAndClearEnv(tt.envVar.Key, tt.setValue, t)
 			defer cleanup()
 
 			value, _ := getEnv(tt.envVar)
@@ -106,8 +121,14 @@ func TestGetEnvReturnsBooleanValues(t *testing.T) {
 
 func TestGetEnvHandlesEmptyEnvVarGracefully(t *testing.T) {
 	envVar := "QBITTORRENT_USERNAME"
-	os.Setenv(envVar, "")
-	defer os.Unsetenv(envVar)
+	if err := os.Setenv(envVar, ""); err != nil {
+		panic(fmt.Sprintf("Error setting %s: %s", envVar, ""))
+	}
+	defer func() {
+		if err := os.Unsetenv(envVar); err != nil {
+			t.Fatalf("Error unsetting %s: %v", envVar, err)
+		}
+	}()
 	expectedValue := defaultUsername.DefaultValue
 
 	value, _ := getEnv(defaultUsername)
@@ -131,7 +152,9 @@ func TestGetEnvLogsWarningsCorrectly(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			os.Unsetenv(tt.env.Key)
+			if err := os.Unsetenv(tt.env.Key); err != nil {
+				t.Fatalf("Error unsetting %s: %v", tt.env.Key, err)
+			}
 
 			getEnv(tt.env)
 
@@ -142,9 +165,13 @@ func TestGetEnvLogsWarningsCorrectly(t *testing.T) {
 	}
 }
 
-func setAndClearEnv(key, value string) func() {
-	os.Setenv(key, value)
+func setAndClearEnv(key, value string, t *testing.T) func() {
+	if err := os.Setenv(key, value); err != nil {
+		panic(fmt.Sprintf("Error setting %s: %s", key, value))
+	}
 	return func() {
-		os.Unsetenv(key)
+		if err := os.Unsetenv(key); err != nil {
+			t.Fatalf("Error unsetting %s: %v", key, err)
+		}
 	}
 }

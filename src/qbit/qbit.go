@@ -306,8 +306,11 @@ func apiRequest(url string, method string, queryParams *[]QueryParams) ([]byte, 
 		logger.Log.Error(err.Error())
 		return nil, false, err
 	}
-
-	defer resp.Body.Close()
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			logger.Log.Error(fmt.Sprintf("Error closing body %v", err))
+		}
+	}()
 
 	switch resp.StatusCode {
 	case http.StatusOK:

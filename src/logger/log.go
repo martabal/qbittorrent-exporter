@@ -71,7 +71,9 @@ func (h *PrettyHandler) Handle(ctx context.Context, r slog.Record) error {
 		output = os.Stderr
 	}
 
-	fmt.Fprintf(output, "%s %s %s\n", timeStr, coloredLevel, r.Message)
+	if _, err := fmt.Fprintf(output, "%s %s %s\n", timeStr, coloredLevel, r.Message); err != nil {
+		fmt.Printf("Can't write log %s\n", err)
+	}
 
 	return nil
 }
