@@ -8,7 +8,10 @@ const ErrorConnect string = "Can't connect to qBittorrent"
 
 type Info []struct {
 	AmountLeft        int64   `json:"amount_left"`
+	AddedOn           int64   `json:"added_on"`
 	Category          string  `json:"category"`
+	Comment           string  `json:"comment"`
+	CompletedOn       int64   `json:"completed_on"`
 	Dlspeed           int64   `json:"dlspeed"`
 	Downloaded        int64   `json:"downloaded"`
 	DownloadedSession int64   `json:"downloaded_session"`
@@ -20,6 +23,7 @@ type Info []struct {
 	NumSeeds          int64   `json:"num_seeds"`
 	Progress          float64 `json:"progress"`
 	Ratio             float64 `json:"ratio"`
+	SavePath          string  `json:"save_path"`
 	Size              int64   `json:"size"`
 	State             string  `json:"state"`
 	Tags              string  `json:"tags"`

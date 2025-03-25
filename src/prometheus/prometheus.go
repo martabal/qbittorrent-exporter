@@ -40,9 +40,12 @@ const (
 	labelDownloaded string = "downloaded"
 	labelSeeders    string = "seeders"
 
+	torrentLabelAddedOn                string = "added_on"
 	torrentLabelAmountLeft             string = "amount_left"
 	torrentLabelAmountLeftBytes        string = "amount_left_bytes"
 	torrentLabelCategory               string = "category"
+	torrentLabelComment                string = "comment"
+	torrentLabelCompletedOn            string = "completed_on"
 	torrentLabelConnectionStatus       string = "connection_status"
 	torrentLabelDlSpeed                string = "dl_speed"
 	torrentLabelDownloadedSession      string = "downloaded_session"
@@ -56,6 +59,7 @@ const (
 	torrentLabelTags                   string = "tags"
 	torrentLabelProgress               string = "progress"
 	torrentLabelRatio                  string = "ratio"
+	torrentLabelSavePath               string = "save_path"
 	torrentLabelSeeders                string = "seeders"
 	torrentLabelSessionDownloadedBytes string = "session_downloaded_bytes"
 	torrentLabelSessionUploadedBytes   string = "session_uploaded_bytes"
@@ -159,7 +163,12 @@ func Torrent(result *API.Info, webUIVersion *string, r *prometheus.Registry) {
 		torrentTags              = createMetricName(metricNameTorrent, torrentLabelTags)
 		torrentStates            = createMetricName(metricNameTorrent, torrentLabelStates)
 		torrentInfo              = createMetricName(metricNameTorrent, torrentLabelInfo)
-		GlobalTorrents           = createMetricName(metricNameGlobal, torrentLabelTorrents)
+		globalTorrents           = createMetricName(metricNameGlobal, torrentLabelTorrents)
+		torrentComment           = createMetricName(metricNameTorrent, torrentLabelComment)
+		torrentState             = createMetricName(metricNameTorrent, torrentLabelState)
+		torrentSavePath          = createMetricName(metricNameTorrent, torrentLabelSavePath)
+		torrentAddedOn           = createMetricName(metricNameTorrent, torrentLabelAddedOn)
+		torrentCompletedOn       = createMetricName(metricNameTorrent, torrentLabelCompletedOn)
 	)
 
 	labels := []string{labelName}
@@ -167,6 +176,9 @@ func Torrent(result *API.Info, webUIVersion *string, r *prometheus.Registry) {
 		labels = append(labels, torrentLabelHash)
 	}
 	labelsWithTag := append(labels, torrentLabelTag)
+	labelsWithComment := append(labels, torrentLabelComment)
+	labelsWithState := append(labels, torrentLabelState)
+	labelsWithSavePath := append(labels, torrentLabelSavePath)
 
 	gauges := Gauge{
 		{&torrentEta, &Seconds, "The current ETA for each torrent", &labels},
@@ -185,12 +197,17 @@ func Torrent(result *API.Info, webUIVersion *string, r *prometheus.Registry) {
 		{&torrentTotalUploaded, &Bytes, "The current total upload amount of torrents", &labels},
 		{&torrentTags, nil, "All tags associated to this torrent", &labelsWithTag},
 		{&torrentStates, nil, "The current state of torrents", &[]string{labelName}},
+		{&torrentComment, nil, "Comment added to this torrent", &labelsWithComment},
+		{&torrentState, nil, "State this torrent", &labelsWithState},
+		{&torrentSavePath, nil, "Save path for this torrent", &labelsWithSavePath},
+		{&torrentAddedOn, nil, "Timestamp when this torrent was added", &labels},
+		{&torrentCompletedOn, nil, "Timestamp when this torrent was completed", &labels},
 	}
 
 	metrics := registerGauge(&gauges, r)
 
 	if app.Exporter.Features.EnableHighCardinality {
-		torrentInfoLabels := []string{labelName, torrentLabelCategory, torrentLabelState, torrentLabelSize, torrentLabelProgress, labelSeeders, torrentLabelLeechers, torrentLabelDlSpeed, torrentLabelUpSpeed, torrentLabelAmountLeft, torrentLabelTimeActive, torrentLabelEta, torrentLabelUploaded, torrentLabelUploadedSession, labelDownloaded, torrentLabelDownloadedSession, torrentLabelMaxRatio, torrentLabelRatio, torrentLabelTracker}
+		torrentInfoLabels := []string{labelName, torrentLabelCategory, torrentLabelState, torrentLabelSize, torrentLabelProgress, labelSeeders, torrentLabelLeechers, torrentLabelDlSpeed, torrentLabelUpSpeed, torrentLabelAmountLeft, torrentLabelTimeActive, torrentLabelEta, torrentLabelUploaded, torrentLabelUploadedSession, labelDownloaded, torrentLabelDownloadedSession, torrentLabelMaxRatio, torrentLabelRatio, torrentLabelTracker, torrentLabelAddedOn, torrentLabelComment, torrentLabelCompletedOn, torrentLabelSavePath}
 		if app.Exporter.ExperimentalFeatures.EnableLabelWithHash {
 			torrentInfoLabels = append(torrentInfoLabels, torrentLabelHash)
 		}
@@ -201,7 +218,7 @@ func Torrent(result *API.Info, webUIVersion *string, r *prometheus.Registry) {
 	}
 
 	qbittorrentGlobalTorrents := prometheus.NewGauge(prometheus.GaugeOpts{
-		Name: GlobalTorrents,
+		Name: globalTorrents,
 		Help: "The total number of torrents",
 	})
 	r.MustRegister(qbittorrentGlobalTorrents)
@@ -254,6 +271,21 @@ func Torrent(result *API.Info, webUIVersion *string, r *prometheus.Registry) {
 		metrics[torrentSessionUploaded].With(torrentLabels).Set(float64(torrent.UploadedSession))
 		metrics[torrentTotalDownloaded].With(torrentLabels).Set(float64(torrent.Downloaded))
 		metrics[torrentTotalUploaded].With(torrentLabels).Set(float64(torrent.Uploaded))
+		metrics[torrentCompletedOn].With(torrentLabels).Set(float64(torrent.CompletedOn))
+		metrics[torrentAddedOn].With(torrentLabels).Set(float64(torrent.AddedOn))
+
+		tagComment := prometheus.Labels{labelName: torrent.Name, torrentLabelComment: torrent.Comment}
+		tagState := prometheus.Labels{labelName: torrent.Name, torrentLabelState: torrent.State}
+		tagSavePath := prometheus.Labels{labelName: torrent.Name, torrentLabelSavePath: torrent.SavePath}
+		if app.Exporter.ExperimentalFeatures.EnableLabelWithHash {
+			tagState[torrentLabelHash] = torrent.Hash
+			tagSavePath[torrentLabelHash] = torrent.Hash
+			tagComment[torrentLabelHash] = torrent.Hash
+		}
+
+		metrics[torrentState].With(tagState).Set(1.0)
+		metrics[torrentSavePath].With(tagSavePath).Set(1.0)
+		metrics[torrentComment].With(tagComment).Set(1.0)
 
 		_, exists := countStates[torrent.State]
 		if exists {
@@ -284,6 +316,10 @@ func Torrent(result *API.Info, webUIVersion *string, r *prometheus.Registry) {
 				torrentLabelMaxRatio:          strconv.FormatFloat(torrent.MaxRatio, 'f', 3, 64),
 				torrentLabelRatio:             strconv.FormatFloat(torrent.Ratio, 'f', 3, 64),
 				torrentLabelTracker:           torrent.Tracker,
+				torrentLabelComment:           torrent.Comment,
+				torrentLabelSavePath:          torrentSavePath,
+				torrentLabelAddedOn:           torrentAddedOn,
+				torrentLabelCompletedOn:       torrentCompletedOn,
 			}
 			if app.Exporter.ExperimentalFeatures.EnableLabelWithHash {
 				infoLabels[torrentLabelHash] = torrent.Hash

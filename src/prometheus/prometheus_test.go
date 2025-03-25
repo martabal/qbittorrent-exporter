@@ -196,6 +196,8 @@ func TestTorrent(t *testing.T) {
 			Uploaded:          500000000,
 			State:             "stalledUP",
 			Tags:              "tag1, tag2",
+			AddedOn:           1664715487,
+			CompletedOn:       1664719487,
 		},
 	}
 
@@ -221,6 +223,8 @@ func TestTorrent(t *testing.T) {
 		"qbittorrent_torrent_total_downloaded_bytes":   1000000000,
 		"qbittorrent_torrent_total_uploaded_bytes":     500000000,
 		"qbittorrent_global_torrents":                  1,
+		"qbittorrent_torrent_added_on":                 1664715487,
+		"qbittorrent_torrent_completed_on":             1664719487,
 	}
 
 	testMetrics(expectedMetrics, registry, t)
