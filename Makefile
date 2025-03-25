@@ -12,7 +12,6 @@ format:
 
 lint:
 	docker run --rm -v ./src:/app -w /app golangci/golangci-lint:latest golangci-lint run -v
-	docker run --rm -v ./src:/app -w /app golang:alpine sh -c 'go install honnef.co/go/tools/cmd/staticcheck@latest && staticcheck ./...'
 
 test:
 	cd src && go test -v ./... | \

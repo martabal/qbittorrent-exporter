@@ -60,9 +60,10 @@ type ExperimentalFeatures struct {
 }
 
 type Features struct {
-	EnableHighCardinality bool
-	EnableTracker         bool
-	ShowPassword          bool
+	EnableIncreasedCardinality bool
+	EnableHighCardinality      bool
+	EnableTracker              bool
+	ShowPassword               bool
 }
 
 func LoadEnv() {
@@ -114,6 +115,7 @@ func LoadEnv() {
 	timeoutDurationEnv, _ := getEnv(defaultTimeout)
 	enableTracker, _ := getEnv(defaultDisableTracker)
 	enableHighCardinality, _ := getEnv(defaultHighCardinality)
+	enableIncreasedCardinality, _ := getEnv(defaultIncreasedCardinality)
 	labelWithHash, _ := getEnv(defaultLabelWithHash)
 	exporterUrlEnv := getOptionalEnv(defaultExporterURL)
 	exporterPath, _ := getEnv(defaultExporterPathEnv)
@@ -215,8 +217,6 @@ func LoadEnv() {
 		logger.Log.Trace("Not using basic auth to protect the exporter instance")
 	}
 
-	logger.Log.Info(fmt.Sprintf("Features enabled: %s", getFeaturesEnabled()))
-
 	HttpClient = http.Client{
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
@@ -240,9 +240,10 @@ func LoadEnv() {
 
 	Exporter = ExporterSettings{
 		Features: Features{
-			EnableHighCardinality: envSetToTrue(enableHighCardinality),
-			EnableTracker:         envSetToTrue(enableTracker),
-			ShowPassword:          showPassword,
+			EnableIncreasedCardinality: envSetToTrue(enableIncreasedCardinality),
+			EnableHighCardinality:      envSetToTrue(enableHighCardinality),
+			EnableTracker:              envSetToTrue(enableTracker),
+			ShowPassword:               showPassword,
 		},
 		ExperimentalFeatures: ExperimentalFeatures{
 			EnableLabelWithHash: envSetToTrue(labelWithHash),
@@ -253,6 +254,7 @@ func LoadEnv() {
 		BasicAuth: exporterBasicAuth,
 	}
 
+	logger.Log.Info(fmt.Sprintf("Features enabled: %s", getFeaturesEnabled()))
 }
 
 func getBasicAuth(basicAuthUsername *string, basicAuthPassword *string, defaultBasicAuth string, defaultBasicPassword string) *BasicAuth {
@@ -298,6 +300,11 @@ func getFeaturesEnabled() string {
 
 	if Exporter.Features.EnableHighCardinality {
 		features += "High cardinality"
+	}
+
+	if Exporter.Features.EnableIncreasedCardinality {
+		addComma()
+		features += "Increased cardinality"
 	}
 
 	if Exporter.Features.EnableTracker {
