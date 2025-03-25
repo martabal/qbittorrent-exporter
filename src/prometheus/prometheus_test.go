@@ -197,7 +197,7 @@ func TestTorrent(t *testing.T) {
 			State:             "stalledUP",
 			Tags:              "tag1, tag2",
 			AddedOn:           1664715487,
-			CompletedOn:       1664719487,
+			CompletionOn:      1664719487,
 		},
 	}
 

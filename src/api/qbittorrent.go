@@ -11,7 +11,7 @@ type Info []struct {
 	AddedOn           int64   `json:"added_on"`
 	Category          string  `json:"category"`
 	Comment           string  `json:"comment"`
-	CompletedOn       int64   `json:"completed_on"`
+	CompletionOn      int64   `json:"completion_on"`
 	Dlspeed           int64   `json:"dlspeed"`
 	Downloaded        int64   `json:"downloaded"`
 	DownloadedSession int64   `json:"downloaded_session"`
