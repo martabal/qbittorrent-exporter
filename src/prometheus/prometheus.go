@@ -274,18 +274,19 @@ func Torrent(result *API.Info, webUIVersion *string, r *prometheus.Registry) {
 		metrics[torrentCompletedOn].With(torrentLabels).Set(float64(torrent.CompletedOn))
 		metrics[torrentAddedOn].With(torrentLabels).Set(float64(torrent.AddedOn))
 
-		tagComment := prometheus.Labels{labelName: torrent.Name, torrentLabelComment: torrent.Comment}
-		tagState := prometheus.Labels{labelName: torrent.Name, torrentLabelState: torrent.State}
-		tagSavePath := prometheus.Labels{labelName: torrent.Name, torrentLabelSavePath: torrent.SavePath}
-		if app.Exporter.ExperimentalFeatures.EnableLabelWithHash {
-			tagState[torrentLabelHash] = torrent.Hash
-			tagSavePath[torrentLabelHash] = torrent.Hash
-			tagComment[torrentLabelHash] = torrent.Hash
+		if app.Exporter.Features.EnableIncreasedCardinality {
+			tagComment := prometheus.Labels{labelName: torrent.Name, torrentLabelComment: torrent.Comment}
+			tagState := prometheus.Labels{labelName: torrent.Name, torrentLabelState: torrent.State}
+			tagSavePath := prometheus.Labels{labelName: torrent.Name, torrentLabelSavePath: torrent.SavePath}
+			if app.Exporter.ExperimentalFeatures.EnableLabelWithHash {
+				tagState[torrentLabelHash] = torrent.Hash
+				tagSavePath[torrentLabelHash] = torrent.Hash
+				tagComment[torrentLabelHash] = torrent.Hash
+			}
+			metrics[torrentState].With(tagState).Set(1.0)
+			metrics[torrentSavePath].With(tagSavePath).Set(1.0)
+			metrics[torrentComment].With(tagComment).Set(1.0)
 		}
-
-		metrics[torrentState].With(tagState).Set(1.0)
-		metrics[torrentSavePath].With(tagSavePath).Set(1.0)
-		metrics[torrentComment].With(tagComment).Set(1.0)
 
 		_, exists := countStates[torrent.State]
 		if exists {

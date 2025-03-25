@@ -48,6 +48,12 @@ var defaultHighCardinality = Env{
 	Help:         "",
 }
 
+var defaultIncreasedCardinality = Env{
+	Key:          "ENABLE_INCREASED_CARDINALITY",
+	DefaultValue: "false",
+	Help:         "",
+}
+
 var defaultLabelWithHash = Env{
 	Key:          "ENABLE_LABEL_WITH_HASH",
 	DefaultValue: "false",
