@@ -175,10 +175,14 @@ func Torrent(result *API.Info, webUIVersion *string, r *prometheus.Registry) {
 	if app.Exporter.ExperimentalFeatures.EnableLabelWithHash {
 		labels = append(labels, torrentLabelHash)
 	}
-	labelsWithTag := append(labels, torrentLabelTag)
-	labelsWithComment := append(labels, torrentLabelComment)
-	labelsWithState := append(labels, torrentLabelState)
-	labelsWithSavePath := append(labels, torrentLabelSavePath)
+	labelsWithTag := append([]string{}, labels...)
+	labelsWithTag = append(labelsWithTag, torrentLabelTag)
+	labelsWithComment := append([]string{}, labels...)
+	labelsWithComment = append(labelsWithComment, torrentLabelComment)
+	labelsWithState := append([]string{}, labels...)
+	labelsWithState = append(labelsWithState, torrentLabelState)
+	labelsWithSavePath := append([]string{}, labels...)
+	labelsWithSavePath = append(labelsWithSavePath, torrentLabelSavePath)
 
 	gauges := Gauge{
 		{&torrentEta, &Seconds, "The current ETA for each torrent", &labels},
@@ -347,13 +351,13 @@ func Torrent(result *API.Info, webUIVersion *string, r *prometheus.Registry) {
 
 func Preference(result *API.Preferences, r *prometheus.Registry) {
 	gauges := GaugeSet{
-		{"max_active_downloads", nil, "The max number of downloads allowed", float64((*result).MaxActiveDownloads)},
-		{"max_active_uploads", nil, "The max number of active uploads allowed", float64((*result).MaxActiveUploads)},
-		{"max_active_torrents", nil, "The max number of active torrents allowed", float64((*result).MaxActiveTorrents)},
-		{"download_rate_limit", &Bytes, "The global download rate limit", float64((*result).DlLimit)},
-		{"upload_rate_limit", &Bytes, "The global upload rate limit", float64((*result).UpLimit)},
-		{"alt_download_rate_limit", &Bytes, "The alternate download rate limit", float64((*result).AltDlLimit)},
-		{"alt_upload_rate_limit", &Bytes, "The alternate upload rate limit", float64((*result).AltUpLimit)},
+		{"max_active_downloads", nil, "The max number of downloads allowed", float64(result.MaxActiveDownloads)},
+		{"max_active_uploads", nil, "The max number of active uploads allowed", float64(result.MaxActiveUploads)},
+		{"max_active_torrents", nil, "The max number of active torrents allowed", float64(result.MaxActiveTorrents)},
+		{"download_rate_limit", &Bytes, "The global download rate limit", float64(result.DlLimit)},
+		{"upload_rate_limit", &Bytes, "The global upload rate limit", float64(result.UpLimit)},
+		{"alt_download_rate_limit", &Bytes, "The alternate download rate limit", float64(result.AltDlLimit)},
+		{"alt_upload_rate_limit", &Bytes, "The alternate upload rate limit", float64(result.AltUpLimit)},
 	}
 
 	registerGaugeGlobalAndSet(&gauges, r)
@@ -445,10 +449,10 @@ func Trackers(result []*API.Trackers, r *prometheus.Registry) {
 }
 
 func MainData(result *API.MainData, r *prometheus.Registry) {
-	globalratio, err := strconv.ParseFloat((*result).ServerState.GlobalRatio, 64)
+	globalratio, err := strconv.ParseFloat(result.ServerState.GlobalRatio, 64)
 
 	if err != nil {
-		logger.Log.Warn(fmt.Sprintf("error to convert ratio \"%s\"", (*result).ServerState.GlobalRatio))
+		logger.Log.Warn(fmt.Sprintf("error to convert ratio \"%s\"", result.ServerState.GlobalRatio))
 	} else {
 		qbittorrentGlobalRatio := prometheus.NewGauge(prometheus.GaugeOpts{
 			Name: createMetricName(metricNameGlobal, "ratio"),
@@ -459,7 +463,7 @@ func MainData(result *API.MainData, r *prometheus.Registry) {
 
 	}
 	useAltSpeedLimits := 0.0
-	if (*result).ServerState.UseAltSpeedLimits {
+	if result.ServerState.UseAltSpeedLimits {
 		useAltSpeedLimits = 1.0
 	}
 	qbittorrentAppAltRateLimitsEnabled := prometheus.NewGauge(prometheus.GaugeOpts{
@@ -470,12 +474,12 @@ func MainData(result *API.MainData, r *prometheus.Registry) {
 	qbittorrentAppAltRateLimitsEnabled.Set(float64(useAltSpeedLimits))
 
 	gauges := GaugeSet{
-		{"alltime_downloaded", &Bytes, "The all-time total download amount of torrents", float64((*result).ServerState.AlltimeDl)},
-		{"alltime_uploaded", &Bytes, "The all-time total upload amount of torrents", float64((*result).ServerState.AlltimeUl)},
-		{"session_downloaded", &Bytes, "The total download amount of torrents for this session", float64((*result).ServerState.DlInfoData)},
-		{"session_uploaded", &Bytes, "The total upload amount of torrents for this session", float64((*result).ServerState.UpInfoData)},
-		{"download_speed", &Bytes, "The current download speed of all torrents", float64((*result).ServerState.DlInfoSpeed)},
-		{"upload_speed", &Bytes, "The total current upload speed of all torrents", float64((*result).ServerState.UpInfoSpeed)},
+		{"alltime_downloaded", &Bytes, "The all-time total download amount of torrents", float64(result.ServerState.AlltimeDl)},
+		{"alltime_uploaded", &Bytes, "The all-time total upload amount of torrents", float64(result.ServerState.AlltimeUl)},
+		{"session_downloaded", &Bytes, "The total download amount of torrents for this session", float64(result.ServerState.DlInfoData)},
+		{"session_uploaded", &Bytes, "The total upload amount of torrents for this session", float64(result.ServerState.UpInfoData)},
+		{"download_speed", &Bytes, "The current download speed of all torrents", float64(result.ServerState.DlInfoSpeed)},
+		{"upload_speed", &Bytes, "The total current upload speed of all torrents", float64(result.ServerState.UpInfoSpeed)},
 	}
 
 	registerGaugeGlobalAndSet(&gauges, r)
@@ -485,7 +489,7 @@ func MainData(result *API.MainData, r *prometheus.Registry) {
 		Help: "All tags used in qbittorrent",
 	}, []string{torrentLabelTag})
 	r.MustRegister(qbittorrentGlobalTags)
-	if len((*result).Tags) > 0 {
+	if len(result.Tags) > 0 {
 		for _, tag := range result.Tags {
 			labels := prometheus.Labels{
 				torrentLabelTag: tag,

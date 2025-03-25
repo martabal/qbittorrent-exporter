@@ -1,0 +1,10 @@
+linters:
+  enable:
+    - staticcheck
+    - errcheck
+    - govet
+    - unused
+    - gocritic
+    - ineffassign
+    - bodyclose
+version: "2"
