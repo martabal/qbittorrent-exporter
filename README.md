@@ -116,29 +116,29 @@ Docker compressed size is ~10 MB.
 
 ### Environment variables
 
-| Parameter                            | Function                                                                                                                     | Default Value           |
-| ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------- | ----------------------- |
-| `-p 8090`                            | Webservice port                                                                                                              |                         |
-| `-e QBITTORRENT_USERNAME`            | qBittorrent username                                                                                                         | `admin`                 |
-| `-e QBITTORRENT_PASSWORD`            | qBittorrent password                                                                                                         | `adminadmin`            |
-| `-e QBITTORRENT_BASE_URL`            | qBittorrent base URL                                                                                                         | `http://localhost:8090` |
-| `-e QBITTORRENT_BASIC_AUTH_USERNAME` | Send basic auth username request header (only if username or password are set)                                               |                         |
-| `-e QBITTORRENT_BASIC_AUTH_PASSWORD` | Send basic auth password request header (only if username or password are set)                                               |                         |
-| `-e QBITTORRENT_TIMEOUT`             | Duration before ending a request to qBittorrent                                                                              | `30`                    |
-| `-e EXPORTER_PORT`                   | qBittorrent export port (optional)                                                                                           | `8090`                  |
-| `-e EXPORTER_BASIC_AUTH_USERNAME`    | Use basic auth (only if username and password are set)                                                                       |                         |
-| `-e EXPORTER_BASIC_AUTH_PASSWORD`    | Use basic auth (only if username and password are set)                                                                       |                         |
-| `-e LOG_LEVEL`                       | App log level (`DEBUG`, `INFO`, `WARN`, `ERROR`)                                                                             | `INFO`                  |
-| `-e ENABLE_TRACKER`                  | Get tracker info                                                                                                             | `true`                  |
-| `-e ENABLE_HIGH_CARDINALITY`         | Enable high cardinality metric (`qbittorrent_torrent_info`, `qbittorrent_tracker_info`)                                      | `false`                 |
-| `-e ENABLE_LABEL_WITH_HASH`          | **[EXPERIMENTAL]** Add the torrent hash to `qbittorrent_torrent_*` metrics label                                             | `false`                 |
-| `-e EXPORTER_URL`                    | The URL shown in the logs when starting the exporter                                                                         |                         |
-| `-e EXPORTER_PATH`                   | The path where the metrics are exposed                                                                                       | `/metrics`              |
-| `-e DANGEROUS_SHOW_PASSWORD`         | Show the qBittorrent password in logs when starting the exporter                                                             | `false`                 |
-| `-e CERTIFICATE_AUTHORITY_PATH`      | Path to a CA (`.crt`) used to verify the qBittorrent TLS certificate                                                         |                         |
-| `-e INSECURE_SKIP_VERIFY`            | Don't validate the TLS certificate presented by qBittorrent                                                                  | `false`                 |
-| `-e MIN_TLS_VERSION`                 | Only connect to qBittorrent if it supports at least this TLS version                                                         | `TLS_1_3`               |
-| `-e ENABLE_INCREASED_CARDINALITY`    | Enable high cardinality metric (`qbittorrent_torrent_save_path`, `qbittorrent_torrent_state`, `qbittorrent_torrent_comment`) | `false`                 |
+| Parameter                            | Function                                                                                                                                                 | Default Value           |
+| ------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------- |
+| `-p 8090`                            | Webservice port                                                                                                                                          |                         |
+| `-e QBITTORRENT_USERNAME`            | qBittorrent username                                                                                                                                     | `admin`                 |
+| `-e QBITTORRENT_PASSWORD`            | qBittorrent password                                                                                                                                     | `adminadmin`            |
+| `-e QBITTORRENT_BASE_URL`            | qBittorrent base URL                                                                                                                                     | `http://localhost:8090` |
+| `-e QBITTORRENT_BASIC_AUTH_USERNAME` | Send basic auth username request header (only if username or password are set)                                                                           |                         |
+| `-e QBITTORRENT_BASIC_AUTH_PASSWORD` | Send basic auth password request header (only if username or password are set)                                                                           |                         |
+| `-e QBITTORRENT_TIMEOUT`             | Duration before ending a request to qBittorrent                                                                                                          | `30`                    |
+| `-e EXPORTER_PORT`                   | qBittorrent export port (optional)                                                                                                                       | `8090`                  |
+| `-e EXPORTER_BASIC_AUTH_USERNAME`    | Use basic auth (only if username and password are set)                                                                                                   |                         |
+| `-e EXPORTER_BASIC_AUTH_PASSWORD`    | Use basic auth (only if username and password are set)                                                                                                   |                         |
+| `-e LOG_LEVEL`                       | App log level (`DEBUG`, `INFO`, `WARN`, `ERROR`)                                                                                                         | `INFO`                  |
+| `-e ENABLE_TRACKER`                  | Get tracker info                                                                                                                                         | `true`                  |
+| `-e ENABLE_HIGH_CARDINALITY`         | Enable high cardinality metric (`qbittorrent_torrent_info`, `qbittorrent_tracker_info`)                                                                  | `false`                 |
+| `-e ENABLE_LABEL_WITH_HASH`          | **[EXPERIMENTAL]** Add the torrent hash to `qbittorrent_torrent_*` metrics label                                                                         | `false`                 |
+| `-e EXPORTER_URL`                    | The URL shown in the logs when starting the exporter                                                                                                     |                         |
+| `-e EXPORTER_PATH`                   | The path where the metrics are exposed                                                                                                                   | `/metrics`              |
+| `-e DANGEROUS_SHOW_PASSWORD`         | Show the qBittorrent password in logs when starting the exporter                                                                                         | `false`                 |
+| `-e CERTIFICATE_AUTHORITY_PATH`      | Path to a CA (`.crt`) used to verify the qBittorrent TLS certificate                                                                                     |                         |
+| `-e INSECURE_SKIP_VERIFY`            | Don't validate the TLS certificate presented by qBittorrent                                                                                              | `false`                 |
+| `-e MIN_TLS_VERSION`                 | Only connect to qBittorrent if it supports at least this TLS version                                                                                     | `TLS_1_3`               |
+| `-e ENABLE_INCREASED_CARDINALITY`    | Enable high cardinality metric (`qbittorrent_torrent_info`, `qbittorrent_torrent_save_path`, `qbittorrent_torrent_state`, `qbittorrent_torrent_comment`) | `false`                 |
 
 ### Arguments
 
