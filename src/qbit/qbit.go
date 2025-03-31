@@ -116,7 +116,7 @@ func getData(r *prometheus.Registry, data *Data, webUIVersion *string, c chan fu
 	}
 	switch data.Ref {
 	case RefInfo:
-		result := new(API.Info)
+		result := new(API.SliceInfo)
 		if handleUnmarshal(result, body) {
 			prom.Torrent(result, webUIVersion, r)
 			if app.Exporter.Features.EnableTracker {
@@ -165,7 +165,7 @@ func getTrackersInfo(data *Data, c chan func() (*API.Trackers, error)) {
 
 }
 
-func getTrackers(torrentList *API.Info, r *prometheus.Registry) {
+func getTrackers(torrentList *API.SliceInfo, r *prometheus.Registry) {
 	var wg sync.WaitGroup
 	uniqueValues := make(map[string]struct{})
 	var uniqueTrackers []UniqueTracker
