@@ -176,7 +176,7 @@ func TestVersion(t *testing.T) {
 
 func TestTorrent(t *testing.T) {
 
-	mockInfo := &API.Info{
+	mockInfo := &API.SliceInfo{
 		{
 			Name:              "Torrent",
 			Hash:              "hash",

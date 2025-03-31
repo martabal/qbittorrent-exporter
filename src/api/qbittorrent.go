@@ -6,7 +6,7 @@ const QbittorrentTimeOut string = "qBittorrent is timing out"
 const ErrorWithUrl string = "Error with url"
 const ErrorConnect string = "Can't connect to qBittorrent"
 
-type Info []struct {
+type Info struct {
 	AmountLeft        int64   `json:"amount_left"`
 	AddedOn           int64   `json:"added_on"`
 	Category          string  `json:"category"`
@@ -33,6 +33,8 @@ type Info []struct {
 	UploadedSession   int64   `json:"uploaded_session"`
 	Upspeed           int64   `json:"upspeed"`
 }
+
+type SliceInfo []Info
 
 type Preferences struct {
 	AltDlLimit         int64 `json:"alt_dl_limit"`
