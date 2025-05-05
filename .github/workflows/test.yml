@@ -49,5 +49,5 @@ jobs:
         if: ${{ !cancelled() }}
         with:
           args: --config=.golangci.yml --issues-exit-code=0
-          version: v2.0.0
+          version: v2.1.6
           working-directory: src
