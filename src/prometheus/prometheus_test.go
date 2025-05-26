@@ -71,10 +71,10 @@ func TestPreference(t *testing.T) {
 	testMetrics(expectedMetrics, registry, t)
 }
 
-func TestMainData(t *testing.T) {
-	mockMainData := &API.MainData{
+func createMockMainData(globalRatio string) *API.MainData {
+	return &API.MainData{
 		ServerState: API.ServerState{
-			GlobalRatio:       "2.5",
+			GlobalRatio:       globalRatio,
 			UseAltSpeedLimits: true,
 			AlltimeDl:         100000,
 			AlltimeUl:         100001,
@@ -89,11 +89,14 @@ func TestMainData(t *testing.T) {
 			"cat2": {Name: "cat2"},
 		},
 	}
+}
 
+func runMainDataTest(data *API.MainData, t *testing.T) {
 	registry := prometheus.NewRegistry()
-	MainData(mockMainData, registry)
+	MainData(data, registry)
 
 	expectedMetrics := map[string]float64{
+		"qbittorrent_global_ratio":                    2.5,
 		"qbittorrent_app_alt_rate_limits_enabled":     1.0,
 		"qbittorrent_global_alltime_downloaded_bytes": 100000,
 		"qbittorrent_global_alltime_uploaded_bytes":   100001,
@@ -102,7 +105,6 @@ func TestMainData(t *testing.T) {
 		"qbittorrent_global_download_speed_bytes":     100004,
 		"qbittorrent_global_upload_speed_bytes":       100005,
 	}
-
 	testMetrics(expectedMetrics, registry, t)
 
 	tagMetrics := map[string][]string{
@@ -114,6 +116,11 @@ func TestMainData(t *testing.T) {
 		"qbittorrent_global_categories": {"cat1", "cat2"},
 	}
 	testMultipleMetrics(categoryMetrics, registry, t)
+}
+
+func TestMainDataMetrics(t *testing.T) {
+	runMainDataTest(createMockMainData("2.5"), t)
+	runMainDataTest(createMockMainData("2,5"), t)
 }
 func TestTransfer(t *testing.T) {
 

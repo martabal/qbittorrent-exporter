@@ -494,18 +494,26 @@ func Trackers(result []*API.Trackers, r *prometheus.Registry) {
 }
 
 func MainData(result *API.MainData, r *prometheus.Registry) {
-	globalratio, err := strconv.ParseFloat(result.ServerState.GlobalRatio, 64)
+	var globalRatio float64
+	var err error
+
+	globalRatio, err = strconv.ParseFloat(result.ServerState.GlobalRatio, 64)
 
 	if err != nil {
-		logger.Log.Warn(fmt.Sprintf("error to convert ratio \"%s\"", result.ServerState.GlobalRatio))
-	} else {
+		logger.Log.Trace("retrying to convert ratio...")
+		newGlobalRationState := strings.Replace(result.ServerState.GlobalRatio, ",", ".", -1)
+		globalRatio, err = strconv.ParseFloat(newGlobalRationState, 64)
+		if err != nil {
+			logger.Log.Warn(fmt.Sprintf("error to convert ratio \"%s\"", result.ServerState.GlobalRatio))
+		}
+	}
+	if err == nil {
 		qbittorrentGlobalRatio := prometheus.NewGauge(prometheus.GaugeOpts{
 			Name: createMetricName(metricNameGlobal, "ratio"),
 			Help: "The current global ratio of all torrents",
 		})
 		r.MustRegister(qbittorrentGlobalRatio)
-		qbittorrentGlobalRatio.Set(globalratio)
-
+		qbittorrentGlobalRatio.Set(globalRatio)
 	}
 	useAltSpeedLimits := 0.0
 	if result.ServerState.UseAltSpeedLimits {
