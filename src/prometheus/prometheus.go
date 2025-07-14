@@ -501,7 +501,7 @@ func MainData(result *API.MainData, r *prometheus.Registry) {
 
 	if err != nil {
 		logger.Log.Trace("retrying to convert ratio...")
-		newGlobalRationState := strings.Replace(result.ServerState.GlobalRatio, ",", ".", -1)
+		newGlobalRationState := strings.ReplaceAll(result.ServerState.GlobalRatio, ",", ".")
 		globalRatio, err = strconv.ParseFloat(newGlobalRationState, 64)
 		if err != nil {
 			logger.Log.Warn(fmt.Sprintf("error to convert ratio \"%s\"", result.ServerState.GlobalRatio))
