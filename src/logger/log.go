@@ -25,13 +25,13 @@ var LogLevels = map[string]slog.Level{
 	"ERROR": Error,
 }
 
-var ReverseLogLevels = map[slog.Level]string{
-	Trace: "TRACE",
-	Debug: "DEBUG",
-	Info:  "INFO",
-	Warn:  "WARN",
-	Error: "ERROR",
-}
+var ReverseLogLevels = func(m map[string]slog.Level) map[slog.Level]string {
+	rev := make(map[slog.Level]string, len(m))
+	for k, v := range m {
+		rev[v] = k
+	}
+	return rev
+}(LogLevels)
 
 var ColorLogLevel = map[slog.Level]string{
 	Trace: Purple,

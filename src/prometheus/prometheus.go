@@ -116,17 +116,15 @@ const (
 
 // Reference the API changes
 const (
-	stateRenamed string = "2.11.0" // https://qbittorrent-api.readthedocs.io/en/latest/apidoc/definitions.html#qbittorrentapi.definitions.TorrentState
+	stateRenamedVersion string = "2.11.0" // https://qbittorrent-api.readthedocs.io/en/latest/apidoc/definitions.html#qbittorrentapi.definitions.TorrentState
 )
 
-// Web API >= v2.11.0
 const (
+	// Web API >= v2.11.0
 	stateStoppedUP string = "stoppedUP"
 	stateStoppedDL string = "stoppedDL"
-)
 
-// Web API < v2.11.0
-const (
+	// Web API < v2.11.0
 	statePausedUP string = "pausedUP"
 	statePausedDL string = "pausedDL"
 )
@@ -310,7 +308,7 @@ func Torrent(result *API.SliceInfo, webUIVersion *string, r *prometheus.Registry
 		stateUnknown:            0.0,
 	}
 
-	if result := internal.CompareSemVer(*webUIVersion, stateRenamed); result == 1 || result == 0 {
+	if result := internal.CompareSemVer(*webUIVersion, stateRenamedVersion); result == 1 || result == 0 {
 		countStates[stateStoppedUP] = 0.0
 		countStates[stateStoppedDL] = 0.0
 	} else {
