@@ -17,12 +17,10 @@ import (
 )
 
 const devVersion string = "dev"
+const projectName string = "qbittorrent-exporter"
 
-var (
-	version     = devVersion
-	author      = "martabal"
-	projectName = "qbittorrent-exporter"
-)
+// can change the version shown in the logs with `go build -ldflags="-X 'qbit-exp/app.version=${BUILD_VERSION}'" .`
+var version = devVersion
 
 var (
 	QBittorrent QBittorrentSettings
@@ -83,7 +81,6 @@ func LoadEnv() {
 	loglevel := logger.SetLogLevel(defaultLogLevelEnv)
 
 	fmt.Printf("%s (version %s)\n", projectName, version)
-	fmt.Printf("Author: %s\n", author)
 	fmt.Printf("Using log level: %s%s%s\n", logger.ColorLogLevel[logger.LogLevels[loglevel]], loglevel, logger.Reset)
 
 	qbitUsername, usingDefaultValue := getEnv(defaultUsername)
