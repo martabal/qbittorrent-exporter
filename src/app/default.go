@@ -28,8 +28,8 @@ var defaultEnableTracker = Env{
 	Help:         "",
 }
 
-var defaultTrackerLabel = Env{
-	Key:          "ENABLE_TRACKER_LABEL",
+var defaultLabelWithTracker = Env{
+	Key:          "ENABLE_LABEL_WITH_TRACKER",
 	DefaultValue: "false",
 	Help:         "",
 }

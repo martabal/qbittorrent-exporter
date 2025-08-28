@@ -54,14 +54,14 @@ type QBittorrentSettings struct {
 }
 
 type ExperimentalFeatures struct {
-	EnableLabelWithHash bool
+	EnableLabelWithHash    bool
+	EnableLabelWithTracker bool
 }
 
 type Features struct {
 	EnableIncreasedCardinality bool
 	EnableHighCardinality      bool
 	EnableTracker              bool
-	EnableTrackerLabel         bool
 	ShowPassword               bool
 }
 
@@ -112,7 +112,7 @@ func LoadEnv() {
 	exporterPortEnv, _ := getEnv(defaultPort)
 	timeoutDurationEnv, _ := getEnv(defaultTimeout)
 	enableTracker, _ := getEnv(defaultEnableTracker)
-	enableTrackerLabel, _ := getEnv(defaultTrackerLabel)
+	labelWithTracker, _ := getEnv(defaultLabelWithTracker)
 	enableHighCardinality, _ := getEnv(defaultHighCardinality)
 	enableIncreasedCardinality, _ := getEnv(defaultIncreasedCardinality)
 	labelWithHash, _ := getEnv(defaultLabelWithHash)
@@ -242,11 +242,11 @@ func LoadEnv() {
 			EnableIncreasedCardinality: envSetToTrue(enableIncreasedCardinality),
 			EnableHighCardinality:      envSetToTrue(enableHighCardinality),
 			EnableTracker:              envSetToTrue(enableTracker),
-			EnableTrackerLabel:         envSetToTrue(enableTrackerLabel),
 			ShowPassword:               showPassword,
 		},
 		ExperimentalFeatures: ExperimentalFeatures{
-			EnableLabelWithHash: envSetToTrue(labelWithHash),
+			EnableLabelWithHash:    envSetToTrue(labelWithHash),
+			EnableLabelWithTracker: envSetToTrue(labelWithTracker),
 		},
 		LogLevel:  loglevel,
 		Port:      exporterPort,
@@ -312,14 +312,14 @@ func getFeaturesEnabled() string {
 		features += "Trackers"
 	}
 
-	if Exporter.Features.EnableTrackerLabel {
-		addComma()
-		features += "Tracker Label"
-	}
-
 	if Exporter.Features.ShowPassword {
 		addComma()
 		features += "Show password"
+	}
+
+	if Exporter.ExperimentalFeatures.EnableLabelWithTracker {
+		addComma()
+		features += "Label with tracker (experimental)"
 	}
 
 	if Exporter.ExperimentalFeatures.EnableLabelWithHash {

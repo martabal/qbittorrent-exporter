@@ -233,7 +233,7 @@ func Torrent(result *API.SliceInfo, webUIVersion *string, r *prometheus.Registry
 	if app.Exporter.ExperimentalFeatures.EnableLabelWithHash {
 		labels = append(labels, torrentLabelHash)
 	}
-	if app.Exporter.Features.EnableTrackerLabel {
+	if app.Exporter.ExperimentalFeatures.EnableLabelWithTracker {
 		labels = append(labels, torrentLabelTracker)
 	}
 	labelsWithTag := append([]string{}, labels...)
@@ -272,6 +272,7 @@ func Torrent(result *API.SliceInfo, webUIVersion *string, r *prometheus.Registry
 	metrics := registerGauge(&gauges, r)
 
 	enableLabelWithHash := app.Exporter.ExperimentalFeatures.EnableLabelWithHash
+
 	var torrentInfoLabels []string
 
 	if app.Exporter.Features.EnableHighCardinality {
@@ -324,7 +325,7 @@ func Torrent(result *API.SliceInfo, webUIVersion *string, r *prometheus.Registry
 		if app.Exporter.ExperimentalFeatures.EnableLabelWithHash {
 			torrentLabels[torrentLabelHash] = torrent.Hash
 		}
-		if app.Exporter.Features.EnableTrackerLabel {
+		if app.Exporter.ExperimentalFeatures.EnableLabelWithTracker {
 			torrentLabels[torrentLabelTracker] = torrent.Tracker
 		}
 
@@ -354,7 +355,7 @@ func Torrent(result *API.SliceInfo, webUIVersion *string, r *prometheus.Registry
 				tagSavePath[torrentLabelHash] = torrent.Hash
 				tagComment[torrentLabelHash] = torrent.Hash
 			}
-			if app.Exporter.Features.EnableTrackerLabel {
+			if app.Exporter.ExperimentalFeatures.EnableLabelWithTracker {
 				tagState[torrentLabelTracker] = torrent.Tracker
 				tagSavePath[torrentLabelTracker] = torrent.Tracker
 				tagComment[torrentLabelTracker] = torrent.Tracker
@@ -392,7 +393,7 @@ func Torrent(result *API.SliceInfo, webUIVersion *string, r *prometheus.Registry
 				if app.Exporter.ExperimentalFeatures.EnableLabelWithHash {
 					tagLabels[torrentLabelHash] = torrent.Hash
 				}
-				if app.Exporter.Features.EnableTrackerLabel {
+				if app.Exporter.ExperimentalFeatures.EnableLabelWithTracker {
 					tagLabels[torrentLabelTracker] = torrent.Tracker
 				}
 				metrics[torrentTags].With(tagLabels).Set(1)

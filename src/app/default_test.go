@@ -77,7 +77,7 @@ func TestGetEnvWithDifferentDefaults(t *testing.T) {
 		{"DefaultPassword", defaultPassword, "adminadmin"},
 		{"DefaultBaseUrl", defaultBaseUrl, "http://localhost:8080"},
 		{"DefaultEnableTracker", defaultEnableTracker, "true"},
-		{"DefaultTrackerLabel", defaultTrackerLabel, "false"},
+		{"DefaultTrackerLabel", defaultLabelWithTracker, "false"},
 		{"DefaultHighCardinality", defaultHighCardinality, "false"},
 		{"DefaultLabelWithHash", defaultLabelWithHash, "false"},
 		{"DefaultExporterPath", defaultExporterPathEnv, defaultExporterPath},
@@ -103,7 +103,7 @@ func TestGetEnvReturnsBooleanValues(t *testing.T) {
 		expectVal string
 	}{
 		{defaultEnableTracker, "false", "false"},
-		{defaultTrackerLabel, "false", "false"},
+		{defaultLabelWithTracker, "false", "false"},
 		{defaultHighCardinality, "true", "true"},
 		{defaultLabelWithHash, "true", "true"},
 	}
