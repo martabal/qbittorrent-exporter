@@ -61,6 +61,7 @@ type Features struct {
 	EnableIncreasedCardinality bool
 	EnableHighCardinality      bool
 	EnableTracker              bool
+	EnableTrackerLabel         bool
 	ShowPassword               bool
 }
 
@@ -110,7 +111,8 @@ func LoadEnv() {
 	qbitBasicAuthPassword := getOptionalEnv(defaultQbitBasicAuthPassword)
 	exporterPortEnv, _ := getEnv(defaultPort)
 	timeoutDurationEnv, _ := getEnv(defaultTimeout)
-	enableTracker, _ := getEnv(defaultDisableTracker)
+	enableTracker, _ := getEnv(defaultEnableTracker)
+	enableTrackerLabel, _ := getEnv(defaultTrackerLabel)
 	enableHighCardinality, _ := getEnv(defaultHighCardinality)
 	enableIncreasedCardinality, _ := getEnv(defaultIncreasedCardinality)
 	labelWithHash, _ := getEnv(defaultLabelWithHash)
@@ -240,6 +242,7 @@ func LoadEnv() {
 			EnableIncreasedCardinality: envSetToTrue(enableIncreasedCardinality),
 			EnableHighCardinality:      envSetToTrue(enableHighCardinality),
 			EnableTracker:              envSetToTrue(enableTracker),
+			EnableTrackerLabel:         envSetToTrue(enableTrackerLabel),
 			ShowPassword:               showPassword,
 		},
 		ExperimentalFeatures: ExperimentalFeatures{
@@ -307,6 +310,11 @@ func getFeaturesEnabled() string {
 	if Exporter.Features.EnableTracker {
 		addComma()
 		features += "Trackers"
+	}
+
+	if Exporter.Features.EnableTrackerLabel {
+		addComma()
+		features += "Tracker Label"
 	}
 
 	if Exporter.Features.ShowPassword {

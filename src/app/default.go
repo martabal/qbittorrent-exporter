@@ -22,9 +22,15 @@ const TLS13 string = "TLS_1_3"
 
 // Exporter
 
-var defaultDisableTracker = Env{
+var defaultEnableTracker = Env{
 	Key:          "ENABLE_TRACKER",
 	DefaultValue: "true",
+	Help:         "",
+}
+
+var defaultTrackerLabel = Env{
+	Key:          "ENABLE_TRACKER_LABEL",
+	DefaultValue: "false",
 	Help:         "",
 }
 

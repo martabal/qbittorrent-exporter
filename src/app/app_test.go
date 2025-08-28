@@ -79,6 +79,14 @@ func TestGetFeaturesEnabled(t *testing.T) {
 			},
 			expectedOutput: "[High cardinality, Trackers, Label with hash (experimental)]",
 		},
+		{
+			name: "Only Tracker Label enabled",
+			features: Features{
+				EnableTrackerLabel: true,
+			},
+			experimentalFeature: ExperimentalFeatures{},
+			expectedOutput:      "[Tracker Label]",
+		},
 	}
 
 	for _, test := range tests {
@@ -86,6 +94,7 @@ func TestGetFeaturesEnabled(t *testing.T) {
 			// Set main features
 			Exporter.Features.EnableHighCardinality = test.features.EnableHighCardinality
 			Exporter.Features.EnableTracker = test.features.EnableTracker
+			Exporter.Features.EnableTrackerLabel = test.features.EnableTrackerLabel
 
 			// Set experimental features
 			Exporter.ExperimentalFeatures.EnableLabelWithHash = test.experimentalFeature.EnableLabelWithHash
