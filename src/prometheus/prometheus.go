@@ -233,6 +233,9 @@ func Torrent(result *API.SliceInfo, webUIVersion *string, r *prometheus.Registry
 	if app.Exporter.ExperimentalFeatures.EnableLabelWithHash {
 		labels = append(labels, torrentLabelHash)
 	}
+	if app.Exporter.ExperimentalFeatures.EnableLabelWithTracker {
+		labels = append(labels, torrentLabelTracker)
+	}
 	labelsWithTag := append([]string{}, labels...)
 	labelsWithTag = append(labelsWithTag, torrentLabelTag)
 	labelsWithComment := append([]string{}, labels...)
@@ -269,6 +272,7 @@ func Torrent(result *API.SliceInfo, webUIVersion *string, r *prometheus.Registry
 	metrics := registerGauge(&gauges, r)
 
 	enableLabelWithHash := app.Exporter.ExperimentalFeatures.EnableLabelWithHash
+
 	var torrentInfoLabels []string
 
 	if app.Exporter.Features.EnableHighCardinality {
@@ -321,6 +325,9 @@ func Torrent(result *API.SliceInfo, webUIVersion *string, r *prometheus.Registry
 		if app.Exporter.ExperimentalFeatures.EnableLabelWithHash {
 			torrentLabels[torrentLabelHash] = torrent.Hash
 		}
+		if app.Exporter.ExperimentalFeatures.EnableLabelWithTracker {
+			torrentLabels[torrentLabelTracker] = torrent.Tracker
+		}
 
 		metrics[torrentEta].With(torrentLabels).Set(float64(torrent.Eta))
 		metrics[torrentDownloadSpeed].With(torrentLabels).Set(float64(torrent.Dlspeed))
@@ -347,6 +354,11 @@ func Torrent(result *API.SliceInfo, webUIVersion *string, r *prometheus.Registry
 				tagState[torrentLabelHash] = torrent.Hash
 				tagSavePath[torrentLabelHash] = torrent.Hash
 				tagComment[torrentLabelHash] = torrent.Hash
+			}
+			if app.Exporter.ExperimentalFeatures.EnableLabelWithTracker {
+				tagState[torrentLabelTracker] = torrent.Tracker
+				tagSavePath[torrentLabelTracker] = torrent.Tracker
+				tagComment[torrentLabelTracker] = torrent.Tracker
 			}
 			metrics[torrentState].With(tagState).Set(1.0)
 			metrics[torrentSavePath].With(tagSavePath).Set(1.0)
@@ -380,6 +392,9 @@ func Torrent(result *API.SliceInfo, webUIVersion *string, r *prometheus.Registry
 				tagLabels := prometheus.Labels{labelName: torrent.Name, torrentLabelTag: tag}
 				if app.Exporter.ExperimentalFeatures.EnableLabelWithHash {
 					tagLabels[torrentLabelHash] = torrent.Hash
+				}
+				if app.Exporter.ExperimentalFeatures.EnableLabelWithTracker {
+					tagLabels[torrentLabelTracker] = torrent.Tracker
 				}
 				metrics[torrentTags].With(tagLabels).Set(1)
 			}

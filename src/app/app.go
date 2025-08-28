@@ -54,7 +54,8 @@ type QBittorrentSettings struct {
 }
 
 type ExperimentalFeatures struct {
-	EnableLabelWithHash bool
+	EnableLabelWithHash    bool
+	EnableLabelWithTracker bool
 }
 
 type Features struct {
@@ -110,7 +111,8 @@ func LoadEnv() {
 	qbitBasicAuthPassword := getOptionalEnv(defaultQbitBasicAuthPassword)
 	exporterPortEnv, _ := getEnv(defaultPort)
 	timeoutDurationEnv, _ := getEnv(defaultTimeout)
-	enableTracker, _ := getEnv(defaultDisableTracker)
+	enableTracker, _ := getEnv(defaultEnableTracker)
+	labelWithTracker, _ := getEnv(defaultLabelWithTracker)
 	enableHighCardinality, _ := getEnv(defaultHighCardinality)
 	enableIncreasedCardinality, _ := getEnv(defaultIncreasedCardinality)
 	labelWithHash, _ := getEnv(defaultLabelWithHash)
@@ -243,7 +245,8 @@ func LoadEnv() {
 			ShowPassword:               showPassword,
 		},
 		ExperimentalFeatures: ExperimentalFeatures{
-			EnableLabelWithHash: envSetToTrue(labelWithHash),
+			EnableLabelWithHash:    envSetToTrue(labelWithHash),
+			EnableLabelWithTracker: envSetToTrue(labelWithTracker),
 		},
 		LogLevel:  loglevel,
 		Port:      exporterPort,
@@ -312,6 +315,11 @@ func getFeaturesEnabled() string {
 	if Exporter.Features.ShowPassword {
 		addComma()
 		features += "Show password"
+	}
+
+	if Exporter.ExperimentalFeatures.EnableLabelWithTracker {
+		addComma()
+		features += "Label with tracker (experimental)"
 	}
 
 	if Exporter.ExperimentalFeatures.EnableLabelWithHash {
