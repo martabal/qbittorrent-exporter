@@ -1,6 +1,7 @@
 package app
 
 import (
+	"os"
 	"strings"
 	"testing"
 )
@@ -130,5 +131,45 @@ func TestGetPasswordMasked(t *testing.T) {
 
 	if got != expected {
 		t.Errorf("GetPasswordMasked() = %q; want %q", got, expected)
+	}
+}
+
+func setPassFile(pass string, t *testing.T) func() {
+	tmpPath := t.TempDir() + string(os.PathSeparator) + "qbit_pass_test.txt"
+	if err := os.WriteFile(tmpPath, []byte(pass), 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	return setAndClearEnv("QBITTORRENT_PASSWORD_FILE", tmpPath, t)
+}
+
+// file: Y
+// env: N
+func TestPassFileSet(t *testing.T) {
+	expected := "welcome123"
+	cleanEnvFile := setPassFile(expected, t)
+	defer cleanEnvFile()
+
+	got, usingDefaultValue := getPassword()
+
+	if got != expected && !usingDefaultValue {
+		t.Errorf("GetPassword() = %q; want %q", got, expected)
+	}
+}
+
+// file: Y
+// env: Y
+func TestPassFileAndPassSet(t *testing.T) {
+	expected := "welcome123"
+	cleanEnvFile := setPassFile(expected, t)
+	defer cleanEnvFile()
+
+	cleanEnv := setAndClearEnv("QBITTORRENT_PASSWORD", "anotherpass", t)
+	defer cleanEnv()
+
+	got, usingDefaultValue := getPassword()
+
+	if got != expected && !usingDefaultValue {
+		t.Errorf("GetPassword() = %q; want %q", got, expected)
 	}
 }
