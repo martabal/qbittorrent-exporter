@@ -90,7 +90,18 @@ func LoadEnv() {
 	}
 	showPasswordString, _ := getEnv(defaultExporterShowPassword)
 	showPassword := envSetToTrue(showPasswordString)
-	qbitPassword, usingDefaultValue := getEnv(defaultPassword)
+	qbitPasswordFile := getOptionalEnv(defaultPasswordFile)
+	var (
+		qbitPassword string
+	)
+	// Prefer password from file over environment variable
+	if qbitPasswordFile != nil {
+		qbitPassword = getFileContent(qbitPasswordFile)
+		usingDefaultValue = false
+	} else {
+		qbitPassword, usingDefaultValue = getEnv(defaultPassword)
+	}
+	// The default value is automatically logged
 	if !usingDefaultValue {
 		password := GetPasswordMasked()
 		if showPassword {
@@ -330,4 +341,12 @@ func getFeaturesEnabled() string {
 	features = fmt.Sprintf("[%s]", features)
 
 	return features
+}
+
+func getFileContent(path *string) string {
+	fileContent, err := os.ReadFile(*path)
+	if err != nil {
+		panic(err)
+	}
+	return string(fileContent)
 }

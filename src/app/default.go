@@ -109,6 +109,8 @@ var defaultPassword = Env{
 	Help:         "qBittorrent password is not set. Using default password",
 }
 
+var defaultPasswordFile = "QBITTORRENT_PASSWORD_FILE"
+
 var defaultQbitBasicAuthUsername = "QBITTORRENT_BASIC_AUTH_USERNAME"
 
 var defaultQbitBasicAuthPassword = "QBITTORRENT_BASIC_AUTH_PASSWORD"
