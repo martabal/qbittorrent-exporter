@@ -152,7 +152,7 @@ func TestPassFileSet(t *testing.T) {
 
 	got, usingDefaultValue := getPassword()
 
-	if got != expected && !usingDefaultValue {
+	if got != expected || usingDefaultValue {
 		t.Errorf("GetPassword() = %q; want %q", got, expected)
 	}
 }
@@ -169,7 +169,7 @@ func TestPassFileAndPassSet(t *testing.T) {
 
 	got, usingDefaultValue := getPassword()
 
-	if got != expected && !usingDefaultValue {
+	if got != expected || usingDefaultValue {
 		t.Errorf("GetPassword() = %q; want %q", got, expected)
 	}
 }
