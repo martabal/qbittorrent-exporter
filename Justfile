@@ -13,6 +13,9 @@ format:
 lint:
 	docker run --rm -v ./src:/app -w /app golangci/golangci-lint:latest golangci-lint run -v
 
+release:
+	git-cliff -l | wl-copy
+
 test:
 	cd src && go test ./... | \
 	sed '/PASS/s//\x1b[32mPASS\x1b[0m/' | \
