@@ -94,44 +94,24 @@ const (
 	metricNameApp     string = "app"
 )
 
-const (
-	stateError              string = "error"
-	stateMissingFiles       string = "missingFiles"
-	stateUploading          string = "uploading"
-	stateQueuedUP           string = "queuedUP"
-	stateStalledUP          string = "stalledUP"
-	stateCheckingUP         string = "checkingUP"
-	stateForcedUP           string = "forcedUP"
-	stateAllocating         string = "allocating"
-	stateDownloading        string = "downloading"
-	stateMetaDL             string = "metaDL"
-	stateQueuedDL           string = "queuedDL"
-	stateStalledDL          string = "stalledDL"
-	stateCheckingDL         string = "checkingDL"
-	stateForcedDL           string = "forcedDL"
-	stateCheckingResumeData string = "checkingResumeData"
-	stateMoving             string = "moving"
-	stateUnknown            string = "unknown"
-)
-
 var allStates = []string{
-	stateError,
-	stateMissingFiles,
-	stateUploading,
-	stateQueuedUP,
-	stateStalledUP,
-	stateCheckingUP,
-	stateForcedUP,
-	stateAllocating,
-	stateDownloading,
-	stateMetaDL,
-	stateQueuedDL,
-	stateStalledDL,
-	stateCheckingDL,
-	stateForcedDL,
-	stateCheckingResumeData,
-	stateMoving,
-	stateUnknown,
+	"error",
+	"missingFiles",
+	"uploading",
+	"queuedUP",
+	"stalledUP",
+	"checkingUP",
+	"forcedUP",
+	"allocating",
+	"downloading",
+	"metaDL",
+	"queuedDL",
+	"stalledDL",
+	"checkingDL",
+	"forcedDL",
+	"checkingResumeData",
+	"moving",
+	"unknown",
 }
 
 // Reference the API changes
@@ -321,24 +301,9 @@ func Torrent(result *API.SliceInfo, webUIVersion *string, r *prometheus.Registry
 	})
 	r.MustRegister(qbittorrentGlobalTorrents)
 
-	var countStates = map[string]float64{
-		stateError:              0.0,
-		stateMissingFiles:       0.0,
-		stateUploading:          0.0,
-		stateQueuedUP:           0.0,
-		stateStalledUP:          0.0,
-		stateCheckingUP:         0.0,
-		stateForcedUP:           0.0,
-		stateAllocating:         0.0,
-		stateDownloading:        0.0,
-		stateMetaDL:             0.0,
-		stateQueuedDL:           0.0,
-		stateStalledDL:          0.0,
-		stateCheckingDL:         0.0,
-		stateForcedDL:           0.0,
-		stateCheckingResumeData: 0.0,
-		stateMoving:             0.0,
-		stateUnknown:            0.0,
+	var countStates = make(map[string]float64, len(allStates))
+	for _, state := range allStates {
+		countStates[state] = 0.0
 	}
 
 	if result := internal.CompareSemVer(*webUIVersion, stateRenamedVersion); result == 1 || result == 0 {
