@@ -19,29 +19,26 @@ func init() {
 }
 
 func TestGetEnvReturnsEnvValue(t *testing.T) {
-	envVar := "EXPORTER_PORT"
-	expectedValue := "9090"
-	if err := os.Setenv(envVar, expectedValue); err != nil {
-		panic(fmt.Sprintf("Error setting %s: %s", envVar, expectedValue))
+	if err := os.Setenv(defaultPort.Key, fmt.Sprint(defaultExporterPort)); err != nil {
+		panic(fmt.Sprintf("Error setting %s: %s", defaultPort.Key, fmt.Sprint(defaultExporterPort)))
 	}
 	defer func() {
-		if err := os.Unsetenv(envVar); err != nil {
-			t.Fatalf("Error unsetting %s: %v", envVar, err)
+		if err := os.Unsetenv(defaultPort.Key); err != nil {
+			t.Fatalf("Error unsetting %s: %v", defaultPort.Key, err)
 		}
 	}()
 	value, _ := getEnv(defaultPort)
 
-	if value != expectedValue {
-		t.Errorf("Expected %s, got %s", expectedValue, value)
+	if value != fmt.Sprint(defaultExporterPort) {
+		t.Errorf("Expected %d, got %s", defaultExporterPort, value)
 	}
 }
 
 func TestGetEnvReturnsDefaultWhenEnvNotSet(t *testing.T) {
-	envVar := "EXPORTER_PORT"
 	expectedValue := strconv.Itoa(defaultExporterPort)
 	defer func() {
-		if err := os.Unsetenv(envVar); err != nil {
-			t.Fatalf("Error unsetting %s: %v", envVar, err)
+		if err := os.Unsetenv(defaultPort.Key); err != nil {
+			t.Fatalf("Error unsetting %s: %v", defaultPort.Key, err)
 		}
 	}()
 	value, _ := getEnv(defaultPort)
@@ -52,9 +49,8 @@ func TestGetEnvReturnsDefaultWhenEnvNotSet(t *testing.T) {
 }
 
 func TestGetEnvLogsWarningIfHelpMessagePresent(t *testing.T) {
-	envVar := "QBITTORRENT_USERNAME"
-	if err := os.Unsetenv(envVar); err != nil {
-		t.Fatalf("Error unsetting %s: %v", envVar, err)
+	if err := os.Unsetenv(defaultUsername.Key); err != nil {
+		t.Fatalf("Error unsetting %s: %v", defaultUsername.Key, err)
 	}
 	expectedLogMessage := defaultUsername.Help
 	getEnv(defaultUsername)
@@ -122,13 +118,12 @@ func TestGetEnvReturnsBooleanValues(t *testing.T) {
 }
 
 func TestGetEnvHandlesEmptyEnvVarGracefully(t *testing.T) {
-	envVar := "QBITTORRENT_USERNAME"
-	if err := os.Setenv(envVar, ""); err != nil {
-		panic(fmt.Sprintf("Error setting %s: %s", envVar, ""))
+	if err := os.Setenv(defaultUsername.Key, ""); err != nil {
+		panic(fmt.Sprintf("Error setting %s: %s", defaultUsername.Key, ""))
 	}
 	defer func() {
-		if err := os.Unsetenv(envVar); err != nil {
-			t.Fatalf("Error unsetting %s: %v", envVar, err)
+		if err := os.Unsetenv(defaultUsername.Key); err != nil {
+			t.Fatalf("Error unsetting %s: %v", defaultUsername.Key, err)
 		}
 	}()
 	expectedValue := defaultUsername.DefaultValue

@@ -140,7 +140,7 @@ func setPassFile(pass string, t *testing.T) func() {
 		t.Fatal(err)
 	}
 
-	return setAndClearEnv("QBITTORRENT_PASSWORD_FILE", tmpPath, t)
+	return setAndClearEnv(defaultPasswordFile, tmpPath, t)
 }
 
 // file: Y
