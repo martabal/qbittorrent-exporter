@@ -94,7 +94,7 @@ const (
 	metricNameApp     string = "app"
 )
 
-var allStates = []string{
+var allStates = [...]string{
 	"error",
 	"missingFiles",
 	"uploading",

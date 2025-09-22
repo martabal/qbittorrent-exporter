@@ -300,7 +300,7 @@ func getFeaturesEnabled() string {
 		experimental bool
 	}
 
-	featuresList := []feature{
+	featuresList := [...]feature{
 		{Exporter.Features.EnableHighCardinality, "High cardinality", false},
 		{Exporter.Features.EnableIncreasedCardinality, "Increased cardinality", false},
 		{Exporter.Features.EnableTracker, "Trackers", false},
