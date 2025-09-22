@@ -114,6 +114,26 @@ const (
 	stateUnknown            string = "unknown"
 )
 
+var allStates = []string{
+	stateError,
+	stateMissingFiles,
+	stateUploading,
+	stateQueuedUP,
+	stateStalledUP,
+	stateCheckingUP,
+	stateForcedUP,
+	stateAllocating,
+	stateDownloading,
+	stateMetaDL,
+	stateQueuedDL,
+	stateStalledDL,
+	stateCheckingDL,
+	stateForcedDL,
+	stateCheckingResumeData,
+	stateMoving,
+	stateUnknown,
+}
+
 // Reference the API changes
 const (
 	stateRenamedVersion string = "2.11.0" // https://qbittorrent-api.readthedocs.io/en/latest/apidoc/definitions.html#qbittorrentapi.definitions.TorrentState
@@ -357,21 +377,33 @@ func Torrent(result *API.SliceInfo, webUIVersion *string, r *prometheus.Registry
 
 		if app.Exporter.Features.EnableIncreasedCardinality {
 			tagComment := prometheus.Labels{labelName: torrent.Name, torrentLabelComment: torrent.Comment}
-			tagState := prometheus.Labels{labelName: torrent.Name, torrentLabelState: torrent.State}
 			tagSavePath := prometheus.Labels{labelName: torrent.Name, torrentLabelSavePath: torrent.SavePath}
 			if app.Exporter.ExperimentalFeatures.EnableLabelWithHash {
-				tagState[torrentLabelHash] = torrent.Hash
-				tagSavePath[torrentLabelHash] = torrent.Hash
 				tagComment[torrentLabelHash] = torrent.Hash
+				tagSavePath[torrentLabelHash] = torrent.Hash
 			}
 			if app.Exporter.ExperimentalFeatures.EnableLabelWithTracker {
-				tagState[torrentLabelTracker] = torrent.Tracker
-				tagSavePath[torrentLabelTracker] = torrent.Tracker
 				tagComment[torrentLabelTracker] = torrent.Tracker
+				tagSavePath[torrentLabelTracker] = torrent.Tracker
 			}
-			metrics[torrentState].With(tagState).Set(1.0)
 			metrics[torrentSavePath].With(tagSavePath).Set(1.0)
 			metrics[torrentComment].With(tagComment).Set(1.0)
+			for _, state := range allStates {
+				tagState := prometheus.Labels{labelName: torrent.Name, torrentLabelState: state}
+				if app.Exporter.ExperimentalFeatures.EnableLabelWithHash {
+					tagState[torrentLabelHash] = torrent.Hash
+				}
+				if app.Exporter.ExperimentalFeatures.EnableLabelWithTracker {
+					tagState[torrentLabelTracker] = torrent.Tracker
+				}
+
+				value := 0.0
+				if torrent.State == state {
+					value = 1.0
+				}
+				metrics[torrentState].With(tagState).Set(value)
+			}
+
 		}
 
 		_, exists := countStates[torrent.State]
