@@ -344,7 +344,7 @@ func getPassword() (string, bool) {
 			panic(err)
 		}
 		logger.Log.Info(fmt.Sprintf("password read from: %s", *passwordFile))
-		return string(fileContent), false
+		return strings.TrimSpace(string(fileContent)), false
 	} else {
 		return getEnv(defaultPassword)
 	}
