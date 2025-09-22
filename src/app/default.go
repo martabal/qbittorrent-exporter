@@ -66,6 +66,12 @@ var defaultLabelWithHash = Env{
 	Help:         "",
 }
 
+var defaultLabelWithTag = Env{
+	Key:          "ENABLE_LABEL_WITH_TAGS",
+	DefaultValue: "false",
+	Help:         "",
+}
+
 var defaultLogLevel = Env{
 	Key:          "LOG_LEVEL",
 	DefaultValue: "INFO",

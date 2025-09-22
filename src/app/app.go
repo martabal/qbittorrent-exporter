@@ -56,6 +56,7 @@ type QBittorrentSettings struct {
 type ExperimentalFeatures struct {
 	EnableLabelWithHash    bool
 	EnableLabelWithTracker bool
+	EnableLabelWithTags    bool
 }
 
 type Features struct {
@@ -114,6 +115,7 @@ func LoadEnv() {
 	timeoutDurationEnv, _ := getEnv(defaultTimeout)
 	enableTracker, _ := getEnv(defaultEnableTracker)
 	labelWithTracker, _ := getEnv(defaultLabelWithTracker)
+	labelWithTag, _ := getEnv(defaultLabelWithTag)
 	enableHighCardinality, _ := getEnv(defaultHighCardinality)
 	enableIncreasedCardinality, _ := getEnv(defaultIncreasedCardinality)
 	labelWithHash, _ := getEnv(defaultLabelWithHash)
@@ -248,6 +250,7 @@ func LoadEnv() {
 		ExperimentalFeatures: ExperimentalFeatures{
 			EnableLabelWithHash:    envSetToTrue(labelWithHash),
 			EnableLabelWithTracker: envSetToTrue(labelWithTracker),
+			EnableLabelWithTags:    envSetToTrue(labelWithTag),
 		},
 		LogLevel:  loglevel,
 		Port:      exporterPort,
@@ -291,46 +294,34 @@ func GetPasswordMasked() string {
 }
 
 func getFeaturesEnabled() string {
-	features := ""
+	type feature struct {
+		enabled      bool
+		label        string
+		experimental bool
+	}
 
-	addComma := func() {
-		if features != "" {
-			features += ", "
+	featuresList := []feature{
+		{Exporter.Features.EnableHighCardinality, "High cardinality", false},
+		{Exporter.Features.EnableIncreasedCardinality, "Increased cardinality", false},
+		{Exporter.Features.EnableTracker, "Trackers", false},
+		{Exporter.Features.ShowPassword, "Show password", false},
+		{Exporter.ExperimentalFeatures.EnableLabelWithTracker, "Label with tracker", true},
+		{Exporter.ExperimentalFeatures.EnableLabelWithHash, "Label with hash", true},
+		{Exporter.ExperimentalFeatures.EnableLabelWithTags, "Label with tag", true},
+	}
+
+	var features []string
+	for _, f := range featuresList {
+		if f.enabled {
+			label := f.label
+			if f.experimental {
+				label += " (experimental)"
+			}
+			features = append(features, label)
 		}
 	}
 
-	if Exporter.Features.EnableHighCardinality {
-		features += "High cardinality"
-	}
-
-	if Exporter.Features.EnableIncreasedCardinality {
-		addComma()
-		features += "Increased cardinality"
-	}
-
-	if Exporter.Features.EnableTracker {
-		addComma()
-		features += "Trackers"
-	}
-
-	if Exporter.Features.ShowPassword {
-		addComma()
-		features += "Show password"
-	}
-
-	if Exporter.ExperimentalFeatures.EnableLabelWithTracker {
-		addComma()
-		features += "Label with tracker (experimental)"
-	}
-
-	if Exporter.ExperimentalFeatures.EnableLabelWithHash {
-		addComma()
-		features += "Label with hash (experimental)"
-	}
-
-	features = fmt.Sprintf("[%s]", features)
-
-	return features
+	return fmt.Sprintf("[%s]", strings.Join(features, ", "))
 }
 
 func getPassword() (string, bool) {

@@ -141,7 +141,7 @@ func Version(result *[]byte, r *prometheus.Registry) {
 	qbittorrent_app_version.Set(1)
 }
 
-func createTorrentInfoLabels(enableHighCardinality, enableLabelWithHash bool) []string {
+func createTorrentInfoLabels(enableHighCardinality, enableLabelWithHash bool, enableLabelWithTags bool) []string {
 
 	baseLabels := []string{labelName, torrentLabelCategory, torrentLabelState, torrentLabelSize, torrentLabelProgress,
 		labelSeeders, torrentLabelLeechers, torrentLabelDlSpeed, torrentLabelUpSpeed, torrentLabelAmountLeft,
@@ -160,10 +160,14 @@ func createTorrentInfoLabels(enableHighCardinality, enableLabelWithHash bool) []
 		baseLabels = append(baseLabels, torrentLabelHash)
 	}
 
+	if enableLabelWithTags {
+		baseLabels = append(baseLabels, torrentLabelTags)
+	}
+
 	return baseLabels
 }
 
-func createTorrentLabels(torrent API.Info, enableHighCardinality, enableLabelWithHash bool) prometheus.Labels {
+func createTorrentLabels(torrent API.Info, enableHighCardinality, enableLabelWithHash bool, enableLabelWithTags bool) prometheus.Labels {
 
 	infoLabels := prometheus.Labels{
 		labelName:                torrent.Name,
@@ -196,6 +200,10 @@ func createTorrentLabels(torrent API.Info, enableHighCardinality, enableLabelWit
 
 	if enableLabelWithHash {
 		infoLabels[torrentLabelHash] = torrent.Hash
+	}
+
+	if enableLabelWithTags {
+		infoLabels[torrentLabelTags] = torrent.Tags
 	}
 
 	return infoLabels
@@ -272,13 +280,14 @@ func Torrent(result *API.SliceInfo, webUIVersion *string, r *prometheus.Registry
 	metrics := registerGauge(&gauges, r)
 
 	enableLabelWithHash := app.Exporter.ExperimentalFeatures.EnableLabelWithHash
+	enableLabelWithTags := app.Exporter.ExperimentalFeatures.EnableLabelWithTags
 
 	var torrentInfoLabels []string
 
 	if app.Exporter.Features.EnableHighCardinality {
-		torrentInfoLabels = createTorrentInfoLabels(true, enableLabelWithHash)
+		torrentInfoLabels = createTorrentInfoLabels(true, enableLabelWithHash, enableLabelWithTags)
 	} else if app.Exporter.Features.EnableIncreasedCardinality {
-		torrentInfoLabels = createTorrentInfoLabels(false, enableLabelWithHash)
+		torrentInfoLabels = createTorrentInfoLabels(false, enableLabelWithHash, enableLabelWithTags)
 	}
 
 	if len(torrentInfoLabels) > 0 {
@@ -374,12 +383,13 @@ func Torrent(result *API.SliceInfo, webUIVersion *string, r *prometheus.Registry
 		countTotal++
 
 		enableLabelWithHash := app.Exporter.ExperimentalFeatures.EnableLabelWithHash
+		enableLabelWithTags := app.Exporter.ExperimentalFeatures.EnableLabelWithTags
 
 		var infoLabels prometheus.Labels
 		if app.Exporter.Features.EnableHighCardinality {
-			infoLabels = createTorrentLabels(torrent, true, enableLabelWithHash)
+			infoLabels = createTorrentLabels(torrent, true, enableLabelWithHash, enableLabelWithTags)
 		} else if app.Exporter.Features.EnableIncreasedCardinality {
-			infoLabels = createTorrentLabels(torrent, false, enableLabelWithHash)
+			infoLabels = createTorrentLabels(torrent, false, enableLabelWithHash, enableLabelWithTags)
 		}
 
 		// Update metrics if infoLabels are populated
