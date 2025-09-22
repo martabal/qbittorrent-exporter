@@ -337,12 +337,13 @@ func getPassword() (string, bool) {
 	passwordFile := getOptionalEnv(defaultPasswordFile)
 
 	// Prefer password from file over environment variable *if* password from
-	// file is set. This avoids setting and logging the default password.
+	// file is set. This avoids getting and logging the default password.
 	if passwordFile != nil {
 		fileContent, err := os.ReadFile(*passwordFile)
 		if err != nil {
 			panic(err)
 		}
+		logger.Log.Info(fmt.Sprintf("password read from: %s", *passwordFile))
 		return string(fileContent), false
 	} else {
 		return getEnv(defaultPassword)
