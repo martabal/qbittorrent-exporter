@@ -5,6 +5,7 @@
 [![Test](https://github.com/martabal/qbittorrent-exporter/actions/workflows/test.yml/badge.svg)](https://github.com/martabal/qbittorrent-exporter/actions/workflows/test.yml)
 
 <p align="center">
+<!-- markdownlint-disable MD045 -->
 <img src="img/qbittorrent.png" width=100> <img src="img/prometheus.png" width=100><img src="img/golang.png" width=100>
 </p>
 
