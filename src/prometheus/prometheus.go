@@ -3,12 +3,13 @@ package prom
 import (
 	"fmt"
 	"math"
+	"strconv"
+	"strings"
+
 	API "qbit-exp/api"
 	"qbit-exp/app"
 	"qbit-exp/internal"
 	"qbit-exp/logger"
-	"strconv"
-	"strings"
 
 	"github.com/prometheus/client_golang/prometheus"
 )

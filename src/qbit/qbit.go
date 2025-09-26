@@ -5,14 +5,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net/http"
 	"strconv"
 	"sync"
 
-	"net/http"
 	API "qbit-exp/api"
 	"qbit-exp/app"
 	"qbit-exp/logger"
-
 	prom "qbit-exp/prometheus"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -135,7 +134,7 @@ func getData(r *prometheus.Registry, data *Data, webUIVersion *string, c chan fu
 		}
 	case RefQbitVersion:
 		prom.Version(&body, r)
-	case "transfer":
+	case RefTransfer:
 		result := new(API.Transfer)
 		if handleUnmarshal(result, body) {
 			prom.Transfer(result, r)

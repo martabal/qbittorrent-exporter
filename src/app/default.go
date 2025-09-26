@@ -3,8 +3,9 @@ package app
 import (
 	"fmt"
 	"os"
-	"qbit-exp/logger"
 	"strconv"
+
+	"qbit-exp/logger"
 )
 
 type Env struct {

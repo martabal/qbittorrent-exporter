@@ -3,11 +3,12 @@ package prom
 import (
 	"bytes"
 	"log/slog"
+	"testing"
+	"time"
+
 	API "qbit-exp/api"
 	app "qbit-exp/app"
 	"qbit-exp/logger"
-	"testing"
-	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
 )

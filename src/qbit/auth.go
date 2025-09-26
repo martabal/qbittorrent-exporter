@@ -6,10 +6,11 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strings"
+
 	API "qbit-exp/api"
 	app "qbit-exp/app"
 	"qbit-exp/logger"
-	"strings"
 )
 
 func Auth() error {

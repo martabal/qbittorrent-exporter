@@ -16,10 +16,11 @@ import (
 	"net"
 	"net/http"
 	"net/http/httptest"
-	app "qbit-exp/app"
 	"strings"
 	"testing"
 	"time"
+
+	app "qbit-exp/app"
 )
 
 var cookie = "SID"
