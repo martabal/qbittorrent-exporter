@@ -2,7 +2,6 @@ package app
 
 import (
 	"os"
-	"strings"
 	"testing"
 )
 
@@ -121,16 +120,6 @@ func TestEnvSetToTrue(t *testing.T) {
 		if got != test.output {
 			t.Errorf("envSetToTrue(%q) = %v; want %v", test.input, got, test.output)
 		}
-	}
-}
-
-func TestGetPasswordMasked(t *testing.T) {
-	QBittorrent.Password = "mysecretpassword"
-	expected := strings.Repeat("*", len(QBittorrent.Password))
-	got := GetPasswordMasked()
-
-	if got != expected {
-		t.Errorf("GetPasswordMasked() = %q; want %q", got, expected)
 	}
 }
 

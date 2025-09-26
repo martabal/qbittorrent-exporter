@@ -95,7 +95,7 @@ func LoadEnv() {
 	qbitPassword, usingDefaultValue := getPassword()
 	// When using the default value it is logged already
 	if !usingDefaultValue {
-		password := GetPasswordMasked()
+		password := GetPasswordMasked(qbitPassword)
 		if showPassword {
 			password = qbitPassword
 		}
@@ -290,8 +290,8 @@ func envSetToTrue(env string) bool {
 	return strings.ToLower(env) == "true"
 }
 
-func GetPasswordMasked() string {
-	return strings.Repeat("*", len(QBittorrent.Password))
+func GetPasswordMasked(password string) string {
+	return strings.Repeat("*", len(password))
 }
 
 func getFeaturesEnabled() string {

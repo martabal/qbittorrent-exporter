@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"strconv"
 	"sync"
 
 	API "qbit-exp/api"
@@ -23,10 +22,11 @@ type QueryParams struct {
 }
 
 type Data struct {
+	Process     string
 	URL         string
 	HTTPMethod  string
-	Ref         string
 	QueryParams *[]QueryParams
+	Handle      func(body []byte, r *prometheus.Registry, webUIVersion *string) error
 }
 
 type UniqueTracker struct {
@@ -36,53 +36,62 @@ type UniqueTracker struct {
 
 const unmarshError string = "Can not unmarshal JSON for"
 
-const (
-	RefQbitVersion  string = "qbitversion"
-	RefPreference   string = "preference"
-	RefInfo         string = "info"
-	RefTransfer     string = "transfer"
-	RefMainData     string = "maindata"
-	RefTracker      string = "tracker"
-	RefWebUIVersion string = "webuiversion"
-)
+const baseAPIRUL = "/api/v2/"
+
+func newData(url string, queryParams *[]QueryParams, handler func(body []byte, r *prometheus.Registry, webUIVersion *string) error) Data {
+	return Data{
+		Process:     url,
+		URL:         baseAPIRUL + url,
+		QueryParams: queryParams,
+		HTTPMethod:  http.MethodGet,
+		Handle:      handler,
+	}
+}
 
 var info = []Data{
-	{
-		URL:         "/api/v2/app/webapiVersion",
-		HTTPMethod:  http.MethodGet,
-		Ref:         RefWebUIVersion,
-		QueryParams: nil,
-	},
-	{
-		URL:         "/api/v2/app/version",
-		HTTPMethod:  http.MethodGet,
-		Ref:         RefQbitVersion,
-		QueryParams: nil,
-	},
-	{
-		URL:         "/api/v2/app/preferences",
-		HTTPMethod:  http.MethodGet,
-		Ref:         RefPreference,
-		QueryParams: nil,
-	},
-	{
-		URL:         "/api/v2/torrents/info",
-		HTTPMethod:  http.MethodGet,
-		Ref:         RefInfo,
-		QueryParams: nil,
-	},
-	{
-		URL:         "/api/v2/sync/maindata",
-		HTTPMethod:  http.MethodGet,
-		Ref:         RefMainData,
-		QueryParams: nil,
-	},
-	{
-		URL:         "/api/v2/transfer/info",
-		HTTPMethod:  http.MethodGet,
-		Ref:         RefTransfer,
-		QueryParams: nil,
-	},
+	newData("app/webapiVersion", nil, func(body []byte, r *prometheus.Registry, _ *string) error {
+		prom.Version(&body, r)
+		return nil
+	}),
+	newData("app/version", nil, func(body []byte, r *prometheus.Registry, _ *string) error {
+		prom.Version(&body, r)
+		return nil
+	}),
+	newData("app/preferences", nil, func(body []byte, r *prometheus.Registry, _ *string) error {
+		result := new(API.Preferences)
+		if err := json.Unmarshal(body, result); err != nil {
+			return err
+		}
+		prom.Preference(result, r)
+		return nil
+	}),
+	newData("torrents/info", nil, func(body []byte, r *prometheus.Registry, webUIVersion *string) error {
+		result := new(API.SliceInfo)
+		if err := json.Unmarshal(body, result); err != nil {
+			return err
+		}
+		prom.Torrent(result, webUIVersion, r)
+		if app.Exporter.Features.EnableTracker {
+			getTrackers(result, r)
+		}
+		return nil
+	}),
+	newData("sync/maindata", nil, func(body []byte, r *prometheus.Registry, _ *string) error {
+		result := new(API.MainData)
+		if err := json.Unmarshal(body, result); err != nil {
+			return err
+		}
+		prom.MainData(result, r)
+		return nil
+	}),
+	newData("transfer/info", nil, func(body []byte, r *prometheus.Registry, _ *string) error {
+		result := new(API.Transfer)
+		if err := json.Unmarshal(body, result); err != nil {
+			return err
+		}
+		prom.Transfer(result, r)
+		return nil
+	}),
 }
 
 var firstAPIRequest = info[0]
@@ -96,54 +105,22 @@ func getData(r *prometheus.Registry, data *Data, webUIVersion *string, c chan fu
 	url := createUrl(data.URL)
 	body, retry, err := apiRequest(url, data.HTTPMethod, data.QueryParams)
 	if retry {
-		c <- (func() (bool, error) { return true, nil })
+		c <- func() (bool, error) { return true, nil }
 		return
 	}
 	if err != nil {
-		c <- (func() (bool, error) { return false, err })
+		c <- func() (bool, error) { return false, err }
 		return
 	}
 
-	unmarshErr := fmt.Errorf("%s %s", unmarshError, url)
+	if err := data.Handle(body, r, webUIVersion); err != nil {
+		errormessage := fmt.Errorf("%s %s: %w", unmarshError, url, err)
+		errorHelper(&body, &errormessage, &url)
+		c <- func() (bool, error) { return false, err }
+		return
+	}
 
-	handleUnmarshal := func(target interface{}, body []byte) bool {
-		if err := json.Unmarshal(body, target); err != nil {
-			errorHelper(&body, &unmarshErr, &url)
-			return false
-		}
-		return true
-	}
-	switch data.Ref {
-	case RefInfo:
-		result := new(API.SliceInfo)
-		if handleUnmarshal(result, body) {
-			prom.Torrent(result, webUIVersion, r)
-			if app.Exporter.Features.EnableTracker {
-				getTrackers(result, r)
-			}
-		}
-	case RefMainData:
-		result := new(API.MainData)
-		if handleUnmarshal(result, body) {
-			prom.MainData(result, r)
-		}
-	case RefPreference:
-		result := new(API.Preferences)
-		if handleUnmarshal(result, body) {
-			prom.Preference(result, r)
-		}
-	case RefQbitVersion:
-		prom.Version(&body, r)
-	case RefTransfer:
-		result := new(API.Transfer)
-		if handleUnmarshal(result, body) {
-			prom.Transfer(result, r)
-		}
-	default:
-		errormessage := fmt.Sprintf("Unknown reference: %s", data.Ref)
-		panic(errormessage)
-	}
-	c <- (func() (bool, error) { return false, nil })
+	c <- func() (bool, error) { return false, nil }
 }
 
 func getTrackersInfo(data *Data, c chan func() (*API.Trackers, error)) {
@@ -156,7 +133,7 @@ func getTrackersInfo(data *Data, c chan func() (*API.Trackers, error)) {
 
 	result := new(API.Trackers)
 	if err := json.Unmarshal(body, &result); err != nil {
-		errMsg := fmt.Errorf("%s %s", unmarshError, RefTracker)
+		errMsg := fmt.Errorf("%s %s", unmarshError, data.Process)
 		errorHelper(&body, &errMsg, &url)
 	} else {
 		c <- (func() (*API.Trackers, error) { return result, err })
@@ -185,7 +162,6 @@ func getTrackers(torrentList *API.SliceInfo, r *prometheus.Registry) {
 		var trackerInfo = Data{
 			URL:        "/api/v2/torrents/trackers",
 			HTTPMethod: http.MethodGet,
-			Ref:        RefTracker,
 			QueryParams: &[]QueryParams{
 				{
 					Key:   "hash",
@@ -325,7 +301,7 @@ func apiRequest(url string, method string, queryParams *[]QueryParams) ([]byte, 
 		return nil, true, err
 	default:
 		err := fmt.Errorf("%d", resp.StatusCode)
-		logger.Log.Error("Error code " + strconv.Itoa(resp.StatusCode))
+		logger.Log.Error(fmt.Sprintf("Error code %d for: %s", resp.StatusCode, url))
 		return nil, false, err
 	}
 }

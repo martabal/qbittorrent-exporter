@@ -27,7 +27,7 @@ func TestMain(t *testing.T) {
 		Timeout:  time.Duration(30) * time.Second,
 	}
 
-	result := app.GetPasswordMasked()
+	result := app.GetPasswordMasked(app.QBittorrent.Password)
 
 	if !isValidMaskedPassword(result) {
 		t.Errorf("Invalid masked password. Expected only asterisks, got: %s", result)

@@ -352,6 +352,7 @@ func TestApiRequest_InvalidAuthorization(t *testing.T) {
 
 func TestCustomCA(t *testing.T) {
 	setupMockApp()
+	app.QBittorrent.Timeout = 2 * time.Second
 
 	server, caCert := createTlsServer(t, false, 0,
 		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
