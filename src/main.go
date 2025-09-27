@@ -5,10 +5,9 @@ import (
 	"net"
 	"net/http"
 
-	"qbit-exp/qbit"
-
 	app "qbit-exp/app"
 	logger "qbit-exp/logger"
+	"qbit-exp/qbit"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
