@@ -3,7 +3,7 @@ package internal
 import "testing"
 
 func TestIsValidURL(t *testing.T) {
-	testCases := []struct {
+	testCases := [...]struct {
 		input    string
 		expected bool
 	}{
@@ -35,7 +35,7 @@ func TestIsValidURL(t *testing.T) {
 }
 
 func TestIsValidHttpsURL(t *testing.T) {
-	testCases := []struct {
+	testCases := [...]struct {
 		input    string
 		expected bool
 	}{
@@ -67,7 +67,7 @@ func TestIsValidHttpsURL(t *testing.T) {
 }
 
 func TestEnsureLeadingSlash(t *testing.T) {
-	tests := []struct {
+	tests := [...]struct {
 		name           string
 		input          *string
 		expectedOutput string
@@ -119,7 +119,7 @@ func strPtr(s string) *string {
 }
 
 func TestCompareSemVer(t *testing.T) {
-	tests := []struct {
+	tests := [...]struct {
 		v1, v2   string
 		expected int
 	}{

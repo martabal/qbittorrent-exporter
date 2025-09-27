@@ -6,7 +6,7 @@ import (
 )
 
 func TestGetFeaturesEnabled(t *testing.T) {
-	tests := []struct {
+	tests := [...]struct {
 		name                string
 		features            Features
 		experimentalFeature ExperimentalFeatures
@@ -101,7 +101,7 @@ func TestGetFeaturesEnabled(t *testing.T) {
 }
 
 func TestEnvSetToTrue(t *testing.T) {
-	tests := []struct {
+	tests := [...]struct {
 		input  string
 		output bool
 	}{

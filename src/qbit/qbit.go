@@ -50,7 +50,7 @@ func newData(url string, queryParams *[]QueryParams, handler func(body []byte, r
 
 var firstAPIRequest = newData("app/webapiVersion", nil, nil)
 
-var otherAPIRequests = []Data{
+var otherAPIRequests = [...]Data{
 	newData("app/version", nil, func(body []byte, r *prometheus.Registry, _ *string) error {
 		prom.Version(&body, r)
 		return nil

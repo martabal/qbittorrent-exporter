@@ -6,7 +6,7 @@ import (
 )
 
 func TestSetLogLevel(t *testing.T) {
-	tests := []struct {
+	tests := [...]struct {
 		name           string
 		inputLogLevel  string
 		expectedOutput string

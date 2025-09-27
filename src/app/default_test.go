@@ -61,7 +61,7 @@ func TestGetEnvLogsWarningIfHelpMessagePresent(t *testing.T) {
 }
 
 func TestGetEnvWithDifferentDefaults(t *testing.T) {
-	tests := []struct {
+	tests := [...]struct {
 		name          string
 		env           Env
 		expectedValue string
@@ -93,7 +93,7 @@ func TestGetEnvWithDifferentDefaults(t *testing.T) {
 }
 
 func TestGetEnvReturnsBooleanValues(t *testing.T) {
-	tests := []struct {
+	tests := [...]struct {
 		envVar    Env
 		setValue  string
 		expectVal string
@@ -136,7 +136,7 @@ func TestGetEnvHandlesEmptyEnvVarGracefully(t *testing.T) {
 }
 
 func TestGetEnvLogsWarningsCorrectly(t *testing.T) {
-	tests := []struct {
+	tests := [...]struct {
 		name        string
 		env         Env
 		expectedLog string
