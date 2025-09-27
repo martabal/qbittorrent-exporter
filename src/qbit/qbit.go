@@ -48,11 +48,9 @@ func newData(url string, queryParams *[]QueryParams, handler func(body []byte, r
 	}
 }
 
-var info = []Data{
-	newData("app/webapiVersion", nil, func(body []byte, r *prometheus.Registry, _ *string) error {
-		prom.Version(&body, r)
-		return nil
-	}),
+var firstAPIRequest = newData("app/webapiVersion", nil, nil)
+
+var otherAPIRequests = []Data{
 	newData("app/version", nil, func(body []byte, r *prometheus.Registry, _ *string) error {
 		prom.Version(&body, r)
 		return nil
@@ -94,11 +92,8 @@ var info = []Data{
 	}),
 }
 
-var firstAPIRequest = info[0]
-var otherAPIRequests = info[1:]
-
 func createUrl(url string) string {
-	return app.QBittorrent.BaseUrl + url
+	return fmt.Sprintf("%s%s", app.QBittorrent.BaseUrl, url)
 }
 
 func getData(r *prometheus.Registry, data *Data, webUIVersion *string, c chan func() (bool, error)) {
@@ -296,7 +291,7 @@ func apiRequest(url string, method string, queryParams *[]QueryParams) ([]byte, 
 		return body, false, nil
 	case http.StatusForbidden:
 		err := fmt.Errorf("%d", resp.StatusCode)
-		logger.Log.Warn("Cookie changed, try to reconnect ...")
+		logger.Log.Warn("Cookie changed, trying to reconnect ...")
 		_ = Auth()
 		return nil, true, err
 	default:
