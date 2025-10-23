@@ -1,4 +1,4 @@
-FROM golang:1.25.3-alpine3.22@sha256:a7a64bfb3b8a4724993e1c49d01ad331b5d8bc52461b3ecf89e9aedf3aadc635 AS builder
+FROM golang:1.25.3-alpine3.22@sha256:aee43c3ccbf24fdffb7295693b6e33b21e01baec1b2a55acc351fde345e9ec34 AS builder
 
 ARG BUILD_VERSION
 
@@ -12,7 +12,7 @@ RUN if [ -n "${BUILD_VERSION}" ]; then \
         go build -o /go/bin/qbittorrent-exporter . ; \
     fi
 
-FROM alpine:3.22@sha256:9eec16c5eada75150a82666ba0ad6df76b164a6f8582ba5cb964c0813fa56625
+FROM alpine:3.22@sha256:4b7ce07002c69e8f3d704a9c5d6fd3053be500b7f1c69fc0d80990c2ad8dd412
 
 WORKDIR /go/bin
 
