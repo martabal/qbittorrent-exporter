@@ -25,6 +25,10 @@ func main() {
 		metrics = basicAuth(metrics)
 	}
 	http.HandleFunc(app.Exporter.Path, metrics)
+
+	http.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
+		http.Redirect(w, req, app.Exporter.Path, http.StatusFound)
+	})
 	addr := fmt.Sprintf(":%d", app.Exporter.Port)
 
 	logger.Log.Info("Starting the exporter")
