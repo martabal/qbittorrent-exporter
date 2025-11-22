@@ -49,21 +49,21 @@ func Auth() error {
 		}
 	}()
 
-	if resp.StatusCode != http.StatusOK {
+	if resp.StatusCode == http.StatusOK {
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			panic(fmt.Sprintf("Error reading the body %s", err.Error()))
+		}
+		if string(body) == "Fails." {
+			panic("Authentication Error, check your qBittorrent username / password")
+		}
+	} else if resp.StatusCode != http.StatusNoContent {
 		err := fmt.Errorf("authentication failed, status code: %d", resp.StatusCode)
 		if resp.StatusCode == http.StatusForbidden && app.QBittorrent.Cookie == nil {
 			panic(fmt.Sprintf("%s. qBittorrent has probably banned your IP", err.Error()))
 		}
 		logger.Log.Error(err.Error())
 		return err
-	}
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		panic(fmt.Sprintf("Error reading the body %s", err.Error()))
-	}
-	if string(body) == "Fails." {
-		panic("Authentication Error, check your qBittorrent username / password")
 	}
 
 	logger.Log.Info("New cookie for auth stored")
