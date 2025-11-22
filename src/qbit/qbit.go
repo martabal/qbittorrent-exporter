@@ -36,7 +36,7 @@ type UniqueTracker struct {
 
 const unmarshError string = "Can not unmarshal JSON for"
 
-const baseAPIRUL = "/api/v2/"
+const baseAPIRUL string = "/api/v2/"
 
 func newData(url string, queryParams *[]QueryParams, handler func(body []byte, r *prometheus.Registry, webUIVersion *string) error) Data {
 	return Data{
