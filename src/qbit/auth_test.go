@@ -231,6 +231,41 @@ func TestAuth_BasicAuthInvalidAuthentication(t *testing.T) {
 	}
 }
 
+func TestAuthStatusNoContent(t *testing.T) {
+	t.Cleanup(resetState)
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			t.Errorf("expected POST request, got %s", r.Method)
+		}
+
+		w.Header().Set("Set-Cookie", "SID=xyz789; Path=/")
+		w.WriteHeader(http.StatusNoContent)
+	}))
+	defer ts.Close()
+
+	app.QBittorrent.BaseUrl = ts.URL
+	app.QBittorrent.Username = "user"
+	app.QBittorrent.Password = "pass"
+	app.QBittorrent.Timeout = defaultTimeout
+
+	err := Auth()
+	if err != nil {
+		t.Fatalf("unexpected error for 204 status: %v", err)
+	}
+
+	if app.QBittorrent.Cookie == nil {
+		t.Fatalf("expected cookie to be set for 204, got nil")
+	}
+
+	if *app.QBittorrent.Cookie != "xyz789" {
+		t.Fatalf("expected cookie 'xyz789', got '%s'", *app.QBittorrent.Cookie)
+	}
+
+	if !strings.Contains(buff.String(), "New cookie for auth stored") {
+		t.Fatalf("expected log entry for stored cookie, got: %s", buff.String())
+	}
+}
+
 func resetState() {
 	app.QBittorrent.Cookie = nil
 	buff.Reset()
