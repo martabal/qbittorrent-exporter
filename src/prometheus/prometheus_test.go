@@ -155,8 +155,7 @@ func TestVersion(t *testing.T) {
 
 	var found bool
 
-	expectedMetricName := "qbittorrent_app_version"
-	metricName := createMetricName(metricNameApp, "version")
+	metricName := "qbittorrent_app_version"
 	for _, m := range metrics {
 		if m.GetName() == metricName {
 			found = true
@@ -171,10 +170,6 @@ func TestVersion(t *testing.T) {
 			}
 			break
 		}
-	}
-
-	if expectedMetricName != metricName {
-		t.Errorf("Error with metric name, expected %s got %s", expectedMetricName, metricName)
 	}
 
 	if !found {

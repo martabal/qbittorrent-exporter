@@ -14,26 +14,40 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 )
 
-type Unit string
+type Gauge struct {
+	Name   string
+	Help   string
+	Labels []string
+}
 
-var (
-	Bytes   Unit = "bytes"
-	Seconds Unit = "seconds"
+const (
+	BytesHelper   string = " (in " + torrentLabelBytes + ")"
+	SecondsHelper string = " (in seconds)"
 )
 
-type Gauge []struct {
-	name   *string
-	unit   *Unit
-	help   string
-	labels *[]string
+type GaugeList []Gauge
+
+type GaugeSetting struct {
+	Name  string
+	Help  string
+	Value float64
 }
 
-type GaugeSet []struct {
-	name  string
-	unit  *Unit
-	help  string
-	value float64
-}
+type GaugeSet []GaugeSetting
+
+// Metric prefix
+const metricPrefix string = "qbittorrent"
+
+const separator string = "_"
+
+// Metric categories
+const (
+	metricCatApp      string = metricPrefix + separator + metricNameApp + separator
+	metricCatGlobal   string = metricPrefix + separator + metricNameGlobal + separator
+	metricCatTorrent  string = metricPrefix + separator + metricNameTorrent + separator
+	metricCatTracker  string = metricPrefix + separator + metricNameTracker + separator
+	metricCatTransfer string = metricPrefix + separator + metricNameTransfer + separator
+)
 
 const (
 	labelName string = "name"
@@ -42,42 +56,53 @@ const (
 	labelSeeders    string = "seeders"
 
 	torrentLabelAddedOn                string = "added_on"
+	torrentLabelAllTimeHelper          string = "alltime"
+	torrentLabelAllTimeDownloaded      string = torrentLabelAllTimeHelper + separator + torrentLabelDownload + separator + torrentLabelBytes
+	torrentLabelAllTimeUploaded        string = torrentLabelAllTimeHelper + separator + torrentLabelUploaded + separator + torrentLabelBytes
+	torrentLabelAltRatesLimitEnabled   string = "alt_rate_limits_enabled"
 	torrentLabelAmountLeft             string = "amount_left"
-	torrentLabelAmountLeftBytes        string = "amount_left_bytes"
+	torrentLabelAmountLeftBytes        string = "amount_left" + separator + torrentLabelBytes
+	torrentLabelBytes                  string = "bytes"
+	torrentLabelCategories             string = "categories"
 	torrentLabelCategory               string = "category"
 	torrentLabelComment                string = "comment"
 	torrentLabelCompletionOn           string = "completed_on"
 	torrentLabelConnectionStatus       string = "connection_status"
+	torrentLabelDHTNodes               string = "dht_nodes"
 	torrentLabelDlSpeed                string = "dl_speed"
+	torrentLabelDownload               string = "downloaded"
 	torrentLabelDownloadedSession      string = "downloaded_session"
-	torrentLabelDownloadSpeed          string = "download_speed_bytes"
+	torrentLabelDownloadSpeed          string = "download_speed" + separator + torrentLabelBytes
 	torrentLabelEta                    string = "eta"
 	torrentLabelHash                   string = "hash"
 	torrentLabelInfo                   string = "info"
 	torrentLabelLeechers               string = "leechers"
 	torrentLabelMaxRatio               string = "max_ratio"
+	torrentLabelHelperMaxActive        string = "max_active"
 	torrentLabelTag                    string = "tag"
 	torrentLabelTags                   string = "tags"
 	torrentLabelProgress               string = "progress"
 	torrentLabelRatio                  string = "ratio"
 	torrentLabelSavePath               string = "save_path"
 	torrentLabelSeeders                string = "seeders"
-	torrentLabelSessionDownloadedBytes string = "session_downloaded_bytes"
-	torrentLabelSessionUploadedBytes   string = "session_uploaded_bytes"
+	torrentLabelSessionHelper          string = "session"
+	torrentLabelSessionDownloadedBytes string = torrentLabelSessionHelper + separator + torrentLabelDownload + separator + torrentLabelBytes
+	torrentLabelSessionUploadedBytes   string = torrentLabelSessionHelper + separator + torrentLabelUploaded + separator + torrentLabelBytes
 	torrentLabelSize                   string = "size"
-	torrentLabelSizeBytes              string = "size_bytes"
+	torrentLabelSizeBytes              string = "size" + separator + torrentLabelBytes
 	torrentLabelState                  string = "state"
 	torrentLabelStates                 string = "states"
 	torrentLabelTimeActive             string = "time_active"
 	torrentLabelTorrents               string = "torrents"
-	torrentLabelTotalDownloaded        string = "total_downloaded_bytes"
-	torrentLabelTotalUploaded          string = "total_uploaded_bytes"
+	torrentLabelTotalHelper            string = "total"
+	torrentLabelTotalDownloaded        string = torrentLabelTotalHelper + separator + torrentLabelDownload + separator + torrentLabelBytes
+	torrentLabelTotalUploaded          string = torrentLabelTotalHelper + separator + torrentLabelUploaded + separator + torrentLabelBytes
 	torrentLabelTracker                string = "tracker"
-	torrentLabelTransfer               string = "transfer"
 	torrentLabelUploaded               string = "uploaded"
 	torrentLabelUploadedSession        string = "uploaded_session"
-	torrentLabelUploadSpeed            string = "upload_speed_bytes"
+	torrentLabelUploadSpeed            string = "upload_speed" + separator + torrentLabelBytes
 	torrentLabelUpSpeed                string = "up_speed"
+	torrentLabelVersion                string = "version"
 
 	trackerLabelURL     string = "url"
 	trackerLabelMessage string = "message"
@@ -85,14 +110,20 @@ const (
 	trackerLabelPeers   string = "peers"
 	trackerLabelStatus  string = "status"
 	trackerLabelTier    string = "tier"
+
+	// Global-specific labels
+	globalLabelDownloadRateLimit    string = "download_rate_limit" + separator + torrentLabelBytes
+	globalLabelUploadRateLimit      string = "upload_rate_limit" + separator + torrentLabelBytes
+	globalLabelAltDownloadRateLimit string = "alt_download_rate_limit" + separator + torrentLabelBytes
+	globalLabelAltUploadRateLimit   string = "alt_upload_rate_limit" + separator + torrentLabelBytes
 )
 
-const metricPrefix string = "qbittorrent"
 const (
-	metricNameTorrent string = "torrent"
-	metricNameTracker string = "tracker"
-	metricNameGlobal  string = "global"
-	metricNameApp     string = "app"
+	metricNameTorrent  string = "torrent"
+	metricNameTracker  string = "tracker"
+	metricNameGlobal   string = "global"
+	metricNameApp      string = "app"
+	metricNameTransfer string = "transfer"
 )
 
 var allStates = [...]string{
@@ -122,39 +153,165 @@ const (
 
 const (
 	// Web API >= v2.11.0
-	stateStoppedUP string = "stoppedUP"
-	stateStoppedDL string = "stoppedDL"
+	stateStoppedUp string = "stoppedUP"
+	stateStoppedDl string = "stoppedDL"
 
 	// Web API < v2.11.0
-	statePausedUP string = "pausedUP"
-	statePausedDL string = "pausedDL"
+	statePausedUp string = "pausedUP"
+	statePausedDl string = "pausedDL"
+)
+
+// App
+const (
+	qbittorrentAppVersion                  string = metricCatApp + torrentLabelVersion
+	qbittorrentAppAltRateLimitsEnabled     string = metricCatApp + torrentLabelAltRatesLimitEnabled
+	helpQbittorrentAppVersion              string = "The current qBittorrent version"
+	helpQbittorrentAppAltRateLimitsEnabled string = "If alternate rate limits are enabled"
+)
+
+// Global
+const (
+	qbittorrentGlobalTorrents                  string = metricCatGlobal + torrentLabelTorrents
+	qbittorrentGlobalRatio                     string = metricCatGlobal + torrentLabelRatio
+	qbittorrentGlobalTags                      string = metricCatGlobal + torrentLabelTags
+	qbittorrentGlobalCategories                string = metricCatGlobal + torrentLabelCategories
+	qbittorrentGlobalAlltimeDownloadedBytes    string = metricCatGlobal + torrentLabelAllTimeDownloaded
+	qbittorrentGlobalAlltimeUploadedBytes      string = metricCatGlobal + torrentLabelAllTimeUploaded
+	qbittorrentGlobalSessionDownloadedBytes    string = metricCatGlobal + torrentLabelSessionDownloadedBytes
+	qbittorrentGlobalSessionUploadedBytes      string = metricCatGlobal + torrentLabelSessionUploadedBytes
+	qbittorrentGlobalDownloadSpeedBytes        string = metricCatGlobal + torrentLabelDownloadSpeed
+	qbittorrentGlobalUploadSpeedBytes          string = metricCatGlobal + torrentLabelUploadSpeed
+	qbittorrentGlobalMaxActiveDownloads        string = metricCatGlobal + torrentLabelHelperMaxActive + "_downloads"
+	qbittorrentGlobalMaxActiveUploads          string = metricCatGlobal + torrentLabelHelperMaxActive + "_uploads"
+	qbittorrentGlobalMaxActiveTorrents         string = metricCatGlobal + torrentLabelHelperMaxActive + separator + torrentLabelTorrents
+	qbittorrentGlobalDownloadRateLimitBytes    string = metricCatGlobal + globalLabelDownloadRateLimit
+	qbittorrentGlobalUploadRateLimitBytes      string = metricCatGlobal + globalLabelUploadRateLimit
+	qbittorrentGlobalAltDownloadRateLimitBytes string = metricCatGlobal + globalLabelAltDownloadRateLimit
+	qbittorrentGlobalAltUploadRateLimitBytes   string = metricCatGlobal + globalLabelAltUploadRateLimit
+	qbittorrentGlobalDHTNodes                  string = metricCatGlobal + torrentLabelDHTNodes
+
+	helpqbittorrentGlobalTorrents                  string = "The total number of torrents"
+	helpqbittorrentGlobalRatio                     string = "The current global ratio of all torrents"
+	helpqbittorrentGlobalTags                      string = "All tags used in qbittorrent"
+	helpqbittorrentGlobalCategories                string = "All categories used in qbittorrent"
+	helpqbittorrentGlobalAlltimeDownloadedBytes    string = "The all-time total download amount of torrents" + BytesHelper
+	helpqbittorrentGlobalAlltimeUploadedBytes      string = "The all-time total upload amount of torrents" + BytesHelper
+	helpqbittorrentGlobalSessionDownloadedBytes    string = "The total download amount of torrents for this session" + BytesHelper
+	helpqbittorrentGlobalSessionUploadedBytes      string = "The total upload amount of torrents for this session" + BytesHelper
+	helpqbittorrentGlobalDownloadSpeedBytes        string = "The current download speed of all torrents" + BytesHelper
+	helpqbittorrentGlobalUploadSpeedBytes          string = "The total current upload speed of all torrents" + BytesHelper
+	helpqbittorrentGlobalMaxActiveDownloads        string = "The max number of downloads allowed"
+	helpqbittorrentGlobalMaxActiveUploads          string = "The max number of active uploads allowed"
+	helpqbittorrentGlobalMaxActiveTorrents         string = "The max number of active torrents allowed"
+	helpqbittorrentGlobalDownloadRateLimitBytes    string = "The global download rate limit" + BytesHelper
+	helpqbittorrentGlobalUploadRateLimitBytes      string = "The global upload rate limit" + BytesHelper
+	helpqbittorrentGlobalAltDownloadRateLimitBytes string = "The alternate download rate limit" + BytesHelper
+	helpqbittorrentGlobalAltUploadRateLimitBytes   string = "The alternate upload rate limit" + BytesHelper
+	helpqbittorrentGlobalDHTNodes                  string = "The DHT nodes connected to"
+)
+
+// Torrent metrics
+const (
+	qbittorrentTorrentEta                    string = metricCatTorrent + torrentLabelEta
+	qbittorrentTorrentDownloadSpeedBytes     string = metricCatTorrent + torrentLabelDownloadSpeed
+	qbittorrentTorrentUploadSpeedBytes       string = metricCatTorrent + torrentLabelUploadSpeed
+	qbittorrentTorrentProgress               string = metricCatTorrent + torrentLabelProgress
+	qbittorrentTorrentTimeActive             string = metricCatTorrent + torrentLabelTimeActive
+	qbittorrentTorrentSeeders                string = metricCatTorrent + torrentLabelSeeders
+	qbittorrentTorrentLeechers               string = metricCatTorrent + torrentLabelLeechers
+	qbittorrentTorrentRatio                  string = metricCatTorrent + torrentLabelRatio
+	qbittorrentTorrentAmountLeftBytes        string = metricCatTorrent + torrentLabelAmountLeftBytes
+	qbittorrentTorrentSizeBytes              string = metricCatTorrent + torrentLabelSizeBytes
+	qbittorrentTorrentSessionDownloadedBytes string = metricCatTorrent + torrentLabelSessionDownloadedBytes
+	qbittorrentTorrentSessionUploadedBytes   string = metricCatTorrent + torrentLabelSessionUploadedBytes
+	qbittorrentTorrentTotalDownloadedBytes   string = metricCatTorrent + torrentLabelTotalDownloaded
+	qbittorrentTorrentTotalUploadedBytes     string = metricCatTorrent + torrentLabelTotalUploaded
+	qbittorrentTorrentTags                   string = metricCatTorrent + torrentLabelTags
+	qbittorrentTorrentStates                 string = metricCatTorrent + torrentLabelStates
+	qbittorrentTorrentInfo                   string = metricCatTorrent + torrentLabelInfo
+	qbittorrentTorrentComment                string = metricCatTorrent + torrentLabelComment
+	qbittorrentTorrentState                  string = metricCatTorrent + torrentLabelState
+	qbittorrentTorrentSavePath               string = metricCatTorrent + torrentLabelSavePath
+	qbittorrentTorrentAddedOn                string = metricCatTorrent + torrentLabelAddedOn
+	qbittorrentTorrentCompletionOn           string = metricCatTorrent + torrentLabelCompletionOn
+
+	helpQbittorrentTorrentEta                    string = "The current ETA for each torrent" + SecondsHelper
+	helpQbittorrentTorrentDownloadSpeedBytes     string = "The current download speed of torrents" + BytesHelper
+	helpQbittorrentTorrentUploadSpeedBytes       string = "The current upload speed of torrents" + BytesHelper
+	helpQbittorrentTorrentProgress               string = "The current progress of torrents"
+	helpQbittorrentTorrentTimeActive             string = "The total active time" + SecondsHelper
+	helpQbittorrentTorrentSeeders                string = "The current number of seeders for each torrent"
+	helpQbittorrentTorrentLeechers               string = "The current number of leechers for each torrent"
+	helpQbittorrentTorrentRatio                  string = "The current ratio of each torrent"
+	helpQbittorrentTorrentAmountLeftBytes        string = "The amount remaining for each torrent" + BytesHelper
+	helpQbittorrentTorrentSizeBytes              string = "The size of each torrent" + BytesHelper
+	helpQbittorrentTorrentSessionDownloadedBytes string = "The current session download amount of torrents" + BytesHelper
+	helpQbittorrentTorrentSessionUploadedBytes   string = "The current session upload amount of torrents" + BytesHelper
+	helpQbittorrentTorrentTotalDownloadedBytes   string = "The current total download amount of torrents" + BytesHelper
+	helpQbittorrentTorrentTotalUploadedBytes     string = "The current total upload amount of torrents" + BytesHelper
+	helpQbittorrentTorrentTags                   string = "All tags associated to this torrent"
+	helpQbittorrentTorrentStates                 string = "The current state of torrents"
+	helpQbittorrentTorrentInfo                   string = "All info for torrents"
+	helpQbittorrentTorrentComment                string = "Comment added to this torrent"
+	helpQbittorrentTorrentState                  string = "The state of this torrent"
+	helpQbittorrentTorrentSavePath               string = "Save path for this torrent"
+	helpQbittorrentTorrentAddedOn                string = "Timestamp when this torrent was added"
+	helpQbittorrentTorrentCompletionOn           string = "Timestamp when this torrent was completed"
+)
+
+// Transfer
+const (
+	qbittorrentTorrentTransferConnectionStatus     string = metricCatTransfer + torrentLabelConnectionStatus
+	helpQbittorrentTorrentTransferConnectionStatus string = "Connection status (connected, firewalled or disconnected)"
+)
+
+// Trackers
+const (
+	qbittorrentTrackerDownloaded string = metricCatTracker + labelDownloaded
+	qbittorrentTrackerLeeches    string = metricCatTracker + trackerLabelLeeches
+	qbittorrentTrackerPeers      string = metricCatTracker + trackerLabelPeers
+	qbittorrentTrackerSeeders    string = metricCatTracker + labelSeeders
+	qbittorrentTrackerStatus     string = metricCatTracker + trackerLabelStatus
+	qbittorrentTrackerTier       string = metricCatTracker + trackerLabelTier
+	qbittorrentTrackerInfo       string = metricCatTracker + torrentLabelInfo
+
+	helpqbittorrentTrackerDownloaded string = "The current number of completed downloads for each tracker"
+	helpqbittorrentTrackerLeeches    string = "The current number of leechers for each tracker"
+	helpqbittorrentTrackerPeers      string = "The current number of peers for each tracker"
+	helpqbittorrentTrackerSeeders    string = "The current number of seeders for each tracker"
+	helpqbittorrentTrackerStatus     string = "The current status of each tracker"
+	helpqbittorrentTrackerTier       string = "The current tracker priority tier of each tracker"
+	helpqbittorrentTrackerInfo       string = "All info for trackers"
 )
 
 func Version(result *[]byte, r *prometheus.Registry) {
-	qbittorrent_app_version := prometheus.NewGauge(prometheus.GaugeOpts{
-		Name: createMetricName(metricNameApp, "version"),
-		Help: "The current qBittorrent version",
+	qbittorrentAppVersion := prometheus.NewGauge(prometheus.GaugeOpts{
+		Name: qbittorrentAppVersion,
+		Help: helpQbittorrentAppVersion,
 		ConstLabels: map[string]string{
 			"version": string(*result),
 		},
 	})
-	r.MustRegister(qbittorrent_app_version)
-	qbittorrent_app_version.Set(1)
+	r.MustRegister(qbittorrentAppVersion)
+	qbittorrentAppVersion.Set(1)
 }
 
 func createTorrentInfoLabels(enableHighCardinality, enableLabelWithHash bool, enableLabelWithTags bool) []string {
-
-	baseLabels := []string{labelName, torrentLabelCategory, torrentLabelState, torrentLabelSize, torrentLabelProgress,
+	baseLabels := []string{
+		labelName, torrentLabelCategory, torrentLabelState, torrentLabelSize, torrentLabelProgress,
 		labelSeeders, torrentLabelLeechers, torrentLabelDlSpeed, torrentLabelUpSpeed, torrentLabelAmountLeft,
 		torrentLabelTimeActive, torrentLabelEta, torrentLabelUploaded, torrentLabelUploadedSession,
 		labelDownloaded, torrentLabelDownloadedSession, torrentLabelMaxRatio, torrentLabelRatio,
 		torrentLabelTracker, torrentLabelAddedOn, torrentLabelComment, torrentLabelCompletionOn,
-		torrentLabelSavePath}
+		torrentLabelSavePath,
+	}
 
 	if !enableHighCardinality {
-		baseLabels = []string{torrentLabelAddedOn, torrentLabelCategory, torrentLabelComment,
+		baseLabels = []string{
+			torrentLabelAddedOn, torrentLabelCategory, torrentLabelComment,
 			torrentLabelCompletionOn, labelName, torrentLabelSavePath,
-			torrentLabelState, torrentLabelTracker}
+			torrentLabelState, torrentLabelTracker,
+		}
 	}
 
 	if enableLabelWithHash {
@@ -169,7 +326,6 @@ func createTorrentInfoLabels(enableHighCardinality, enableLabelWithHash bool, en
 }
 
 func createTorrentLabels(torrent API.Info, enableHighCardinality, enableLabelWithHash bool, enableLabelWithTags bool) prometheus.Labels {
-
 	infoLabels := prometheus.Labels{
 		labelName:                torrent.Name,
 		torrentLabelCategory:     torrent.Category,
@@ -211,33 +367,6 @@ func createTorrentLabels(torrent API.Info, enableHighCardinality, enableLabelWit
 }
 
 func Torrent(result *API.SliceInfo, webUIVersion *string, r *prometheus.Registry) {
-
-	var (
-		torrentEta               = createMetricName(metricNameTorrent, torrentLabelEta)
-		torrentDownloadSpeed     = createMetricName(metricNameTorrent, torrentLabelDownloadSpeed)
-		torrentUploadSpeed       = createMetricName(metricNameTorrent, torrentLabelUploadSpeed)
-		torrentProgress          = createMetricName(metricNameTorrent, torrentLabelProgress)
-		torrentTimeActive        = createMetricName(metricNameTorrent, torrentLabelTimeActive)
-		torrentSeeders           = createMetricName(metricNameTorrent, torrentLabelSeeders)
-		torrentLeechers          = createMetricName(metricNameTorrent, torrentLabelLeechers)
-		torrentRatio             = createMetricName(metricNameTorrent, torrentLabelRatio)
-		torrentAmountLeft        = createMetricName(metricNameTorrent, torrentLabelAmountLeftBytes)
-		torrentSize              = createMetricName(metricNameTorrent, torrentLabelSizeBytes)
-		torrentSessionDownloaded = createMetricName(metricNameTorrent, torrentLabelSessionDownloadedBytes)
-		torrentSessionUploaded   = createMetricName(metricNameTorrent, torrentLabelSessionUploadedBytes)
-		torrentTotalDownloaded   = createMetricName(metricNameTorrent, torrentLabelTotalDownloaded)
-		torrentTotalUploaded     = createMetricName(metricNameTorrent, torrentLabelTotalUploaded)
-		torrentTags              = createMetricName(metricNameTorrent, torrentLabelTags)
-		torrentStates            = createMetricName(metricNameTorrent, torrentLabelStates)
-		torrentInfo              = createMetricName(metricNameTorrent, torrentLabelInfo)
-		globalTorrents           = createMetricName(metricNameGlobal, torrentLabelTorrents)
-		torrentComment           = createMetricName(metricNameTorrent, torrentLabelComment)
-		torrentState             = createMetricName(metricNameTorrent, torrentLabelState)
-		torrentSavePath          = createMetricName(metricNameTorrent, torrentLabelSavePath)
-		torrentAddedOn           = createMetricName(metricNameTorrent, torrentLabelAddedOn)
-		torrentCompletionOn      = createMetricName(metricNameTorrent, torrentLabelCompletionOn)
-	)
-
 	labels := []string{labelName}
 	if app.Exporter.ExperimentalFeatures.EnableLabelWithHash {
 		labels = append(labels, torrentLabelHash)
@@ -245,37 +374,33 @@ func Torrent(result *API.SliceInfo, webUIVersion *string, r *prometheus.Registry
 	if app.Exporter.ExperimentalFeatures.EnableLabelWithTracker {
 		labels = append(labels, torrentLabelTracker)
 	}
-	labelsWithTag := append([]string{}, labels...)
-	labelsWithTag = append(labelsWithTag, torrentLabelTag)
-	labelsWithComment := append([]string{}, labels...)
-	labelsWithComment = append(labelsWithComment, torrentLabelComment)
-	labelsWithState := append([]string{}, labels...)
-	labelsWithState = append(labelsWithState, torrentLabelState)
-	labelsWithSavePath := append([]string{}, labels...)
-	labelsWithSavePath = append(labelsWithSavePath, torrentLabelSavePath)
+	labelsWithTag := append(append([]string{}, labels...), torrentLabelTag)
+	labelsWithComment := append(append([]string{}, labels...), torrentLabelComment)
+	labelsWithState := append(append([]string{}, labels...), torrentLabelState)
+	labelsWithSavePath := append(append([]string{}, labels...), torrentLabelSavePath)
 
-	gauges := Gauge{
-		{&torrentEta, &Seconds, "The current ETA for each torrent", &labels},
-		{&torrentDownloadSpeed, &Bytes, "The current download speed of torrents", &labels},
-		{&torrentUploadSpeed, &Bytes, "The current upload speed of torrents", &labels},
-		{&torrentProgress, nil, "The current progress of torrents", &labels},
-		{&torrentTimeActive, &Seconds, "The total active time", &labels},
-		{&torrentSeeders, nil, "The current number of seeders for each torrent", &labels},
-		{&torrentLeechers, nil, "The current number of leechers for each torrent", &labels},
-		{&torrentRatio, nil, "The current ratio of each torrent", &labels},
-		{&torrentAmountLeft, &Bytes, "The amount remaining for each torrent", &labels},
-		{&torrentSize, &Bytes, "The size of each torrent", &labels},
-		{&torrentSessionDownloaded, &Bytes, "The current session download amount of torrents", &labels},
-		{&torrentSessionUploaded, &Bytes, "The current session upload amount of torrents", &labels},
-		{&torrentTotalDownloaded, &Bytes, "The current total download amount of torrents", &labels},
-		{&torrentTotalUploaded, &Bytes, "The current total upload amount of torrents", &labels},
-		{&torrentTags, nil, "All tags associated to this torrent", &labelsWithTag},
-		{&torrentStates, nil, "The current state of torrents", &[]string{labelName}},
-		{&torrentComment, nil, "Comment added to this torrent", &labelsWithComment},
-		{&torrentState, nil, "State this torrent", &labelsWithState},
-		{&torrentSavePath, nil, "Save path for this torrent", &labelsWithSavePath},
-		{&torrentAddedOn, nil, "Timestamp when this torrent was added", &labels},
-		{&torrentCompletionOn, nil, "Timestamp when this torrent was completed", &labels},
+	gauges := GaugeList{
+		{qbittorrentTorrentEta, helpQbittorrentTorrentEta, labels},
+		{qbittorrentTorrentDownloadSpeedBytes, helpQbittorrentTorrentDownloadSpeedBytes, labels},
+		{qbittorrentTorrentUploadSpeedBytes, helpQbittorrentTorrentUploadSpeedBytes, labels},
+		{qbittorrentTorrentProgress, helpQbittorrentTorrentProgress, labels},
+		{qbittorrentTorrentTimeActive, helpQbittorrentTorrentTimeActive, labels},
+		{qbittorrentTorrentSeeders, helpQbittorrentTorrentSeeders, labels},
+		{qbittorrentTorrentLeechers, helpQbittorrentTorrentLeechers, labels},
+		{qbittorrentTorrentRatio, helpQbittorrentTorrentRatio, labels},
+		{qbittorrentTorrentAmountLeftBytes, helpQbittorrentTorrentAmountLeftBytes, labels},
+		{qbittorrentTorrentSizeBytes, helpQbittorrentTorrentSizeBytes, labels},
+		{qbittorrentTorrentSessionDownloadedBytes, helpQbittorrentTorrentSessionDownloadedBytes, labels},
+		{qbittorrentTorrentSessionUploadedBytes, helpQbittorrentTorrentSessionUploadedBytes, labels},
+		{qbittorrentTorrentTotalDownloadedBytes, helpQbittorrentTorrentTotalDownloadedBytes, labels},
+		{qbittorrentTorrentTotalUploadedBytes, helpQbittorrentTorrentTotalUploadedBytes, labels},
+		{qbittorrentTorrentTags, helpQbittorrentTorrentTags, labelsWithTag},
+		{qbittorrentTorrentStates, helpQbittorrentTorrentStates, []string{labelName}},
+		{qbittorrentTorrentComment, helpQbittorrentTorrentComment, labelsWithComment},
+		{qbittorrentTorrentState, helpQbittorrentTorrentState, labelsWithState},
+		{qbittorrentTorrentSavePath, helpQbittorrentTorrentSavePath, labelsWithSavePath},
+		{qbittorrentTorrentAddedOn, helpQbittorrentTorrentAddedOn, labels},
+		{qbittorrentTorrentCompletionOn, helpQbittorrentTorrentCompletionOn, labels},
 	}
 
 	metrics := registerGauge(&gauges, r)
@@ -284,7 +409,6 @@ func Torrent(result *API.SliceInfo, webUIVersion *string, r *prometheus.Registry
 	enableLabelWithTags := app.Exporter.ExperimentalFeatures.EnableLabelWithTags
 
 	var torrentInfoLabels []string
-
 	if app.Exporter.Features.EnableHighCardinality {
 		torrentInfoLabels = createTorrentInfoLabels(true, enableLabelWithHash, enableLabelWithTags)
 	} else if app.Exporter.Features.EnableIncreasedCardinality {
@@ -292,96 +416,91 @@ func Torrent(result *API.SliceInfo, webUIVersion *string, r *prometheus.Registry
 	}
 
 	if len(torrentInfoLabels) > 0 {
-		metrics[torrentInfo] = newGaugeVec(torrentInfo, "All info for torrents", torrentInfoLabels)
-		r.MustRegister(metrics[torrentInfo])
+		metrics[qbittorrentTorrentInfo] = newGaugeVec(qbittorrentTorrentInfo, helpQbittorrentTorrentInfo, torrentInfoLabels)
+		r.MustRegister(metrics[qbittorrentTorrentInfo])
 	}
 
 	qbittorrentGlobalTorrents := prometheus.NewGauge(prometheus.GaugeOpts{
-		Name: globalTorrents,
-		Help: "The total number of torrents",
+		Name: qbittorrentGlobalTorrents,
+		Help: helpqbittorrentGlobalTorrents,
 	})
 	r.MustRegister(qbittorrentGlobalTorrents)
 
-	var countStates = make(map[string]float64, len(allStates))
+	var countStates = make(map[string]float64, len(allStates)+2)
 	for _, state := range allStates {
 		countStates[state] = 0.0
 	}
 
 	if result := internal.CompareSemVer(*webUIVersion, stateRenamedVersion); result == 1 || result == 0 {
-		countStates[stateStoppedUP] = 0.0
-		countStates[stateStoppedDL] = 0.0
+		countStates[stateStoppedUp] = 0.0
+		countStates[stateStoppedDl] = 0.0
 	} else {
-		countStates[statePausedUP] = 0.0
-		countStates[statePausedDL] = 0.0
+		countStates[statePausedUp] = 0.0
+		countStates[statePausedDl] = 0.0
 	}
+
 	countTotal := 0.0
-	for _, torrent := range *result {
-		torrentLabels := prometheus.Labels{labelName: torrent.Name}
+
+	baseTorrentLabels := func(t API.Info) prometheus.Labels {
+		l := prometheus.Labels{
+			labelName: t.Name,
+		}
 		if app.Exporter.ExperimentalFeatures.EnableLabelWithHash {
-			torrentLabels[torrentLabelHash] = torrent.Hash
+			l[torrentLabelHash] = t.Hash
 		}
 		if app.Exporter.ExperimentalFeatures.EnableLabelWithTracker {
-			torrentLabels[torrentLabelTracker] = torrent.Tracker
+			l[torrentLabelTracker] = t.Tracker
 		}
+		return l
+	}
 
-		metrics[torrentEta].With(torrentLabels).Set(float64(torrent.Eta))
-		metrics[torrentDownloadSpeed].With(torrentLabels).Set(float64(torrent.Dlspeed))
-		metrics[torrentUploadSpeed].With(torrentLabels).Set(float64(torrent.Upspeed))
-		metrics[torrentProgress].With(torrentLabels).Set(math.Round(float64(torrent.Progress)*10000) / 10000)
-		metrics[torrentTimeActive].With(torrentLabels).Set(float64(torrent.TimeActive))
-		metrics[torrentSeeders].With(torrentLabels).Set(float64(torrent.NumSeeds))
-		metrics[torrentLeechers].With(torrentLabels).Set(float64(torrent.NumLeechs))
-		metrics[torrentRatio].With(torrentLabels).Set(float64(torrent.Ratio))
-		metrics[torrentAmountLeft].With(torrentLabels).Set(float64(torrent.AmountLeft))
-		metrics[torrentSize].With(torrentLabels).Set(float64(torrent.Size))
-		metrics[torrentSessionDownloaded].With(torrentLabels).Set(float64(torrent.DownloadedSession))
-		metrics[torrentSessionUploaded].With(torrentLabels).Set(float64(torrent.UploadedSession))
-		metrics[torrentTotalDownloaded].With(torrentLabels).Set(float64(torrent.Downloaded))
-		metrics[torrentTotalUploaded].With(torrentLabels).Set(float64(torrent.Uploaded))
-		metrics[torrentCompletionOn].With(torrentLabels).Set(float64(torrent.CompletionOn))
-		metrics[torrentAddedOn].With(torrentLabels).Set(float64(torrent.AddedOn))
+	for _, torrent := range *result {
+		torrentLabels := baseTorrentLabels(torrent)
+
+		metrics[qbittorrentTorrentEta].With(torrentLabels).Set(float64(torrent.Eta))
+		metrics[qbittorrentTorrentDownloadSpeedBytes].With(torrentLabels).Set(float64(torrent.Dlspeed))
+		metrics[qbittorrentTorrentUploadSpeedBytes].With(torrentLabels).Set(float64(torrent.Upspeed))
+		metrics[qbittorrentTorrentProgress].With(torrentLabels).Set(math.Round(float64(torrent.Progress)*10000) / 10000)
+		metrics[qbittorrentTorrentTimeActive].With(torrentLabels).Set(float64(torrent.TimeActive))
+		metrics[qbittorrentTorrentSeeders].With(torrentLabels).Set(float64(torrent.NumSeeds))
+		metrics[qbittorrentTorrentLeechers].With(torrentLabels).Set(float64(torrent.NumLeechs))
+		metrics[qbittorrentTorrentRatio].With(torrentLabels).Set(float64(torrent.Ratio))
+		metrics[qbittorrentTorrentAmountLeftBytes].With(torrentLabels).Set(float64(torrent.AmountLeft))
+		metrics[qbittorrentTorrentSizeBytes].With(torrentLabels).Set(float64(torrent.Size))
+		metrics[qbittorrentTorrentSessionDownloadedBytes].With(torrentLabels).Set(float64(torrent.DownloadedSession))
+		metrics[qbittorrentTorrentSessionUploadedBytes].With(torrentLabels).Set(float64(torrent.UploadedSession))
+		metrics[qbittorrentTorrentTotalDownloadedBytes].With(torrentLabels).Set(float64(torrent.Downloaded))
+		metrics[qbittorrentTorrentTotalUploadedBytes].With(torrentLabels).Set(float64(torrent.Uploaded))
+		metrics[qbittorrentTorrentCompletionOn].With(torrentLabels).Set(float64(torrent.CompletionOn))
+		metrics[qbittorrentTorrentAddedOn].With(torrentLabels).Set(float64(torrent.AddedOn))
 
 		if app.Exporter.Features.EnableIncreasedCardinality {
-			tagComment := prometheus.Labels{labelName: torrent.Name, torrentLabelComment: torrent.Comment}
-			tagSavePath := prometheus.Labels{labelName: torrent.Name, torrentLabelSavePath: torrent.SavePath}
-			if app.Exporter.ExperimentalFeatures.EnableLabelWithHash {
-				tagComment[torrentLabelHash] = torrent.Hash
-				tagSavePath[torrentLabelHash] = torrent.Hash
-			}
-			if app.Exporter.ExperimentalFeatures.EnableLabelWithTracker {
-				tagComment[torrentLabelTracker] = torrent.Tracker
-				tagSavePath[torrentLabelTracker] = torrent.Tracker
-			}
-			metrics[torrentSavePath].With(tagSavePath).Set(1.0)
-			metrics[torrentComment].With(tagComment).Set(1.0)
-			for _, state := range allStates {
-				tagState := prometheus.Labels{labelName: torrent.Name, torrentLabelState: state}
-				if app.Exporter.ExperimentalFeatures.EnableLabelWithHash {
-					tagState[torrentLabelHash] = torrent.Hash
-				}
-				if app.Exporter.ExperimentalFeatures.EnableLabelWithTracker {
-					tagState[torrentLabelTracker] = torrent.Tracker
-				}
+			tagComment := baseTorrentLabels(torrent)
+			tagComment[torrentLabelComment] = torrent.Comment
 
+			tagSavePath := baseTorrentLabels(torrent)
+			tagSavePath[torrentLabelSavePath] = torrent.SavePath
+
+			metrics[qbittorrentTorrentSavePath].With(tagSavePath).Set(1.0)
+			metrics[qbittorrentTorrentComment].With(tagComment).Set(1.0)
+
+			for _, state := range allStates {
+				tagState := baseTorrentLabels(torrent)
+				tagState[torrentLabelState] = state
 				value := 0.0
 				if torrent.State == state {
 					value = 1.0
 				}
-				metrics[torrentState].With(tagState).Set(value)
+				metrics[qbittorrentTorrentState].With(tagState).Set(value)
 			}
-
 		}
 
-		_, exists := countStates[torrent.State]
-		if exists {
+		if _, exists := countStates[torrent.State]; exists {
 			countStates[torrent.State]++
 		} else {
 			logger.Log.Error(fmt.Sprintf("Unknown state: %s", torrent.State))
 		}
 		countTotal++
-
-		enableLabelWithHash := app.Exporter.ExperimentalFeatures.EnableLabelWithHash
-		enableLabelWithTags := app.Exporter.ExperimentalFeatures.EnableLabelWithTags
 
 		var infoLabels prometheus.Labels
 		if app.Exporter.Features.EnableHighCardinality {
@@ -390,40 +509,34 @@ func Torrent(result *API.SliceInfo, webUIVersion *string, r *prometheus.Registry
 			infoLabels = createTorrentLabels(torrent, false, enableLabelWithHash, enableLabelWithTags)
 		}
 
-		// Update metrics if infoLabels are populated
 		if len(infoLabels) > 0 {
-			metrics[torrentInfo].With(infoLabels).Set(1)
+			metrics[qbittorrentTorrentInfo].With(infoLabels).Set(1)
 		}
 
 		if torrent.Tags != "" {
 			for _, tag := range strings.Split(torrent.Tags, ", ") {
-				tagLabels := prometheus.Labels{labelName: torrent.Name, torrentLabelTag: tag}
-				if app.Exporter.ExperimentalFeatures.EnableLabelWithHash {
-					tagLabels[torrentLabelHash] = torrent.Hash
-				}
-				if app.Exporter.ExperimentalFeatures.EnableLabelWithTracker {
-					tagLabels[torrentLabelTracker] = torrent.Tracker
-				}
-				metrics[torrentTags].With(tagLabels).Set(1)
+				tagLabels := baseTorrentLabels(torrent)
+				tagLabels[torrentLabelTag] = tag
+				metrics[qbittorrentTorrentTags].With(tagLabels).Set(1)
 			}
 		}
 	}
 
 	for state, count := range countStates {
-		metrics[torrentStates].With(prometheus.Labels{labelName: state}).Set(count)
+		metrics[qbittorrentTorrentStates].With(prometheus.Labels{labelName: state}).Set(count)
 	}
 	qbittorrentGlobalTorrents.Set(countTotal)
 }
 
 func Preference(result *API.Preferences, r *prometheus.Registry) {
 	gauges := GaugeSet{
-		{"max_active_downloads", nil, "The max number of downloads allowed", float64(result.MaxActiveDownloads)},
-		{"max_active_uploads", nil, "The max number of active uploads allowed", float64(result.MaxActiveUploads)},
-		{"max_active_torrents", nil, "The max number of active torrents allowed", float64(result.MaxActiveTorrents)},
-		{"download_rate_limit", &Bytes, "The global download rate limit", float64(result.DlLimit)},
-		{"upload_rate_limit", &Bytes, "The global upload rate limit", float64(result.UpLimit)},
-		{"alt_download_rate_limit", &Bytes, "The alternate download rate limit", float64(result.AltDlLimit)},
-		{"alt_upload_rate_limit", &Bytes, "The alternate upload rate limit", float64(result.AltUpLimit)},
+		{qbittorrentGlobalMaxActiveDownloads, helpqbittorrentGlobalMaxActiveDownloads, float64(result.MaxActiveDownloads)},
+		{qbittorrentGlobalMaxActiveUploads, helpqbittorrentGlobalMaxActiveUploads, float64(result.MaxActiveUploads)},
+		{qbittorrentGlobalMaxActiveTorrents, helpqbittorrentGlobalMaxActiveTorrents, float64(result.MaxActiveTorrents)},
+		{qbittorrentGlobalDownloadRateLimitBytes, helpqbittorrentGlobalDownloadRateLimitBytes, float64(result.DlLimit)},
+		{qbittorrentGlobalUploadRateLimitBytes, helpqbittorrentGlobalUploadRateLimitBytes, float64(result.UpLimit)},
+		{qbittorrentGlobalAltDownloadRateLimitBytes, helpqbittorrentGlobalAltDownloadRateLimitBytes, float64(result.AltDlLimit)},
+		{qbittorrentGlobalAltUploadRateLimitBytes, helpqbittorrentGlobalAltUploadRateLimitBytes, float64(result.AltUpLimit)},
 	}
 
 	registerGaugeGlobalAndSet(&gauges, r)
@@ -431,11 +544,12 @@ func Preference(result *API.Preferences, r *prometheus.Registry) {
 
 func Transfer(result *API.Transfer, r *prometheus.Registry) {
 	gauges := GaugeSet{
-		{"dht_nodes", nil, "The DHT nodes connected to", float64(result.DhtNodes)},
+		{qbittorrentGlobalDHTNodes,
+			helpqbittorrentGlobalDHTNodes, float64(result.DhtNodes)},
 	}
 	qbittorrentTransferConnectionStatus := prometheus.NewGaugeVec(prometheus.GaugeOpts{
-		Name: createMetricName(torrentLabelTransfer, torrentLabelConnectionStatus),
-		Help: "Connection status (connected, firewalled or disconnected)",
+		Name: qbittorrentTorrentTransferConnectionStatus,
+		Help: helpQbittorrentTorrentTransferConnectionStatus,
 	}, []string{torrentLabelConnectionStatus})
 
 	r.MustRegister(qbittorrentTransferConnectionStatus)
@@ -444,7 +558,6 @@ func Transfer(result *API.Transfer, r *prometheus.Registry) {
 	}).Set(1)
 
 	registerGaugeGlobalAndSet(&gauges, r)
-
 }
 
 func Trackers(result []*API.Trackers, r *prometheus.Registry) {
@@ -454,29 +567,22 @@ func Trackers(result []*API.Trackers, r *prometheus.Registry) {
 	}
 
 	labels := []string{trackerLabelURL}
-	var (
-		QbittorrentTrackerDownloaded = createMetricName(metricNameTracker, "downloaded")
-		QbittorrentTrackerLeeches    = createMetricName(metricNameTracker, "leeches")
-		QbittorrentTrackerPeers      = createMetricName(metricNameTracker, "peers")
-		QbittorrentTrackerSeeders    = createMetricName(metricNameTracker, "seeders")
-		QbittorrentTrackerStatus     = createMetricName(metricNameTracker, "status")
-		QbittorrentTrackerTier       = createMetricName(metricNameTracker, "tier")
-		QbittorrentTrackerInfo       = createMetricName(metricNameTracker, "info")
-	)
-	gauges := Gauge{
-		{&QbittorrentTrackerDownloaded, nil, "The current number of completed downloads for each trackers", &labels},
-		{&QbittorrentTrackerLeeches, nil, "The current number of leechers for each trackers", &labels},
-		{&QbittorrentTrackerPeers, nil, "The current number of peers for each trackers", &labels},
-		{&QbittorrentTrackerSeeders, nil, "The current number of seeders for each trackers", &labels},
-		{&QbittorrentTrackerStatus, nil, "The current status of each trackers", &labels},
-		{&QbittorrentTrackerTier, nil, "The current tracker priority tier of each trackers", &labels},
+
+	gauges := GaugeList{
+		{qbittorrentTrackerDownloaded, helpqbittorrentTrackerDownloaded, labels},
+		{qbittorrentTrackerLeeches, helpqbittorrentTrackerLeeches, labels},
+		{qbittorrentTrackerPeers, helpqbittorrentTrackerPeers, labels},
+		{qbittorrentTrackerSeeders, helpqbittorrentTrackerSeeders, labels},
+		{qbittorrentTrackerStatus, helpqbittorrentTrackerStatus, labels},
+		{qbittorrentTrackerTier, helpqbittorrentTrackerTier, labels},
 	}
 
 	metrics := registerGauge(&gauges, r)
 
 	if app.Exporter.Features.EnableHighCardinality {
-		metrics[QbittorrentTrackerInfo] = newGaugeVec(QbittorrentTrackerInfo, "All info for trackers",
+		metrics[qbittorrentTrackerInfo] = newGaugeVec(qbittorrentTrackerInfo, helpqbittorrentTrackerInfo,
 			[]string{trackerLabelMessage, labelDownloaded, trackerLabelLeeches, trackerLabelPeers, labelSeeders, trackerLabelStatus, trackerLabelTier, trackerLabelURL})
+		r.MustRegister(metrics[qbittorrentTrackerInfo])
 	}
 
 	for _, listOfTracker := range result {
@@ -487,12 +593,12 @@ func Trackers(result []*API.Trackers, r *prometheus.Registry) {
 					tier = 0
 				}
 				labels := prometheus.Labels{trackerLabelURL: tracker.URL}
-				metrics[QbittorrentTrackerDownloaded].With(labels).Set((float64(tracker.NumDownloaded)))
-				metrics[QbittorrentTrackerLeeches].With(labels).Set((float64(tracker.NumLeeches)))
-				metrics[QbittorrentTrackerSeeders].With(labels).Set((float64(tracker.NumSeeds)))
-				metrics[QbittorrentTrackerPeers].With(labels).Set((float64(tracker.NumPeers)))
-				metrics[QbittorrentTrackerStatus].With(labels).Set((float64(tracker.Status)))
-				metrics[QbittorrentTrackerTier].With(labels).Set((float64(tier)))
+				metrics[qbittorrentTrackerDownloaded].With(labels).Set(float64(tracker.NumDownloaded))
+				metrics[qbittorrentTrackerLeeches].With(labels).Set(float64(tracker.NumLeeches))
+				metrics[qbittorrentTrackerSeeders].With(labels).Set(float64(tracker.NumSeeds))
+				metrics[qbittorrentTrackerPeers].With(labels).Set(float64(tracker.NumPeers))
+				metrics[qbittorrentTrackerStatus].With(labels).Set(float64(tracker.Status))
+				metrics[qbittorrentTrackerTier].With(labels).Set(float64(tier))
 
 				if app.Exporter.Features.EnableHighCardinality {
 					qbittorrentTrackerInfoLabels := prometheus.Labels{
@@ -504,14 +610,11 @@ func Trackers(result []*API.Trackers, r *prometheus.Registry) {
 						trackerLabelStatus:  strconv.Itoa((tracker.Status)),
 						trackerLabelTier:    strconv.Itoa(tier),
 						trackerLabelURL:     tracker.URL}
-					metrics[QbittorrentTrackerInfo].With(qbittorrentTrackerInfoLabels).Set(1)
+					metrics[qbittorrentTrackerInfo].With(qbittorrentTrackerInfoLabels).Set(1)
 				}
-
 			}
 		}
-
 	}
-
 }
 
 func MainData(result *API.MainData, r *prometheus.Registry) {
@@ -522,16 +625,16 @@ func MainData(result *API.MainData, r *prometheus.Registry) {
 
 	if err != nil {
 		logger.Log.Trace("retrying to convert ratio...")
-		newGlobalRationState := strings.ReplaceAll(result.ServerState.GlobalRatio, ",", ".")
-		globalRatio, err = strconv.ParseFloat(newGlobalRationState, 64)
+		newGlobalRatioState := strings.ReplaceAll(result.ServerState.GlobalRatio, ",", ".")
+		globalRatio, err = strconv.ParseFloat(newGlobalRatioState, 64)
 		if err != nil {
 			logger.Log.Warn(fmt.Sprintf("error to convert ratio \"%s\"", result.ServerState.GlobalRatio))
 		}
 	}
 	if err == nil {
 		qbittorrentGlobalRatio := prometheus.NewGauge(prometheus.GaugeOpts{
-			Name: createMetricName(metricNameGlobal, "ratio"),
-			Help: "The current global ratio of all torrents",
+			Name: qbittorrentGlobalRatio,
+			Help: helpqbittorrentGlobalRatio,
 		})
 		r.MustRegister(qbittorrentGlobalRatio)
 		qbittorrentGlobalRatio.Set(globalRatio)
@@ -541,26 +644,26 @@ func MainData(result *API.MainData, r *prometheus.Registry) {
 		useAltSpeedLimits = 1.0
 	}
 	qbittorrentAppAltRateLimitsEnabled := prometheus.NewGauge(prometheus.GaugeOpts{
-		Name: createMetricName(metricNameApp, "alt_rate_limits_enabled"),
-		Help: "If alternate rate limits are enabled",
+		Name: qbittorrentAppAltRateLimitsEnabled,
+		Help: helpQbittorrentAppAltRateLimitsEnabled,
 	})
 	r.MustRegister(qbittorrentAppAltRateLimitsEnabled)
 	qbittorrentAppAltRateLimitsEnabled.Set(float64(useAltSpeedLimits))
 
 	gauges := GaugeSet{
-		{"alltime_downloaded", &Bytes, "The all-time total download amount of torrents", float64(result.ServerState.AlltimeDl)},
-		{"alltime_uploaded", &Bytes, "The all-time total upload amount of torrents", float64(result.ServerState.AlltimeUl)},
-		{"session_downloaded", &Bytes, "The total download amount of torrents for this session", float64(result.ServerState.DlInfoData)},
-		{"session_uploaded", &Bytes, "The total upload amount of torrents for this session", float64(result.ServerState.UpInfoData)},
-		{"download_speed", &Bytes, "The current download speed of all torrents", float64(result.ServerState.DlInfoSpeed)},
-		{"upload_speed", &Bytes, "The total current upload speed of all torrents", float64(result.ServerState.UpInfoSpeed)},
+		{qbittorrentGlobalAlltimeDownloadedBytes, helpqbittorrentGlobalAlltimeDownloadedBytes, float64(result.ServerState.AlltimeDl)},
+		{qbittorrentGlobalAlltimeUploadedBytes, helpqbittorrentGlobalAlltimeUploadedBytes, float64(result.ServerState.AlltimeUl)},
+		{qbittorrentGlobalSessionDownloadedBytes, helpqbittorrentGlobalSessionDownloadedBytes, float64(result.ServerState.DlInfoData)},
+		{qbittorrentGlobalSessionUploadedBytes, helpqbittorrentGlobalSessionUploadedBytes, float64(result.ServerState.UpInfoData)},
+		{qbittorrentGlobalDownloadSpeedBytes, helpqbittorrentGlobalDownloadSpeedBytes, float64(result.ServerState.DlInfoSpeed)},
+		{qbittorrentGlobalUploadSpeedBytes, helpqbittorrentGlobalUploadSpeedBytes, float64(result.ServerState.UpInfoSpeed)},
 	}
 
 	registerGaugeGlobalAndSet(&gauges, r)
 
 	qbittorrentGlobalTags := prometheus.NewGaugeVec(prometheus.GaugeOpts{
-		Name: createMetricName(metricNameGlobal, "tags"),
-		Help: "All tags used in qbittorrent",
+		Name: qbittorrentGlobalTags,
+		Help: helpqbittorrentGlobalTags,
 	}, []string{torrentLabelTag})
 	r.MustRegister(qbittorrentGlobalTags)
 	if len(result.Tags) > 0 {
@@ -568,13 +671,12 @@ func MainData(result *API.MainData, r *prometheus.Registry) {
 			labels := prometheus.Labels{
 				torrentLabelTag: tag,
 			}
-
 			qbittorrentGlobalTags.With(labels).Set(1)
 		}
 	}
 	qbittorrentGlobalCategories := prometheus.NewGaugeVec(prometheus.GaugeOpts{
-		Name: createMetricName(metricNameGlobal, "categories"),
-		Help: "All categories used in qbittorrent",
+		Name: qbittorrentGlobalCategories,
+		Help: helpqbittorrentGlobalCategories,
 	}, []string{torrentLabelCategory})
 	r.MustRegister(qbittorrentGlobalCategories)
 	for _, category := range result.CategoryMap {
@@ -585,36 +687,22 @@ func MainData(result *API.MainData, r *prometheus.Registry) {
 	}
 }
 
-func createNameAndHelp(name *string, help *string, unit *Unit, changeName bool) {
-	if unit != nil {
-		if unit == &Bytes && changeName {
-			*name += "_" + string(*unit)
-		}
-		*help += " (in " + string(*unit) + ")"
-	}
-}
-
 func registerGaugeGlobalAndSet(gauges *GaugeSet, r *prometheus.Registry) {
 	for _, gauge := range *gauges {
-		gauge.name = createMetricName(metricNameGlobal, gauge.name)
-		createNameAndHelp(&gauge.name, &gauge.help, gauge.unit, true)
 		g := prometheus.NewGauge(prometheus.GaugeOpts{
-			Name: gauge.name,
-			Help: gauge.help,
+			Name: gauge.Name,
+			Help: gauge.Help,
 		})
 		r.MustRegister(g)
-		g.Set(gauge.value)
+		g.Set(gauge.Value)
 	}
 }
 
-func registerGauge(gauges *Gauge, r *prometheus.Registry) map[string]*prometheus.GaugeVec {
-	metrics := make(map[string]*prometheus.GaugeVec)
+func registerGauge(gauges *GaugeList, r *prometheus.Registry) map[string]*prometheus.GaugeVec {
+	metrics := make(map[string]*prometheus.GaugeVec, len(*gauges))
 	for _, gauge := range *gauges {
-		createNameAndHelp(gauge.name, &gauge.help, gauge.unit, false)
-
-		metrics[*gauge.name] = newGaugeVec(*gauge.name, gauge.help, *gauge.labels)
-		r.MustRegister(metrics[*gauge.name])
-
+		metrics[gauge.Name] = newGaugeVec(gauge.Name, gauge.Help, gauge.Labels)
+		r.MustRegister(metrics[gauge.Name])
 	}
 	return metrics
 }
@@ -624,8 +712,4 @@ func newGaugeVec(name, help string, labels []string) *prometheus.GaugeVec {
 		Name: name,
 		Help: help,
 	}, labels)
-}
-
-func createMetricName(metricName string, metric string) string {
-	return fmt.Sprintf("%s_%s_%s", metricPrefix, metricName, metric)
 }
