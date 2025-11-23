@@ -97,16 +97,25 @@ func runMainDataTest(data *API.MainData, t *testing.T) {
 	MainData(data, registry)
 
 	expectedMetrics := map[string]float64{
-		"qbittorrent_global_ratio":                    2.5,
-		"qbittorrent_global_categories":               1.0,
-		"qbittorrent_global_tags":                     1.0,
-		"qbittorrent_app_alt_rate_limits_enabled":     1.0,
-		"qbittorrent_global_alltime_downloaded_bytes": 100000,
-		"qbittorrent_global_alltime_uploaded_bytes":   100001,
-		"qbittorrent_global_session_downloaded_bytes": 100002,
-		"qbittorrent_global_session_uploaded_bytes":   100003,
-		"qbittorrent_global_download_speed_bytes":     100004,
-		"qbittorrent_global_upload_speed_bytes":       100005,
+		"qbittorrent_global_ratio":                      2.5,
+		"qbittorrent_global_categories":                 1.0,
+		"qbittorrent_global_tags":                       1.0,
+		"qbittorrent_app_alt_rate_limits_enabled":       1.0,
+		"qbittorrent_global_alltime_downloaded_bytes":   100000,
+		"qbittorrent_global_alltime_uploaded_bytes":     100001,
+		"qbittorrent_global_session_downloaded_bytes":   100002,
+		"qbittorrent_global_session_uploaded_bytes":     100003,
+		"qbittorrent_global_download_speed_bytes":       100004,
+		"qbittorrent_global_upload_speed_bytes":         100005,
+		"qbittorrent_global_dht_nodes":                  0.0,
+		"qbittorrent_global_average_time_queue":         0.0,
+		"qbittorrent_global_free_space_on_diskbytes":    0.0,
+		"qbittorrent_global_queued_io_jobs":             0.0,
+		"qbittorrent_global_total_buffers_size_bytes":   0.0,
+		"qbittorrent_global_total_peer_connections":     0.0,
+		"qbittorrent_global_total_queued_size_bytes":    0.0,
+		"qbittorrent_global_total_wasted_session_bytes": 0.0,
+		"qbittorrent_transfer_connection_status":        1.0,
 	}
 	testMetrics(expectedMetrics, registry, t)
 
@@ -124,22 +133,6 @@ func runMainDataTest(data *API.MainData, t *testing.T) {
 func TestMainDataMetrics(t *testing.T) {
 	runMainDataTest(createMockMainData("2.5"), t)
 	runMainDataTest(createMockMainData("2,5"), t)
-}
-func TestTransfer(t *testing.T) {
-
-	mockTransfer := &API.Transfer{
-		DhtNodes:         5,
-		ConnectionStatus: "connected",
-	}
-
-	registry := prometheus.NewRegistry()
-	Transfer(mockTransfer, registry)
-
-	expectedMetrics := map[string]float64{
-		"qbittorrent_global_dht_nodes":           5,
-		"qbittorrent_transfer_connection_status": 1,
-	}
-	testMetrics(expectedMetrics, registry, t)
 }
 
 func TestVersion(t *testing.T) {

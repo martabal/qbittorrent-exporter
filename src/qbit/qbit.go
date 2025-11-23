@@ -82,14 +82,6 @@ var otherAPIRequests = [...]Data{
 		prom.MainData(result, r)
 		return nil
 	}),
-	newData("transfer/info", nil, func(body []byte, r *prometheus.Registry, _ *string) error {
-		result := new(API.Transfer)
-		if err := json.Unmarshal(body, result); err != nil {
-			return err
-		}
-		prom.Transfer(result, r)
-		return nil
-	}),
 }
 
 func createUrl(url string) string {

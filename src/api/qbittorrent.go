@@ -53,14 +53,23 @@ type MainData struct {
 }
 
 type ServerState struct {
-	AlltimeDl         int64  `json:"alltime_dl"`
-	AlltimeUl         int64  `json:"alltime_ul"`
-	DlInfoData        int64  `json:"dl_info_data"`
-	DlInfoSpeed       int64  `json:"dl_info_speed"`
-	GlobalRatio       string `json:"global_ratio"`
-	UpInfoData        int64  `json:"up_info_data"`
-	UpInfoSpeed       int64  `json:"up_info_speed"`
-	UseAltSpeedLimits bool   `json:"use_alt_speed_limits"`
+	AlltimeDl            int64  `json:"alltime_dl"`
+	AlltimeUl            int64  `json:"alltime_ul"`
+	AverageTimeQueue     int64  `jaon:"average_time_queue"`
+	ConnectionStatus     string `json:"connection_status"`
+	DHTNodes             int64  `json:"dht_nodes"`
+	DlInfoData           int64  `json:"dl_info_data"`
+	DlInfoSpeed          int64  `json:"dl_info_speed"`
+	FreeSpaceOnDisk      int64  `json:"free_space_on_disk"`
+	GlobalRatio          string `json:"global_ratio"`
+	QueuedIoJobs         int64  `json:"queued_io_jobs"`
+	UpInfoData           int64  `json:"up_info_data"`
+	UpInfoSpeed          int64  `json:"up_info_speed"`
+	TotalBuffersSize     int64  `json:"total_buffers_size"`
+	TotalQueuedSize      int64  `json:"total_queued_size"`
+	TotalPeerConnections int64  `json:"total_peer_connections"`
+	TotalWastedSession   int64  `json:"total_wasted_session"`
+	UseAltSpeedLimits    bool   `json:"use_alt_speed_limits"`
 }
 
 type Category struct {
@@ -77,9 +86,4 @@ type Trackers []struct {
 	Status        int             `json:"status"`
 	Tier          json.RawMessage `json:"tier"`
 	URL           string          `json:"url"`
-}
-
-type Transfer struct {
-	ConnectionStatus string `json:"connection_status"`
-	DhtNodes         int    `json:"dht_nodes"`
 }

@@ -60,6 +60,7 @@ const (
 	torrentLabelAllTimeDownloaded      string = torrentLabelAllTimeHelper + separator + torrentLabelDownload + separator + torrentLabelBytes
 	torrentLabelAllTimeUploaded        string = torrentLabelAllTimeHelper + separator + torrentLabelUploaded + separator + torrentLabelBytes
 	torrentLabelAltRatesLimitEnabled   string = "alt_rate_limits_enabled"
+	torrentLabelAverageTimeQueue       string = "average_time_queue"
 	torrentLabelAmountLeft             string = "amount_left"
 	torrentLabelAmountLeftBytes        string = "amount_left" + separator + torrentLabelBytes
 	torrentLabelBytes                  string = "bytes"
@@ -74,6 +75,7 @@ const (
 	torrentLabelDownloadedSession      string = "downloaded_session"
 	torrentLabelDownloadSpeed          string = "download_speed" + separator + torrentLabelBytes
 	torrentLabelEta                    string = "eta"
+	torrentLabelFreeSpaceOnDisk        string = "free_space_on_disk" + torrentLabelBytes
 	torrentLabelHash                   string = "hash"
 	torrentLabelInfo                   string = "info"
 	torrentLabelLeechers               string = "leechers"
@@ -82,6 +84,7 @@ const (
 	torrentLabelTag                    string = "tag"
 	torrentLabelTags                   string = "tags"
 	torrentLabelProgress               string = "progress"
+	torrentLabelQueuedIoJobs           string = "queued_io_jobs"
 	torrentLabelRatio                  string = "ratio"
 	torrentLabelSavePath               string = "save_path"
 	torrentLabelSeeders                string = "seeders"
@@ -94,9 +97,13 @@ const (
 	torrentLabelStates                 string = "states"
 	torrentLabelTimeActive             string = "time_active"
 	torrentLabelTorrents               string = "torrents"
+	torrentLabelTotalBuffersSize       string = "total_buffers_size" + separator + torrentLabelBytes
+	torrentLabelTotalPeerConnections   string = "total_peer_connections"
+	torrentLabelTotalQueuedSize        string = "total_queued_size" + separator + torrentLabelBytes
 	torrentLabelTotalHelper            string = "total"
 	torrentLabelTotalDownloaded        string = torrentLabelTotalHelper + separator + torrentLabelDownload + separator + torrentLabelBytes
 	torrentLabelTotalUploaded          string = torrentLabelTotalHelper + separator + torrentLabelUploaded + separator + torrentLabelBytes
+	torrentLabelTotalWastedSession     string = "total_wasted_session" + separator + torrentLabelBytes
 	torrentLabelTracker                string = "tracker"
 	torrentLabelUploaded               string = "uploaded"
 	torrentLabelUploadedSession        string = "uploaded_session"
@@ -189,6 +196,13 @@ const (
 	qbittorrentGlobalAltDownloadRateLimitBytes string = metricCatGlobal + globalLabelAltDownloadRateLimit
 	qbittorrentGlobalAltUploadRateLimitBytes   string = metricCatGlobal + globalLabelAltUploadRateLimit
 	qbittorrentGlobalDHTNodes                  string = metricCatGlobal + torrentLabelDHTNodes
+	qbittorrentGlobalAverageTimeQueue          string = metricCatGlobal + torrentLabelAverageTimeQueue
+	qbittorrentGlobalFreeSpaceOnDiskBytes      string = metricCatGlobal + torrentLabelFreeSpaceOnDisk
+	qbittorrentGlobalQueuedIoJobs              string = metricCatGlobal + torrentLabelQueuedIoJobs
+	qbittorrentGlobalTotalBuffersSizeBytes     string = metricCatGlobal + torrentLabelTotalBuffersSize
+	qbittorrentGlobalTotalQueuedSizeBytes      string = metricCatGlobal + torrentLabelTotalQueuedSize
+	qbittorrentGlobalTotalPeerConnections      string = metricCatGlobal + torrentLabelTotalPeerConnections
+	qbittorrentGlobalTotalWastedSessionBytes   string = metricCatGlobal + torrentLabelTotalWastedSession
 
 	helpqbittorrentGlobalTorrents                  string = "The total number of torrents"
 	helpqbittorrentGlobalRatio                     string = "The current global ratio of all torrents"
@@ -208,6 +222,13 @@ const (
 	helpqbittorrentGlobalAltDownloadRateLimitBytes string = "The alternate download rate limit" + BytesHelper
 	helpqbittorrentGlobalAltUploadRateLimitBytes   string = "The alternate upload rate limit" + BytesHelper
 	helpqbittorrentGlobalDHTNodes                  string = "The DHT nodes connected to"
+	helpqbittorrentGlobalAverageTimeQueue          string = "The DHT average time queue"
+	helpqbittorrentGlobalFreeSpaceOnDisk           string = "The free space on disk" + BytesHelper
+	helpqbittorrentGlobalQueuedIoJobs              string = "The DHT queued io jobs"
+	helpqbittorrentGlobalTotalBuffersSize          string = "The total buffer size" + BytesHelper
+	helpqbittorrentGlobalTotalQueuedSize           string = "The total queued size" + BytesHelper
+	helpqbittorrentGlobalTotalPeerConnections      string = "The number of peer's connections"
+	helpqbittorrentGlobalWastedSession             string = "The number of wasted session" + BytesHelper
 )
 
 // Torrent metrics
@@ -257,10 +278,7 @@ const (
 	helpQbittorrentTorrentSavePath               string = "Save path for this torrent"
 	helpQbittorrentTorrentAddedOn                string = "Timestamp when this torrent was added"
 	helpQbittorrentTorrentCompletionOn           string = "Timestamp when this torrent was completed"
-)
 
-// Transfer
-const (
 	qbittorrentTorrentTransferConnectionStatus     string = metricCatTransfer + torrentLabelConnectionStatus
 	helpQbittorrentTorrentTransferConnectionStatus string = "Connection status (connected, firewalled or disconnected)"
 )
@@ -542,24 +560,6 @@ func Preference(result *API.Preferences, r *prometheus.Registry) {
 	registerGaugeGlobalAndSet(&gauges, r)
 }
 
-func Transfer(result *API.Transfer, r *prometheus.Registry) {
-	gauges := GaugeSet{
-		{qbittorrentGlobalDHTNodes,
-			helpqbittorrentGlobalDHTNodes, float64(result.DhtNodes)},
-	}
-	qbittorrentTransferConnectionStatus := prometheus.NewGaugeVec(prometheus.GaugeOpts{
-		Name: qbittorrentTorrentTransferConnectionStatus,
-		Help: helpQbittorrentTorrentTransferConnectionStatus,
-	}, []string{torrentLabelConnectionStatus})
-
-	r.MustRegister(qbittorrentTransferConnectionStatus)
-	qbittorrentTransferConnectionStatus.With(prometheus.Labels{
-		torrentLabelConnectionStatus: result.ConnectionStatus,
-	}).Set(1)
-
-	registerGaugeGlobalAndSet(&gauges, r)
-}
-
 func Trackers(result []*API.Trackers, r *prometheus.Registry) {
 	if len(result) == 0 {
 		logger.Log.Trace("No tracker")
@@ -657,7 +657,25 @@ func MainData(result *API.MainData, r *prometheus.Registry) {
 		{qbittorrentGlobalSessionUploadedBytes, helpqbittorrentGlobalSessionUploadedBytes, float64(result.ServerState.UpInfoData)},
 		{qbittorrentGlobalDownloadSpeedBytes, helpqbittorrentGlobalDownloadSpeedBytes, float64(result.ServerState.DlInfoSpeed)},
 		{qbittorrentGlobalUploadSpeedBytes, helpqbittorrentGlobalUploadSpeedBytes, float64(result.ServerState.UpInfoSpeed)},
+		{qbittorrentGlobalDHTNodes, helpqbittorrentGlobalDHTNodes, float64(result.ServerState.DHTNodes)},
+		{qbittorrentGlobalAverageTimeQueue, helpqbittorrentGlobalAverageTimeQueue, float64(result.ServerState.AverageTimeQueue)},
+		{qbittorrentGlobalFreeSpaceOnDiskBytes, helpqbittorrentGlobalFreeSpaceOnDisk, float64(result.ServerState.FreeSpaceOnDisk)},
+		{qbittorrentGlobalQueuedIoJobs, helpqbittorrentGlobalQueuedIoJobs, float64(result.ServerState.QueuedIoJobs)},
+		{qbittorrentGlobalTotalBuffersSizeBytes, helpqbittorrentGlobalTotalBuffersSize, float64(result.ServerState.TotalBuffersSize)},
+		{qbittorrentGlobalTotalQueuedSizeBytes, helpqbittorrentGlobalTotalQueuedSize, float64(result.ServerState.TotalQueuedSize)},
+		{qbittorrentGlobalTotalPeerConnections, helpqbittorrentGlobalTotalPeerConnections, float64(result.ServerState.TotalPeerConnections)},
+		{qbittorrentGlobalTotalWastedSessionBytes, helpqbittorrentGlobalWastedSession, float64(result.ServerState.TotalWastedSession)},
 	}
+
+	qbittorrentTransferConnectionStatus := prometheus.NewGaugeVec(prometheus.GaugeOpts{
+		Name: qbittorrentTorrentTransferConnectionStatus,
+		Help: helpQbittorrentTorrentTransferConnectionStatus,
+	}, []string{torrentLabelConnectionStatus})
+
+	r.MustRegister(qbittorrentTransferConnectionStatus)
+	qbittorrentTransferConnectionStatus.With(prometheus.Labels{
+		torrentLabelConnectionStatus: result.ServerState.ConnectionStatus,
+	}).Set(1)
 
 	registerGaugeGlobalAndSet(&gauges, r)
 
