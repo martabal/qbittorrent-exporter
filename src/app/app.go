@@ -88,7 +88,7 @@ func LoadEnv() {
 
 	qbitUsername, usingDefaultValue := getEnv(defaultUsername)
 	if !usingDefaultValue {
-		logger.Log.Info(fmt.Sprintf("username: %s", qbitUsername))
+		logger.Info(fmt.Sprintf("username: %s", qbitUsername))
 	}
 	showPasswordString, _ := getEnv(defaultExporterShowPassword)
 	showPassword := envSetToTrue(showPasswordString)
@@ -99,7 +99,7 @@ func LoadEnv() {
 		if showPassword {
 			password = qbitPassword
 		}
-		logger.Log.Info(fmt.Sprintf("password: %s", password))
+		logger.Info(fmt.Sprintf("password: %s", password))
 	}
 	baseUrlEnv, usingDefaultValue := getEnv(defaultBaseUrl)
 	baseUrl := strings.TrimSuffix(baseUrlEnv, "/")
@@ -107,7 +107,7 @@ func LoadEnv() {
 		panic(fmt.Sprintf("%s is not a valid URL (check %s)", baseUrl, defaultBaseUrl.Key))
 	}
 	if !usingDefaultValue {
-		logger.Log.Info(fmt.Sprintf("qBittorrent URL: %s", baseUrl))
+		logger.Info(fmt.Sprintf("qBittorrent URL: %s", baseUrl))
 	}
 
 	qbitBasicAuthUsername := getOptionalEnv(defaultQbitBasicAuthUsername)
@@ -129,7 +129,7 @@ func LoadEnv() {
 	insecureSkipVerify, _ := getEnv(defaultInsecureSkipVerify)
 	minTlsVersionStr, _ := getEnv(defaultMinTlsVersion)
 
-	logger.Log.Debug(envFileMessage)
+	logger.Debug(envFileMessage)
 
 	exporterPort, errExporterPort := strconv.Atoi(exporterPortEnv)
 	if errExporterPort != nil {
@@ -139,7 +139,7 @@ func LoadEnv() {
 		panic(fmt.Sprintf("%d must be > 0 and < 65353 (check %s)", exporterPort, defaultPort.Key))
 	}
 	if exporterPort != defaultExporterPort {
-		logger.Log.Info(fmt.Sprintf("Listening on port %d", exporterPort))
+		logger.Info(fmt.Sprintf("Listening on port %d", exporterPort))
 	}
 
 	timeoutDuration, errTimeoutDuration := strconv.Atoi(timeoutDurationEnv)
@@ -161,18 +161,18 @@ func LoadEnv() {
 		}
 	}
 	if exporterUrl != "" {
-		logger.Log.Info(fmt.Sprintf("qbittorrent-exporter URL: %s", exporterUrl))
+		logger.Info(fmt.Sprintf("qbittorrent-exporter URL: %s", exporterUrl))
 	}
 
 	// If a custom CA is provided and INSECURE_SKIP_VERIFY is set, that's kinda sus
 	if certificateAuthorityPath != nil && envSetToTrue(insecureSkipVerify) {
-		logger.Log.Warn(fmt.Sprintf("You provided a custom CA and disabled certificate validation (check %s and %s)",
+		logger.Warn(fmt.Sprintf("You provided a custom CA and disabled certificate validation (check %s and %s)",
 			defaultCertificateAuthorityPath, defaultInsecureSkipVerify.Key))
 	}
 
 	// If a custom CA is provided or INSECURE_SKIP_VERIFY is set and the exporter URL is not HTTPS, that's kinda sus
 	if (certificateAuthorityPath != nil || envSetToTrue(insecureSkipVerify)) && !internal.IsValidHttpsURL(baseUrl) {
-		logger.Log.Warn(fmt.Sprintf("You provided a custom CA or disabled certificate validation but the qBittorrent URL is not HTTPS. (check %s, %s and %s)",
+		logger.Warn(fmt.Sprintf("You provided a custom CA or disabled certificate validation but the qBittorrent URL is not HTTPS. (check %s, %s and %s)",
 			defaultCertificateAuthorityPath, defaultInsecureSkipVerify.Key, defaultBaseUrl.Key))
 	}
 
@@ -211,13 +211,13 @@ func LoadEnv() {
 	exporterBasicAuth := getBasicAuth(basicAuthUsername, basicAuthPassword, defaultBasicAuthUsername, defaultBasicAuthPassword)
 
 	if qbittorrentBasicAuth != nil {
-		logger.Log.Info("Enabling qBittorrent Basic Auth request header.")
+		logger.Info("Enabling qBittorrent Basic Auth request header.")
 	}
 
 	if exporterBasicAuth != nil {
-		logger.Log.Info("Using basic auth to protect the exporter instance")
+		logger.Info("Using basic auth to protect the exporter instance")
 	} else {
-		logger.Log.Trace("Not using basic auth to protect the exporter instance")
+		logger.Trace("Not using basic auth to protect the exporter instance")
 	}
 
 	HttpClient = http.Client{
@@ -259,7 +259,7 @@ func LoadEnv() {
 		BasicAuth: exporterBasicAuth,
 	}
 
-	logger.Log.Info(fmt.Sprintf("Features enabled: %s", getFeaturesEnabled()))
+	logger.Info(fmt.Sprintf("Features enabled: %s", getFeaturesEnabled()))
 }
 
 func getBasicAuth(basicAuthUsername *string, basicAuthPassword *string, defaultBasicAuth string, defaultBasicPassword string) *BasicAuth {
@@ -270,14 +270,14 @@ func getBasicAuth(basicAuthUsername *string, basicAuthPassword *string, defaultB
 		if basicAuthUsername != nil {
 			username = *basicAuthUsername
 		} else {
-			logger.Log.Info(fmt.Sprintf("You set a basic auth password but not username (check %s and %s)",
+			logger.Info(fmt.Sprintf("You set a basic auth password but not username (check %s and %s)",
 				defaultBasicAuth, defaultBasicAuth))
 		}
 
 		if basicAuthPassword != nil {
 			password = *basicAuthPassword
 		} else {
-			logger.Log.Info(fmt.Sprintf("You set a basic auth username but not password (check %s and %s)",
+			logger.Info(fmt.Sprintf("You set a basic auth username but not password (check %s and %s)",
 				defaultBasicPassword, defaultBasicPassword))
 		}
 
@@ -335,7 +335,7 @@ func getPassword() (string, bool) {
 		if err != nil {
 			panic(err)
 		}
-		logger.Log.Info(fmt.Sprintf("password read from: %s", *passwordFile))
+		logger.Info(fmt.Sprintf("password read from: %s", *passwordFile))
 		return strings.TrimSpace(string(fileContent)), false
 	} else {
 		return getEnv(defaultPassword)

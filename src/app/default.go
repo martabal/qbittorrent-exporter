@@ -139,7 +139,7 @@ func getEnv(env Env) (string, bool) {
 		return value, false
 	}
 	if env.Help != "" {
-		logger.Log.Warn(fmt.Sprintf("%s (%s)", env.Help, env.DefaultValue))
+		logger.Warn(fmt.Sprintf("%s (%s)", env.Help, env.DefaultValue))
 	}
 	return env.DefaultValue, true
 }

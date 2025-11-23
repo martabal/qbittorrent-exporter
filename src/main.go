@@ -31,7 +31,7 @@ func main() {
 	})
 	addr := fmt.Sprintf(":%d", app.Exporter.Port)
 
-	logger.Log.Info("Starting the exporter")
+	logger.Info("Starting the exporter")
 	err := http.ListenAndServe(addr, nil)
 	if err != nil {
 		panic(err)
@@ -44,7 +44,7 @@ func metrics(w http.ResponseWriter, req *http.Request, allRequestsFunc func(*pro
 	if err == nil {
 		logMsg = fmt.Sprintf("%s from %s", logMsg, ip)
 	}
-	logger.Log.Trace(logMsg)
+	logger.Trace(logMsg)
 
 	registry := prometheus.NewRegistry()
 	err = allRequestsFunc(registry)
@@ -71,7 +71,7 @@ func basicAuth(h http.HandlerFunc) http.HandlerFunc {
 		if err == nil {
 			logErr = fmt.Sprintf("%s from %s", logErr, ip)
 		}
-		logger.Log.Warn(logErr)
+		logger.Warn(logErr)
 
 		w.Header().Set("WWW-Authenticate", `Basic realm="restricted", charset="UTF-8"`)
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)

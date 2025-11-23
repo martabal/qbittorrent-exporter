@@ -516,7 +516,7 @@ func Torrent(result *API.SliceInfo, webUIVersion *string, r *prometheus.Registry
 		if _, exists := countStates[torrent.State]; exists {
 			countStates[torrent.State]++
 		} else {
-			logger.Log.Error(fmt.Sprintf("Unknown state: %s", torrent.State))
+			logger.Error(fmt.Sprintf("Unknown state: %s", torrent.State))
 		}
 		countTotal++
 
@@ -562,7 +562,7 @@ func Preference(result *API.Preferences, r *prometheus.Registry) {
 
 func Trackers(result []*API.Trackers, r *prometheus.Registry) {
 	if len(result) == 0 {
-		logger.Log.Trace("No tracker")
+		logger.Trace("No tracker")
 		return
 	}
 
@@ -590,6 +590,7 @@ func Trackers(result []*API.Trackers, r *prometheus.Registry) {
 			if internal.IsValidURL(tracker.URL) {
 				tier, err := strconv.Atoi(string(tracker.Tier))
 				if err != nil {
+					logger.Trace(fmt.Sprintf("can't convert \"%s\" to int", tracker.Tier))
 					tier = 0
 				}
 				labels := prometheus.Labels{trackerLabelURL: tracker.URL}
@@ -624,11 +625,11 @@ func MainData(result *API.MainData, r *prometheus.Registry) {
 	globalRatio, err = strconv.ParseFloat(result.ServerState.GlobalRatio, 64)
 
 	if err != nil {
-		logger.Log.Trace("retrying to convert ratio...")
+		logger.Trace("retrying to convert ratio...")
 		newGlobalRatioState := strings.ReplaceAll(result.ServerState.GlobalRatio, ",", ".")
 		globalRatio, err = strconv.ParseFloat(newGlobalRatioState, 64)
 		if err != nil {
-			logger.Log.Warn(fmt.Sprintf("error to convert ratio \"%s\"", result.ServerState.GlobalRatio))
+			logger.Warn(fmt.Sprintf("error to convert ratio \"%s\"", result.ServerState.GlobalRatio))
 		}
 	}
 	if err == nil {

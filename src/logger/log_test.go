@@ -12,14 +12,14 @@ func TestSetLogLevel(t *testing.T) {
 		expectedOutput string
 		expectedLevel  slog.Level
 	}{
-		{"ValidLogLevelTrace", "TRACE", "TRACE", slog.Level(Trace)},
-		{"ValidLogLevelTraceLower", "Trace", "TRACE", slog.Level(Trace)},
-		{"ValidLogLevelFullLower", "trace", "TRACE", slog.Level(Trace)},
-		{"ValidLogLevelDebug", "DEBUG", "DEBUG", slog.Level(Debug)},
-		{"ValidLogLevelInfo", "INFO", "INFO", slog.Level(Info)},
-		{"ValidLogLevelWarn", "WARN", "WARN", slog.Level(Warn)},
-		{"ValidLogLevelError", "ERROR", "ERROR", slog.Level(Error)},
-		{"InvalidLogLevel", "INVALID", "INFO", slog.Level(Info)},
+		{"ValidLogLevelTrace", "TRACE", "TRACE", slog.Level(LevelTrace)},
+		{"ValidLogLevelTraceLower", "Trace", "TRACE", slog.Level(LevelTrace)},
+		{"ValidLogLevelFullLower", "trace", "TRACE", slog.Level(LevelTrace)},
+		{"ValidLogLevelDebug", "DEBUG", "DEBUG", slog.Level(LevelDebug)},
+		{"ValidLogLevelInfo", "INFO", "INFO", slog.Level(LevelInfo)},
+		{"ValidLogLevelWarn", "WARN", "WARN", slog.Level(LevelWarn)},
+		{"ValidLogLevelError", "ERROR", "ERROR", slog.Level(LevelError)},
+		{"InvalidLogLevel", "INVALID", "INFO", slog.Level(LevelInfo)},
 	}
 
 	for _, tt := range tests {

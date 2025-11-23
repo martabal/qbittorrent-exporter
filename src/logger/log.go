@@ -18,11 +18,11 @@ type PrettyHandler struct {
 }
 
 var LogLevels = map[string]slog.Level{
-	"TRACE": Trace,
-	"DEBUG": Debug,
-	"INFO":  Info,
-	"WARN":  Warn,
-	"ERROR": Error,
+	"TRACE": LevelTrace,
+	"DEBUG": LevelDebug,
+	"INFO":  LevelInfo,
+	"WARN":  LevelWarn,
+	"ERROR": LevelError,
 }
 
 var ReverseLogLevels = func(m map[string]slog.Level) map[slog.Level]string {
@@ -34,19 +34,19 @@ var ReverseLogLevels = func(m map[string]slog.Level) map[slog.Level]string {
 }(LogLevels)
 
 var ColorLogLevel = map[slog.Level]string{
-	Trace: Purple,
-	Debug: Green,
-	Info:  Blue,
-	Warn:  Yellow,
-	Error: Red,
+	LevelTrace: Purple,
+	LevelDebug: Green,
+	LevelInfo:  Blue,
+	LevelWarn:  Yellow,
+	LevelError: Red,
 }
 
 const (
-	Trace slog.Level = -8
-	Debug slog.Level = -4
-	Info  slog.Level = 0
-	Warn  slog.Level = 4
-	Error slog.Level = 8
+	LevelTrace slog.Level = -8
+	LevelDebug slog.Level = -4
+	LevelInfo  slog.Level = 0
+	LevelWarn  slog.Level = 4
+	LevelError slog.Level = 8
 )
 
 const (
@@ -94,7 +94,7 @@ func SetLogLevel(logLevel string) string {
 	level, found := LogLevels[upperLogLevel]
 	if !found {
 		upperLogLevel = "INFO"
-		level = Info
+		level = LevelInfo
 	}
 
 	opts := slog.HandlerOptions{
@@ -106,8 +106,23 @@ func SetLogLevel(logLevel string) string {
 	return upperLogLevel
 }
 
-func (l *Logger) Trace(msg string) {
-	l.Log(context.Background(), slog.Level(Trace), msg)
+var Log *Logger
+
+func Trace(msg string) {
+	Log.Log(context.Background(), slog.Level(LevelTrace), msg)
 }
 
-var Log *Logger
+func Debug(msg string) {
+	Log.Log(context.Background(), slog.Level(LevelDebug), msg)
+}
+
+func Info(msg string) {
+	Log.Log(context.Background(), slog.Level(LevelInfo), msg)
+}
+func Warn(msg string) {
+	Log.Log(context.Background(), slog.Level(LevelWarn), msg)
+}
+
+func Error(msg string) {
+	Log.Log(context.Background(), slog.Level(LevelError), msg)
+}

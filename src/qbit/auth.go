@@ -33,19 +33,19 @@ func Auth() error {
 	resp, err := app.HttpClient.Do(req)
 
 	if ctx.Err() == context.DeadlineExceeded {
-		logger.Log.Error(API.QbittorrentTimeOut)
+		logger.Error(API.QbittorrentTimeOut)
 
 		return context.DeadlineExceeded
 	}
 	if err != nil {
 		err := fmt.Errorf("%s: %v", API.ErrorConnect, err)
-		logger.Log.Error(err.Error())
+		logger.Error(err.Error())
 		return err
 	}
 
 	defer func() {
 		if err := resp.Body.Close(); err != nil {
-			logger.Log.Error(fmt.Sprintf("Error closing body %v", err))
+			logger.Error(fmt.Sprintf("Error closing body %v", err))
 		}
 	}()
 
@@ -62,11 +62,11 @@ func Auth() error {
 		if resp.StatusCode == http.StatusForbidden && app.QBittorrent.Cookie == nil {
 			panic(fmt.Sprintf("%s. qBittorrent has probably banned your IP", err.Error()))
 		}
-		logger.Log.Error(err.Error())
+		logger.Error(err.Error())
 		return err
 	}
 
-	logger.Log.Info("New cookie for auth stored")
+	logger.Info("New cookie for auth stored")
 
 	cookie := resp.Header.Get("Set-Cookie")
 	cookieValue := strings.Split(strings.Split(cookie, ";")[0], "=")[1]

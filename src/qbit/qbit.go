@@ -168,7 +168,7 @@ func getTrackers(torrentList *API.SliceInfo, r *prometheus.Registry) {
 		if err == nil {
 			*responses = append(*responses, res)
 		} else {
-			logger.Log.Error(err.Error())
+			logger.Error(err.Error())
 		}
 
 	}
@@ -181,11 +181,11 @@ func AllRequests(r *prometheus.Registry) error {
 	firstRequestUrl := createUrl(firstAPIRequest.URL)
 	webUIVersionBytes, retry, err := apiRequest(firstRequestUrl, firstAPIRequest.HTTPMethod, firstAPIRequest.QueryParams)
 	if retry {
-		logger.Log.Debug("Retrying ...")
+		logger.Debug("Retrying ...")
 		webUIVersionBytes, _, err = apiRequest(firstRequestUrl, firstAPIRequest.HTTPMethod, firstAPIRequest.QueryParams)
 	}
 	webUIVersion := string(webUIVersionBytes)
-	logger.Log.Trace(fmt.Sprintf("WebUI API version: %s", webUIVersion))
+	logger.Trace(fmt.Sprintf("WebUI API version: %s", webUIVersion))
 	if err != nil {
 		return err
 	}
@@ -194,7 +194,7 @@ func AllRequests(r *prometheus.Registry) error {
 		defer wg.Done()
 		defer func() {
 			if r := recover(); r != nil {
-				logger.Log.Error(fmt.Sprintf("Recovered panic: %s", r))
+				logger.Error(fmt.Sprintf("Recovered panic: %s", r))
 			}
 		}()
 		getData(r, data, &webUIVersion, c)
@@ -218,8 +218,8 @@ func AllRequests(r *prometheus.Registry) error {
 }
 
 func errorHelper(body *[]byte, errMsg *error, url *string) {
-	logger.Log.Trace(fmt.Sprintf("body from %s: %s", *url, string(*body)))
-	logger.Log.Error(fmt.Sprintf("%s %s", unmarshError, *errMsg))
+	logger.Trace(fmt.Sprintf("body from %s: %s", *url, string(*body)))
+	logger.Error(fmt.Sprintf("%s %s", unmarshError, *errMsg))
 }
 
 // returns:
@@ -228,7 +228,7 @@ func errorHelper(body *[]byte, errMsg *error, url *string) {
 // - err (the error if there was one during the request)
 func apiRequest(url string, method string, queryParams *[]QueryParams) ([]byte, bool, error) {
 	if app.QBittorrent.Cookie == nil {
-		logger.Log.Debug("no cookie set")
+		logger.Debug("no cookie set")
 		err := Auth()
 		if err != nil {
 			return nil, false, err
@@ -256,21 +256,21 @@ func apiRequest(url string, method string, queryParams *[]QueryParams) ([]byte, 
 	}
 
 	req.AddCookie(&http.Cookie{Name: "SID", Value: *app.QBittorrent.Cookie})
-	logger.Log.Trace(fmt.Sprintf("New request to %s", req.URL.String()))
+	logger.Trace(fmt.Sprintf("New request to %s", req.URL.String()))
 	resp, err := app.HttpClient.Do(req)
 	if ctx.Err() == context.DeadlineExceeded {
-		logger.Log.Error(API.QbittorrentTimeOut)
+		logger.Error(API.QbittorrentTimeOut)
 		return nil, false, context.DeadlineExceeded
 	}
 
 	if err != nil {
 		err := fmt.Errorf("%s: %v", API.ErrorConnect, err)
-		logger.Log.Error(err.Error())
+		logger.Error(err.Error())
 		return nil, false, err
 	}
 	defer func() {
 		if err := resp.Body.Close(); err != nil {
-			logger.Log.Error(fmt.Sprintf("Error closing body %v", err))
+			logger.Error(fmt.Sprintf("Error closing body %v", err))
 		}
 	}()
 
@@ -283,12 +283,12 @@ func apiRequest(url string, method string, queryParams *[]QueryParams) ([]byte, 
 		return body, false, nil
 	case http.StatusForbidden:
 		err := fmt.Errorf("%d", resp.StatusCode)
-		logger.Log.Warn("Cookie changed, trying to reconnect ...")
+		logger.Warn("Cookie changed, trying to reconnect ...")
 		_ = Auth()
 		return nil, true, err
 	default:
 		err := fmt.Errorf("%d", resp.StatusCode)
-		logger.Log.Error(fmt.Sprintf("Error code %d for: %s", resp.StatusCode, url))
+		logger.Error(fmt.Sprintf("Error code %d for: %s", resp.StatusCode, url))
 		return nil, false, err
 	}
 }

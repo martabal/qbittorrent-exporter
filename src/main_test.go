@@ -41,7 +41,7 @@ func TestMetricsReturnMetric(t *testing.T) {
 
 	buff.Reset()
 	opts := &slog.HandlerOptions{
-		Level: slog.Level(logger.Trace),
+		Level: slog.Level(logger.LevelTrace),
 	}
 
 	logger.Log = &logger.Logger{Logger: slog.New(slog.NewTextHandler(buff, opts))}
