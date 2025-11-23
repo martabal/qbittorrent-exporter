@@ -98,6 +98,8 @@ func runMainDataTest(data *API.MainData, t *testing.T) {
 
 	expectedMetrics := map[string]float64{
 		"qbittorrent_global_ratio":                    2.5,
+		"qbittorrent_global_categories":               1.0,
+		"qbittorrent_global_tags":                     1.0,
 		"qbittorrent_app_alt_rate_limits_enabled":     1.0,
 		"qbittorrent_global_alltime_downloaded_bytes": 100000,
 		"qbittorrent_global_alltime_uploaded_bytes":   100001,
@@ -228,6 +230,8 @@ func TestTorrent(t *testing.T) {
 		"qbittorrent_global_torrents":                  1,
 		"qbittorrent_torrent_added_on":                 1664715487,
 		"qbittorrent_torrent_completed_on":             1664719487,
+		"qbittorrent_torrent_states":                   0,
+		"qbittorrent_torrent_tags":                     1,
 	}
 
 	testMetrics(expectedMetrics, registry, t)
@@ -266,32 +270,60 @@ func TestTrackers(t *testing.T) {
 }
 
 func testMetrics(expectedMetrics map[string]float64, registry *prometheus.Registry, t *testing.T) {
+	metricFamilies, err := registry.Gather()
+	if err != nil {
+		t.Fatalf("Failed to gather metrics: %v", err)
+	}
 
+	discovered := make(map[string]bool)
+
+	// Validate all expected metrics exist and match values
 	for name, expectedValue := range expectedMetrics {
-		mf, err := registry.Gather()
-		if err != nil {
-			t.Fatalf("Failed to gather metrics: %v", err)
-		}
-
-		var actualValue float64
 		found := false
-		for _, metricFamily := range mf {
-			if metricFamily.GetName() == name {
-				for _, metric := range metricFamily.GetMetric() {
-					actualValue = metric.GetGauge().GetValue()
-					found = true
-					break
-				}
+		var actualValue float64
+
+		for _, mf := range metricFamilies {
+			if mf.GetName() != name {
+				continue
 			}
+
+			if len(mf.GetMetric()) == 0 {
+				t.Errorf("Metric family %s exists but has no metric instances", name)
+				found = true
+				break
+			}
+
+			m := mf.GetMetric()[0]
+
+			if g := m.GetGauge(); g != nil {
+				actualValue = g.GetValue()
+				found = true
+				break
+			}
+
+			t.Errorf("Metric %s exists but is not a gauge", name)
+			found = true
+			break
 		}
 
 		if !found {
-			t.Errorf("Metric %s not found in the registry", name)
+			t.Errorf("Expected metric %s not found in registry", name)
 			continue
 		}
 
+		discovered[name] = true
+
 		if actualValue != expectedValue {
 			t.Errorf("Metric %s: expected %f, got %f", name, expectedValue, actualValue)
+		}
+	}
+
+	// Ensure registry does not contain unexpected metrics
+	for _, mf := range metricFamilies {
+		name := mf.GetName()
+
+		if _, expected := expectedMetrics[name]; !expected {
+			t.Errorf("Registry contains unexpected metric: %s", name)
 		}
 	}
 }
