@@ -75,7 +75,7 @@ const (
 	torrentLabelDownloadedSession      string = "downloaded_session"
 	torrentLabelDownloadSpeed          string = "download_speed" + separator + torrentLabelBytes
 	torrentLabelEta                    string = "eta"
-	torrentLabelFreeSpaceOnDisk        string = "free_space_on_disk" + torrentLabelBytes
+	torrentLabelFreeSpaceOnDisk        string = "free_space_on_disk" + separator + torrentLabelBytes
 	torrentLabelHash                   string = "hash"
 	torrentLabelInfo                   string = "info"
 	torrentLabelLeechers               string = "leechers"

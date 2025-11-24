@@ -109,7 +109,7 @@ func runMainDataTest(data *API.MainData, t *testing.T) {
 		"qbittorrent_global_upload_speed_bytes":         100005,
 		"qbittorrent_global_dht_nodes":                  0.0,
 		"qbittorrent_global_average_time_queue":         0.0,
-		"qbittorrent_global_free_space_on_diskbytes":    0.0,
+		"qbittorrent_global_free_space_on_disk_bytes":   0.0,
 		"qbittorrent_global_queued_io_jobs":             0.0,
 		"qbittorrent_global_total_buffers_size_bytes":   0.0,
 		"qbittorrent_global_total_peer_connections":     0.0,
