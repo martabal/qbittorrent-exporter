@@ -1,34 +1,34 @@
 build:
-	cd src && go build -o ../qbittorrent-exporter.out .
+	go build -o ../qbittorrent-exporter.out .
 
 dev:
-	cd src && go run .
+	go run .
 
 dev-env:
-	cd src && go run . -e
+	go run . -e
 
 format:
-	cd src && test -z $(gofmt -l .)
+	test -z $(gofmt -l .)
 
 lint:
-	docker run --rm -v ./src:/app -w /app golangci/golangci-lint:latest golangci-lint run -v
+	docker run --rm -v .:/app -w /app golangci/golangci-lint:latest golangci-lint run -v
 
 release:
 	git-cliff -l | wl-copy
 
 test:
-	cd src && go test ./... | \
+	go test ./... | \
 	sed '/PASS/s//\x1b[32mPASS\x1b[0m/' | \
 	sed '/FAIL/s//\x1b[31mFAIL\x1b[0m/'
 
 test-count:
-	cd src && go test ./... -v | grep -c RUN
+	go test ./... -v | grep -c RUN
 
 test-coverage:
-	cd src && go test ./... -cover
+	go test ./... -cover
 
 test-coverage-web:
-	cd src && go test ./... -coverprofile=cover.out && go tool cover -html=cover.out && rm cover.out
+	go test ./... -coverprofile=cover.out && go tool cover -html=cover.out && rm cover.out
 
 update:
-	cd src && go get -u . && go mod tidy
+	go get -u . && go mod tidy

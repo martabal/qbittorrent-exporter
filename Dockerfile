@@ -4,7 +4,7 @@ ARG BUILD_VERSION
 
 WORKDIR /app
 
-COPY src .
+COPY . .
 
 RUN if [ -n "${BUILD_VERSION}" ]; then \
         go build -o /go/bin/qbittorrent-exporter -ldflags="-X 'qbit-exp/app.version=${BUILD_VERSION}'" . ; \
