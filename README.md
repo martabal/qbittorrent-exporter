@@ -56,8 +56,6 @@ services:
 ```sh
 git clone https://github.com/martabal/qbittorrent-exporter.git
 cd qbittorrent-exporter
-go get -d -v
-cd src
 go build -o ./qbittorrent-exporter
 ./qbittorrent-exporter
 ```
@@ -67,9 +65,7 @@ or
 ```sh
 git clone https://github.com/martabal/qbittorrent-exporter.git
 cd qbittorrent-exporter
-go get -d -v
-cd src
-go run ./src
+go run .
 ```
 
 If you want to use an .env file, edit `.env.example` to match your setup, rename it `.env` then run it in the same directory. If you want to force to use the environment variables use `-e` argument like :
@@ -81,7 +77,7 @@ If you want to use an .env file, edit `.env.example` to match your setup, rename
 or
 
 ```sh
-go run ./src -e
+go run . -e
 ```
 
 ## Metrics
@@ -163,4 +159,4 @@ scrape_configs:
 
 ### Contribute
 
-Contributions are welcome! To get started, copy and rename the `.env.example` file to `.env`, move it to the `src` folder, and run `make dev` from the root directory.
+Contributions are welcome! To get started, copy and rename the `.env.example` file to `.env`, and run `just dev` from the root directory.
