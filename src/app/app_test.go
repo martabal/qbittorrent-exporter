@@ -6,6 +6,8 @@ import (
 )
 
 func TestGetFeaturesEnabled(t *testing.T) {
+	t.Parallel()
+
 	tests := [...]struct {
 		name                string
 		features            Features
@@ -84,6 +86,7 @@ func TestGetFeaturesEnabled(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
 			// Set main features
 			Exporter.Features.EnableHighCardinality = test.features.EnableHighCardinality
 			Exporter.Features.EnableTracker = test.features.EnableTracker
@@ -101,6 +104,8 @@ func TestGetFeaturesEnabled(t *testing.T) {
 }
 
 func TestEnvSetToTrue(t *testing.T) {
+	t.Parallel()
+
 	tests := [...]struct {
 		input  string
 		output bool
@@ -123,20 +128,25 @@ func TestEnvSetToTrue(t *testing.T) {
 	}
 }
 
-func setPassFile(pass string, t *testing.T) func() {
+func setPassFile(t *testing.T, pass string) func() {
+	t.Helper()
+
 	tmpPath := t.TempDir() + string(os.PathSeparator) + "qbit_pass_test.txt"
-	if err := os.WriteFile(tmpPath, []byte(pass), 0o600); err != nil {
+
+	err := os.WriteFile(tmpPath, []byte(pass), 0o600)
+	if err != nil {
 		t.Fatal(err)
 	}
 
-	return setAndClearEnv(defaultPasswordFile, tmpPath, t)
+	return setAndClearEnv(t, defaultPasswordFile, tmpPath)
 }
 
 // file: Y
 // env: N
-func TestPassFileSet(t *testing.T) {
+func TestPassFileSet(t *testing.T) { //nolint:paralleltest
 	expected := "welcome123"
-	cleanEnvFile := setPassFile(expected, t)
+
+	cleanEnvFile := setPassFile(t, expected)
 	defer cleanEnvFile()
 
 	got, usingDefaultValue := getPassword()
@@ -148,12 +158,13 @@ func TestPassFileSet(t *testing.T) {
 
 // file: Y
 // env: Y
-func TestPassFileAndPassSet(t *testing.T) {
+func TestPassFileAndPassSet(t *testing.T) { //nolint:paralleltest
 	expected := "welcome123"
-	cleanEnvFile := setPassFile(expected, t)
+
+	cleanEnvFile := setPassFile(t, expected)
 	defer cleanEnvFile()
 
-	cleanEnv := setAndClearEnv("QBITTORRENT_PASSWORD", "anotherpass", t)
+	cleanEnv := setAndClearEnv(t, "QBITTORRENT_PASSWORD", "anotherpass")
 	defer cleanEnv()
 
 	got, usingDefaultValue := getPassword()

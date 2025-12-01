@@ -3,6 +3,8 @@ package internal
 import "testing"
 
 func TestIsValidURL(t *testing.T) {
+	t.Parallel()
+
 	testCases := [...]struct {
 		input    string
 		expected bool
@@ -26,6 +28,8 @@ func TestIsValidURL(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.input, func(t *testing.T) {
+			t.Parallel()
+
 			result := IsValidURL(tc.input)
 			if result != tc.expected {
 				t.Errorf("Expected %s to be %v, but got %v", tc.input, tc.expected, result)
@@ -35,6 +39,8 @@ func TestIsValidURL(t *testing.T) {
 }
 
 func TestIsValidHttpsURL(t *testing.T) {
+	t.Parallel()
+
 	testCases := [...]struct {
 		input    string
 		expected bool
@@ -58,6 +64,8 @@ func TestIsValidHttpsURL(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.input, func(t *testing.T) {
+			t.Parallel()
+
 			result := IsValidHttpsURL(tc.input)
 			if result != tc.expected {
 				t.Errorf("Expected %s to be %v, but got %v", tc.input, tc.expected, result)
@@ -67,6 +75,8 @@ func TestIsValidHttpsURL(t *testing.T) {
 }
 
 func TestEnsureLeadingSlash(t *testing.T) {
+	t.Parallel()
+
 	tests := [...]struct {
 		name           string
 		input          *string
@@ -97,15 +107,19 @@ func TestEnsureLeadingSlash(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			if tt.expectPanic {
 				defer func() {
 					if r := recover(); r == nil {
 						t.Errorf("Expected panic but did not panic")
 					}
 				}()
+
 				EnsureLeadingSlash(tt.input)
 			} else {
 				EnsureLeadingSlash(tt.input)
+
 				if *tt.input != tt.expectedOutput {
 					t.Errorf("Expected %q, got %q", tt.expectedOutput, *tt.input)
 				}
@@ -119,6 +133,8 @@ func strPtr(s string) *string {
 }
 
 func TestCompareSemVer(t *testing.T) {
+	t.Parallel()
+
 	tests := [...]struct {
 		v1, v2   string
 		expected int
@@ -138,6 +154,8 @@ func TestCompareSemVer(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.v1+"_"+tt.v2, func(t *testing.T) {
+			t.Parallel()
+
 			result := CompareSemVer(tt.v1, tt.v2)
 			if result != tt.expected {
 				t.Errorf("compareSemVer(%q, %q) = %d; want %d", tt.v1, tt.v2, result, tt.expected)

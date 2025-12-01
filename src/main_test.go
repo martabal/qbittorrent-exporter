@@ -2,7 +2,8 @@ package main
 
 import (
 	"bytes"
-	"fmt"
+	"context"
+	"errors"
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
@@ -21,15 +22,20 @@ func init() {
 }
 
 func TestMetricsFailureResponse(t *testing.T) {
+	t.Parallel()
 
-	req, err := http.NewRequest("GET", "/metrics", nil)
+	retryCtx, cancel := context.WithCancel(context.WithoutCancel(t.Context()))
+	defer cancel()
+
+	req, err := http.NewRequestWithContext(retryCtx, http.MethodGet, "/metrics", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
+
 	rec := httptest.NewRecorder()
 
-	metrics(rec, req, func(registry *prometheus.Registry) error {
-		return fmt.Errorf("mock error")
+	metrics(rec, req, func(_ *prometheus.Registry) error {
+		return errors.New("mock error")
 	})
 
 	if status := rec.Code; status != http.StatusServiceUnavailable {
@@ -38,23 +44,33 @@ func TestMetricsFailureResponse(t *testing.T) {
 }
 
 func TestMetricsReturnMetric(t *testing.T) {
+	t.Parallel()
 
 	buff.Reset()
+
 	opts := &slog.HandlerOptions{
-		Level: slog.Level(logger.LevelTrace),
+		Level: logger.LevelTrace,
 	}
 
 	logger.Log = &logger.Logger{Logger: slog.New(slog.NewTextHandler(buff, opts))}
 
-	req, err := http.NewRequest("GET", "/metrics", nil)
-	req.RemoteAddr = "127.0.0.1:80"
+	retryCtx, cancel := context.WithCancel(context.WithoutCancel(t.Context()))
+	defer cancel()
+
+	req, err := http.NewRequestWithContext(retryCtx, http.MethodGet, "/metrics", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
+
+	req.RemoteAddr = "127.0.0.1:80"
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	rec := httptest.NewRecorder()
 
 	metrics(rec, req, func(registry *prometheus.Registry) error {
-
 		qbittorrent_app_version := prometheus.NewGauge(prometheus.GaugeOpts{
 			Name: "qbittorrent_app_version",
 			Help: "The current qBittorrent version",
@@ -64,6 +80,7 @@ func TestMetricsReturnMetric(t *testing.T) {
 		})
 		registry.MustRegister(qbittorrent_app_version)
 		qbittorrent_app_version.Set(1)
+
 		return nil
 	})
 

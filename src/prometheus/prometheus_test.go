@@ -20,6 +20,8 @@ func init() {
 }
 
 func TestMain(t *testing.T) {
+	t.Parallel()
+
 	app.QBittorrent = app.QBittorrentSettings{
 		BaseUrl:  "http://localhost:8080",
 		Username: "admin",
@@ -40,10 +42,12 @@ func isValidMaskedPassword(password string) bool {
 			return false
 		}
 	}
+
 	return true
 }
 
 func TestPreference(t *testing.T) {
+	t.Parallel()
 
 	mockPrefs := &API.Preferences{
 		MaxActiveDownloads: 5,
@@ -69,7 +73,7 @@ func TestPreference(t *testing.T) {
 		"qbittorrent_global_alt_upload_rate_limit_bytes":   50001,
 	}
 
-	testMetrics(expectedMetrics, registry, t)
+	testMetrics(t, expectedMetrics, registry)
 }
 
 func createMockMainData(globalRatio string) *API.MainData {
@@ -92,7 +96,9 @@ func createMockMainData(globalRatio string) *API.MainData {
 	}
 }
 
-func runMainDataTest(data *API.MainData, t *testing.T) {
+func runMainDataTest(t *testing.T, data *API.MainData) {
+	t.Helper()
+
 	registry := prometheus.NewRegistry()
 	MainData(data, registry)
 
@@ -101,8 +107,8 @@ func runMainDataTest(data *API.MainData, t *testing.T) {
 		"qbittorrent_global_categories":                 1.0,
 		"qbittorrent_global_tags":                       1.0,
 		"qbittorrent_app_alt_rate_limits_enabled":       1.0,
-		"qbittorrent_global_alltime_downloaded_bytes":   100000,
-		"qbittorrent_global_alltime_uploaded_bytes":     100001,
+		"qbittorrent_global_alltime_downloaded_bytes":   100000, //nolint:misspell
+		"qbittorrent_global_alltime_uploaded_bytes":     100001, //nolint:misspell
 		"qbittorrent_global_session_downloaded_bytes":   100002,
 		"qbittorrent_global_session_uploaded_bytes":     100003,
 		"qbittorrent_global_download_speed_bytes":       100004,
@@ -117,25 +123,27 @@ func runMainDataTest(data *API.MainData, t *testing.T) {
 		"qbittorrent_global_total_wasted_session_bytes": 0.0,
 		"qbittorrent_transfer_connection_status":        1.0,
 	}
-	testMetrics(expectedMetrics, registry, t)
+	testMetrics(t, expectedMetrics, registry)
 
 	tagMetrics := map[string][]string{
 		"qbittorrent_global_tags": {"tag1", "tag2"},
 	}
-	testMultipleMetrics(tagMetrics, registry, t)
+	testMultipleMetrics(t, tagMetrics, registry)
 
 	categoryMetrics := map[string][]string{
 		"qbittorrent_global_categories": {"cat1", "cat2"},
 	}
-	testMultipleMetrics(categoryMetrics, registry, t)
+	testMultipleMetrics(t, categoryMetrics, registry)
 }
 
 func TestMainDataMetrics(t *testing.T) {
-	runMainDataTest(createMockMainData("2.5"), t)
-	runMainDataTest(createMockMainData("2,5"), t)
+	t.Parallel()
+	runMainDataTest(t, createMockMainData("2.5"))
+	runMainDataTest(t, createMockMainData("2,5"))
 }
 
 func TestVersion(t *testing.T) {
+	t.Parallel()
 
 	expectedVersion := "v5.0.2"
 	version := []byte(expectedVersion)
@@ -154,15 +162,19 @@ func TestVersion(t *testing.T) {
 	for _, m := range metrics {
 		if m.GetName() == metricName {
 			found = true
+
 			if len(m.GetMetric()) == 0 {
 				t.Fatal("Expected metrics to have at least one entry")
 			}
+
 			if m.GetMetric()[0].GetGauge().GetValue() != 1.0 {
 				t.Errorf("Expected gauge value to be 1.0, got %v", m.GetMetric()[0].GetGauge().GetValue())
 			}
+
 			if len(m.GetMetric()[0].GetLabel()) == 0 || m.GetMetric()[0].GetLabel()[0].GetValue() != expectedVersion {
 				t.Errorf("Expected label value to be '%s', got %v", expectedVersion, m.GetMetric()[0].GetLabel())
 			}
+
 			break
 		}
 	}
@@ -173,6 +185,7 @@ func TestVersion(t *testing.T) {
 }
 
 func TestTorrent(t *testing.T) {
+	t.Parallel()
 
 	mockInfo := &API.SliceInfo{
 		{
@@ -227,10 +240,11 @@ func TestTorrent(t *testing.T) {
 		"qbittorrent_torrent_tags":                     1,
 	}
 
-	testMetrics(expectedMetrics, registry, t)
+	testMetrics(t, expectedMetrics, registry)
 }
 
 func TestTrackers(t *testing.T) {
+	t.Parallel()
 
 	mockTrackers := []*API.Trackers{
 		{
@@ -259,10 +273,12 @@ func TestTrackers(t *testing.T) {
 		"qbittorrent_tracker_tier":       1,
 	}
 
-	testMetrics(expectedMetrics, registry, t)
+	testMetrics(t, expectedMetrics, registry)
 }
 
-func testMetrics(expectedMetrics map[string]float64, registry *prometheus.Registry, t *testing.T) {
+func testMetrics(t *testing.T, expectedMetrics map[string]float64, registry *prometheus.Registry) {
+	t.Helper()
+
 	metricFamilies, err := registry.Gather()
 	if err != nil {
 		t.Fatalf("Failed to gather metrics: %v", err)
@@ -273,6 +289,7 @@ func testMetrics(expectedMetrics map[string]float64, registry *prometheus.Regist
 	// Validate all expected metrics exist and match values
 	for name, expectedValue := range expectedMetrics {
 		found := false
+
 		var actualValue float64
 
 		for _, mf := range metricFamilies {
@@ -282,7 +299,9 @@ func testMetrics(expectedMetrics map[string]float64, registry *prometheus.Regist
 
 			if len(mf.GetMetric()) == 0 {
 				t.Errorf("Metric family %s exists but has no metric instances", name)
+
 				found = true
+
 				break
 			}
 
@@ -291,16 +310,20 @@ func testMetrics(expectedMetrics map[string]float64, registry *prometheus.Regist
 			if g := m.GetGauge(); g != nil {
 				actualValue = g.GetValue()
 				found = true
+
 				break
 			}
 
 			t.Errorf("Metric %s exists but is not a gauge", name)
+
 			found = true
+
 			break
 		}
 
 		if !found {
 			t.Errorf("Expected metric %s not found in registry", name)
+
 			continue
 		}
 
@@ -321,7 +344,8 @@ func testMetrics(expectedMetrics map[string]float64, registry *prometheus.Regist
 	}
 }
 
-func testMultipleMetrics(multipleMetrics map[string][]string, registry *prometheus.Registry, t *testing.T) {
+func testMultipleMetrics(t *testing.T, multipleMetrics map[string][]string, registry *prometheus.Registry) {
+	t.Helper()
 
 	for name, labels := range multipleMetrics {
 		mf, err := registry.Gather()
@@ -331,12 +355,14 @@ func testMultipleMetrics(multipleMetrics map[string][]string, registry *promethe
 
 		for _, label := range labels {
 			found := false
+
 			for _, metricFamily := range mf {
 				if metricFamily.GetName() == name {
 					for _, metric := range metricFamily.GetMetric() {
 						for _, lbl := range metric.GetLabel() {
 							if lbl.GetValue() == label {
 								found = true
+
 								break
 							}
 						}

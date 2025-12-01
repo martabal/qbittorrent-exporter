@@ -53,9 +53,9 @@ type MainData struct {
 }
 
 type ServerState struct {
-	AlltimeDl            int64  `json:"alltime_dl"`
-	AlltimeUl            int64  `json:"alltime_ul"`
-	AverageTimeQueue     int64  `jaon:"average_time_queue"`
+	AlltimeDl            int64  `json:"alltime_dl"` //nolint:misspell
+	AlltimeUl            int64  `json:"alltime_ul"` //nolint:misspell
+	AverageTimeQueue     int64  `json:"average_time_queue"`
 	ConnectionStatus     string `json:"connection_status"`
 	DHTNodes             int64  `json:"dht_nodes"`
 	DlInfoData           int64  `json:"dl_info_data"`

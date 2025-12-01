@@ -120,7 +120,7 @@ var defaultPasswordFile = "QBITTORRENT_PASSWORD_FILE"
 
 var defaultQbitBasicAuthUsername = "QBITTORRENT_BASIC_AUTH_USERNAME"
 
-var defaultQbitBasicAuthPassword = "QBITTORRENT_BASIC_AUTH_PASSWORD"
+var defaultQbitBasicAuthPassword = "QBITTORRENT_BASIC_AUTH_PASSWORD" //nolint:gosec
 
 var defaultUsername = Env{
 	Key:          "QBITTORRENT_USERNAME",
@@ -138,9 +138,11 @@ func getEnv(env Env) (string, bool) {
 	if value, ok := os.LookupEnv(env.Key); ok && value != "" {
 		return value, false
 	}
+
 	if env.Help != "" {
 		logger.Warn(fmt.Sprintf("%s (%s)", env.Help, env.DefaultValue))
 	}
+
 	return env.DefaultValue, true
 }
 
@@ -148,5 +150,6 @@ func getOptionalEnv(env string) *string {
 	if value, ok := os.LookupEnv(env); ok {
 		return &value
 	}
+
 	return nil
 }

@@ -20,7 +20,7 @@ import (
 const devVersion string = "dev"
 const projectName string = "qbittorrent-exporter"
 
-// can change the version shown in the logs with `go build -ldflags="-X 'qbit-exp/app.version=${BUILD_VERSION}'" .`
+// can change the version shown in the logs with `go build -ldflags="-X 'qbit-exp/app.version=${BUILD_VERSION}'" .`.
 var version = devVersion
 
 var (
@@ -69,17 +69,21 @@ type Features struct {
 
 func LoadEnv() {
 	envfile := flag.Bool("e", false, "Use .env file")
+
 	flag.Parse()
 
 	envFileMessage := "Using environment variables"
 
-	if _, err := os.Stat(".env"); err == nil && !*envfile {
-		if err := godotenv.Load(".env"); err != nil {
+	if _, err := os.Stat(".env"); err == nil && !*envfile { //nolint:noinlineerr
+		err := godotenv.Load(".env")
+		if err != nil {
 			errormessage := "Error loading .env file:" + err.Error()
 			panic(errormessage)
 		}
+
 		envFileMessage = "Using .env file"
 	}
+
 	defaultLogLevelEnv, _ := getEnv(defaultLogLevel)
 	loglevel := logger.SetLogLevel(defaultLogLevelEnv)
 
@@ -88,8 +92,9 @@ func LoadEnv() {
 
 	qbitUsername, usingDefaultValue := getEnv(defaultUsername)
 	if !usingDefaultValue {
-		logger.Info(fmt.Sprintf("username: %s", qbitUsername))
+		logger.Info("username: " + qbitUsername)
 	}
+
 	showPasswordString, _ := getEnv(defaultExporterShowPassword)
 	showPassword := envSetToTrue(showPasswordString)
 	qbitPassword, usingDefaultValue := getPassword()
@@ -99,15 +104,19 @@ func LoadEnv() {
 		if showPassword {
 			password = qbitPassword
 		}
-		logger.Info(fmt.Sprintf("password: %s", password))
+
+		logger.Info("password: " + password)
 	}
+
 	baseUrlEnv, usingDefaultValue := getEnv(defaultBaseUrl)
+
 	baseUrl := strings.TrimSuffix(baseUrlEnv, "/")
 	if !internal.IsValidURL(baseUrl) {
 		panic(fmt.Sprintf("%s is not a valid URL (check %s)", baseUrl, defaultBaseUrl.Key))
 	}
+
 	if !usingDefaultValue {
-		logger.Info(fmt.Sprintf("qBittorrent URL: %s", baseUrl))
+		logger.Info("qBittorrent URL: " + baseUrl)
 	}
 
 	qbitBasicAuthUsername := getOptionalEnv(defaultQbitBasicAuthUsername)
@@ -135,9 +144,11 @@ func LoadEnv() {
 	if errExporterPort != nil {
 		panic(fmt.Sprintf("%s must be an integer (check %s)", exporterPortEnv, defaultPort.Key))
 	}
+
 	if exporterPort < 0 || exporterPort > 65353 {
 		panic(fmt.Sprintf("%d must be > 0 and < 65353 (check %s)", exporterPort, defaultPort.Key))
 	}
+
 	if exporterPort != defaultExporterPort {
 		logger.Info(fmt.Sprintf("Listening on port %d", exporterPort))
 	}
@@ -146,6 +157,7 @@ func LoadEnv() {
 	if errTimeoutDuration != nil {
 		panic(fmt.Sprintf("%s must be an integer (check %s)", timeoutDurationEnv, defaultTimeout.Key))
 	}
+
 	if timeoutDuration < 0 {
 		panic(fmt.Sprintf("%d must be > 0 (check %s)", timeoutDuration, defaultTimeout.Key))
 	}
@@ -154,14 +166,16 @@ func LoadEnv() {
 	if version == devVersion {
 		exporterUrl = fmt.Sprintf("http://localhost:%d%s", exporterPort, exporterPath)
 	}
+
 	if exporterUrlEnv != nil {
 		exporterUrl = strings.TrimSuffix(*exporterUrlEnv, "/")
 		if !internal.IsValidURL(exporterUrl) {
 			panic(fmt.Sprintf("%s is not a valid URL (check %s)", exporterUrl, defaultExporterURL))
 		}
 	}
+
 	if exporterUrl != "" {
-		logger.Info(fmt.Sprintf("qbittorrent-exporter URL: %s", exporterUrl))
+		logger.Info("qbittorrent-exporter URL: " + exporterUrl)
 	}
 
 	// If a custom CA is provided and INSECURE_SKIP_VERIFY is set, that's kinda sus
@@ -178,6 +192,7 @@ func LoadEnv() {
 
 	// If a custom CA is provided, load the root CAs from the system and append the custom CA
 	var caCertPool *x509.CertPool
+
 	if certificateAuthorityPath != nil {
 		caCert, errCaCert := os.ReadFile(*certificateAuthorityPath)
 		if errCaCert != nil {
@@ -186,6 +201,7 @@ func LoadEnv() {
 		}
 
 		var errCaCertPool error
+
 		caCertPool, errCaCertPool = x509.SystemCertPool()
 		if errCaCertPool != nil {
 			panic(fmt.Sprintf("Error getting system certificate pool: %s", errCaCertPool))
@@ -197,6 +213,7 @@ func LoadEnv() {
 	}
 
 	var minTlsVersion uint16
+
 	switch minTlsVersionStr {
 	case TLS12:
 		minTlsVersion = tls.VersionTLS12
@@ -224,7 +241,7 @@ func LoadEnv() {
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
 				RootCAs:            caCertPool,
-				InsecureSkipVerify: envSetToTrue(insecureSkipVerify),
+				InsecureSkipVerify: envSetToTrue(insecureSkipVerify), //nolint:gosec
 				MinVersion:         minTlsVersion,
 			},
 		},
@@ -259,11 +276,12 @@ func LoadEnv() {
 		BasicAuth: exporterBasicAuth,
 	}
 
-	logger.Info(fmt.Sprintf("Features enabled: %s", getFeaturesEnabled()))
+	logger.Info("Features enabled: " + getFeaturesEnabled())
 }
 
 func getBasicAuth(basicAuthUsername *string, basicAuthPassword *string, defaultBasicAuth string, defaultBasicPassword string) *BasicAuth {
 	var basicAuth *BasicAuth
+
 	if basicAuthUsername != nil || basicAuthPassword != nil {
 		var username, password string
 
@@ -283,6 +301,7 @@ func getBasicAuth(basicAuthUsername *string, basicAuthPassword *string, defaultB
 
 		basicAuth = &BasicAuth{Username: username, Password: password}
 	}
+
 	return basicAuth
 }
 
@@ -312,12 +331,14 @@ func getFeaturesEnabled() string {
 	}
 
 	var features []string
+
 	for _, f := range featuresList {
 		if f.enabled {
 			label := f.label
 			if f.experimental {
 				label += " (experimental)"
 			}
+
 			features = append(features, label)
 		}
 	}
@@ -335,7 +356,9 @@ func getPassword() (string, bool) {
 		if err != nil {
 			panic(err)
 		}
-		logger.Info(fmt.Sprintf("password read from: %s", *passwordFile))
+
+		logger.Info("password read from: " + *passwordFile)
+
 		return strings.TrimSpace(string(fileContent)), false
 	} else {
 		return getEnv(defaultPassword)

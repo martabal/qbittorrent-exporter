@@ -3,6 +3,7 @@ package qbit
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -38,48 +39,54 @@ const unmarshError string = "Can not unmarshal JSON for"
 
 const baseAPIRUL string = "/api/v2/"
 
-func newData(url string, queryParams *[]QueryParams, handler func(body []byte, r *prometheus.Registry, webUIVersion *string) error) Data {
+func newData(url string, handler func(body []byte, r *prometheus.Registry, webUIVersion *string) error) Data {
 	return Data{
-		Process:     url,
-		URL:         baseAPIRUL + url,
-		QueryParams: queryParams,
-		HTTPMethod:  http.MethodGet,
-		Handle:      handler,
+		Process:    url,
+		URL:        baseAPIRUL + url,
+		HTTPMethod: http.MethodGet,
+		Handle:     handler,
 	}
 }
 
-var firstAPIRequest = newData("app/webapiVersion", nil, nil)
+var firstAPIRequest = newData("app/webapiVersion", nil)
 
 var otherAPIRequests = [...]Data{
-	newData("app/version", nil, func(body []byte, r *prometheus.Registry, _ *string) error {
+	newData("app/version", func(body []byte, r *prometheus.Registry, _ *string) error {
 		prom.Version(&body, r)
+
 		return nil
 	}),
-	newData("app/preferences", nil, func(body []byte, r *prometheus.Registry, _ *string) error {
+	newData("app/preferences", func(body []byte, r *prometheus.Registry, _ *string) error {
 		result := new(API.Preferences)
-		if err := json.Unmarshal(body, result); err != nil {
+		err := json.Unmarshal(body, result)
+		if err != nil {
 			return err
 		}
 		prom.Preference(result, r)
+
 		return nil
 	}),
-	newData("torrents/info", nil, func(body []byte, r *prometheus.Registry, webUIVersion *string) error {
+	newData("torrents/info", func(body []byte, r *prometheus.Registry, webUIVersion *string) error {
 		result := new(API.SliceInfo)
-		if err := json.Unmarshal(body, result); err != nil {
+		err := json.Unmarshal(body, result)
+		if err != nil {
 			return err
 		}
 		prom.Torrent(result, webUIVersion, r)
 		if app.Exporter.Features.EnableTracker {
 			getTrackers(result, r)
 		}
+
 		return nil
 	}),
-	newData("sync/maindata", nil, func(body []byte, r *prometheus.Registry, _ *string) error {
+	newData("sync/maindata", func(body []byte, r *prometheus.Registry, _ *string) error {
 		result := new(API.MainData)
-		if err := json.Unmarshal(body, result); err != nil {
+		err := json.Unmarshal(body, result)
+		if err != nil {
 			return err
 		}
 		prom.MainData(result, r)
+
 		return nil
 	}),
 }
@@ -90,20 +97,27 @@ func createUrl(url string) string {
 
 func getData(r *prometheus.Registry, data *Data, webUIVersion *string, c chan func() (bool, error)) {
 	url := createUrl(data.URL)
+
 	body, retry, err := apiRequest(url, data.HTTPMethod, data.QueryParams)
 	if retry {
 		c <- func() (bool, error) { return true, nil }
-		return
-	}
-	if err != nil {
-		c <- func() (bool, error) { return false, err }
+
 		return
 	}
 
-	if err := data.Handle(body, r, webUIVersion); err != nil {
+	if err != nil {
+		c <- func() (bool, error) { return false, err }
+
+		return
+	}
+
+	err = data.Handle(body, r, webUIVersion)
+	if err != nil {
 		errormessage := fmt.Errorf("%s %s: %w", unmarshError, url, err)
 		errorHelper(&body, &errormessage, &url)
+
 		c <- func() (bool, error) { return false, err }
+
 		return
 	}
 
@@ -112,26 +126,30 @@ func getData(r *prometheus.Registry, data *Data, webUIVersion *string, c chan fu
 
 func getTrackersInfo(data *Data, c chan func() (*API.Trackers, error)) {
 	url := createUrl(data.URL)
-	body, _, err := apiRequest(url, data.HTTPMethod, data.QueryParams)
 
+	body, _, err := apiRequest(url, data.HTTPMethod, data.QueryParams)
 	if err != nil {
 		c <- (func() (*API.Trackers, error) { return nil, err })
 	}
 
 	result := new(API.Trackers)
-	if err := json.Unmarshal(body, &result); err != nil {
+
+	err = json.Unmarshal(body, &result)
+	if err != nil {
 		errMsg := fmt.Errorf("%s %s", unmarshError, data.Process)
 		errorHelper(&body, &errMsg, &url)
 	} else {
 		c <- (func() (*API.Trackers, error) { return result, err })
 	}
-
 }
 
 func getTrackers(torrentList *API.SliceInfo, r *prometheus.Registry) {
 	var wg sync.WaitGroup
+
 	uniqueValues := make(map[string]struct{})
+
 	var uniqueTrackers []UniqueTracker
+
 	for _, obj := range *torrentList {
 		if _, exists := uniqueValues[obj.Tracker]; !exists {
 			uniqueValues[obj.Tracker] = struct{}{}
@@ -141,11 +159,13 @@ func getTrackers(torrentList *API.SliceInfo, r *prometheus.Registry) {
 
 	responses := new([]*API.Trackers)
 	tracker := make(chan func() (*API.Trackers, error), len(uniqueTrackers))
+
 	processData := func(trackerInfo *Data) {
 		defer wg.Done()
+
 		getTrackersInfo(trackerInfo, tracker)
 	}
-	for i := 0; i < len(uniqueTrackers); i++ {
+	for i := range uniqueTrackers {
 		var trackerInfo = Data{
 			URL:        "/api/v2/torrents/trackers",
 			HTTPMethod: http.MethodGet,
@@ -156,13 +176,16 @@ func getTrackers(torrentList *API.SliceInfo, r *prometheus.Registry) {
 				},
 			},
 		}
+
 		wg.Add(1)
 		processData(&trackerInfo)
 	}
+
 	go func() {
 		wg.Wait()
 		close(tracker)
 	}()
+
 	for respFunc := range tracker {
 		res, err := respFunc()
 		if err == nil {
@@ -170,7 +193,6 @@ func getTrackers(torrentList *API.SliceInfo, r *prometheus.Registry) {
 		} else {
 			logger.Error(err.Error())
 		}
-
 	}
 
 	prom.Trackers(*responses, r)
@@ -178,17 +200,23 @@ func getTrackers(torrentList *API.SliceInfo, r *prometheus.Registry) {
 
 func AllRequests(r *prometheus.Registry) error {
 	var wg sync.WaitGroup
+
 	firstRequestUrl := createUrl(firstAPIRequest.URL)
+
 	webUIVersionBytes, retry, err := apiRequest(firstRequestUrl, firstAPIRequest.HTTPMethod, firstAPIRequest.QueryParams)
 	if retry {
 		logger.Debug("Retrying ...")
+
 		webUIVersionBytes, _, err = apiRequest(firstRequestUrl, firstAPIRequest.HTTPMethod, firstAPIRequest.QueryParams)
 	}
+
 	webUIVersion := string(webUIVersionBytes)
-	logger.Trace(fmt.Sprintf("WebUI API version: %s", webUIVersion))
+	logger.Trace("WebUI API version: " + webUIVersion)
+
 	if err != nil {
 		return err
 	}
+
 	c := make(chan func() (bool, error), len(otherAPIRequests))
 	processData := func(data *Data) {
 		defer wg.Done()
@@ -197,12 +225,16 @@ func AllRequests(r *prometheus.Registry) error {
 				logger.Error(fmt.Sprintf("Recovered panic: %s", r))
 			}
 		}()
+
 		getData(r, data, &webUIVersion, c)
 	}
+
 	for _, request := range otherAPIRequests {
 		wg.Add(1)
+
 		go processData(&request)
 	}
+
 	go func() {
 		wg.Wait()
 		close(c)
@@ -214,6 +246,7 @@ func AllRequests(r *prometheus.Registry) error {
 			return err
 		}
 	}
+
 	return nil
 }
 
@@ -225,10 +258,11 @@ func errorHelper(body *[]byte, errMsg *error, url *string) {
 // returns:
 // - body (content of the http response)
 // - retry (if it should retry that query)
-// - err (the error if there was one during the request)
+// - err (the error if there was one during the request).
 func apiRequest(url string, method string, queryParams *[]QueryParams) ([]byte, bool, error) {
 	if app.QBittorrent.Cookie == nil {
 		logger.Debug("no cookie set")
+
 		err := Auth()
 		if err != nil {
 			return nil, false, err
@@ -238,16 +272,17 @@ func apiRequest(url string, method string, queryParams *[]QueryParams) ([]byte, 
 	ctx, cancel := context.WithTimeout(context.Background(), app.QBittorrent.Timeout)
 	defer cancel()
 
-	req, err := http.NewRequest(method, url, nil)
-	req = req.WithContext(ctx)
+	req, err := http.NewRequestWithContext(ctx, method, url, nil)
 	if err != nil {
 		panic(fmt.Sprintf("%s %s", API.ErrorWithUrl, err.Error()))
 	}
+
 	if queryParams != nil {
 		q := req.URL.Query()
 		for _, obj := range *queryParams {
 			q.Add(obj.Key, obj.Value)
 		}
+
 		req.URL.RawQuery = q.Encode()
 	}
 
@@ -256,20 +291,25 @@ func apiRequest(url string, method string, queryParams *[]QueryParams) ([]byte, 
 	}
 
 	req.AddCookie(&http.Cookie{Name: "SID", Value: *app.QBittorrent.Cookie})
-	logger.Trace(fmt.Sprintf("New request to %s", req.URL.String()))
+	logger.Trace("New request to " + req.URL.String())
 	resp, err := app.HttpClient.Do(req)
-	if ctx.Err() == context.DeadlineExceeded {
+
+	if errors.Is(ctx.Err(), context.DeadlineExceeded) {
 		logger.Error(API.QbittorrentTimeOut)
+
 		return nil, false, context.DeadlineExceeded
 	}
 
 	if err != nil {
-		err := fmt.Errorf("%s: %v", API.ErrorConnect, err)
+		err := fmt.Errorf("%s: %w", API.ErrorConnect, err)
 		logger.Error(err.Error())
+
 		return nil, false, err
 	}
+
 	defer func() {
-		if err := resp.Body.Close(); err != nil {
+		err := resp.Body.Close()
+		if err != nil {
 			logger.Error(fmt.Sprintf("Error closing body %v", err))
 		}
 	}()
@@ -280,15 +320,20 @@ func apiRequest(url string, method string, queryParams *[]QueryParams) ([]byte, 
 		if err != nil {
 			return nil, false, err
 		}
+
 		return body, false, nil
 	case http.StatusForbidden:
 		err := fmt.Errorf("%d", resp.StatusCode)
+
 		logger.Warn("Cookie changed, trying to reconnect ...")
+
 		_ = Auth()
+
 		return nil, true, err
 	default:
 		err := fmt.Errorf("%d", resp.StatusCode)
 		logger.Error(fmt.Sprintf("Error code %d for: %s", resp.StatusCode, url))
+
 		return nil, false, err
 	}
 }
