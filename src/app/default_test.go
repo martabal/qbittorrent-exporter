@@ -2,7 +2,6 @@ package app
 
 import (
 	"bytes"
-	"fmt"
 	"log/slog"
 	"os"
 	"strconv"
@@ -19,28 +18,34 @@ func init() {
 }
 
 func TestGetEnvReturnsEnvValue(t *testing.T) {
-	if err := os.Setenv(defaultPort.Key, fmt.Sprint(defaultExporterPort)); err != nil {
-		panic(fmt.Sprintf("Error setting %s: %s", defaultPort.Key, fmt.Sprint(defaultExporterPort)))
-	}
+	t.Setenv(defaultPort.Key, strconv.Itoa(defaultExporterPort))
+
 	defer func() {
-		if err := os.Unsetenv(defaultPort.Key); err != nil {
+		err := os.Unsetenv(defaultPort.Key)
+		if err != nil {
 			t.Fatalf("Error unsetting %s: %v", defaultPort.Key, err)
 		}
 	}()
+
 	value, _ := getEnv(defaultPort)
 
-	if value != fmt.Sprint(defaultExporterPort) {
+	if value != strconv.Itoa(defaultExporterPort) {
 		t.Errorf("Expected %d, got %s", defaultExporterPort, value)
 	}
 }
 
 func TestGetEnvReturnsDefaultWhenEnvNotSet(t *testing.T) {
+	t.Parallel()
+
 	expectedValue := strconv.Itoa(defaultExporterPort)
+
 	defer func() {
-		if err := os.Unsetenv(defaultPort.Key); err != nil {
+		err := os.Unsetenv(defaultPort.Key)
+		if err != nil {
 			t.Fatalf("Error unsetting %s: %v", defaultPort.Key, err)
 		}
 	}()
+
 	value, _ := getEnv(defaultPort)
 
 	if value != expectedValue {
@@ -49,9 +54,13 @@ func TestGetEnvReturnsDefaultWhenEnvNotSet(t *testing.T) {
 }
 
 func TestGetEnvLogsWarningIfHelpMessagePresent(t *testing.T) {
-	if err := os.Unsetenv(defaultUsername.Key); err != nil {
+	t.Parallel()
+
+	err := os.Unsetenv(defaultUsername.Key)
+	if err != nil {
 		t.Fatalf("Error unsetting %s: %v", defaultUsername.Key, err)
 	}
+
 	expectedLogMessage := defaultUsername.Help
 	getEnv(defaultUsername)
 
@@ -61,6 +70,8 @@ func TestGetEnvLogsWarningIfHelpMessagePresent(t *testing.T) {
 }
 
 func TestGetEnvWithDifferentDefaults(t *testing.T) {
+	t.Parallel()
+
 	tests := [...]struct {
 		name          string
 		env           Env
@@ -81,9 +92,13 @@ func TestGetEnvWithDifferentDefaults(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := os.Unsetenv(tt.env.Key); err != nil {
+			t.Parallel()
+
+			err := os.Unsetenv(tt.env.Key)
+			if err != nil {
 				t.Fatalf("Error unsetting %s: %v", tt.env.Key, err)
 			}
+
 			value, _ := getEnv(tt.env)
 			if value != tt.expectedValue {
 				t.Errorf("Expected %s, got %s", tt.expectedValue, value)
@@ -92,7 +107,7 @@ func TestGetEnvWithDifferentDefaults(t *testing.T) {
 	}
 }
 
-func TestGetEnvReturnsBooleanValues(t *testing.T) {
+func TestGetEnvReturnsBooleanValues(t *testing.T) { //nolint:paralleltest
 	tests := [...]struct {
 		envVar    Env
 		setValue  string
@@ -104,9 +119,9 @@ func TestGetEnvReturnsBooleanValues(t *testing.T) {
 		{defaultLabelWithHash, "true", "true"},
 	}
 
-	for _, tt := range tests {
+	for _, tt := range tests { //nolint:paralleltest
 		t.Run(tt.envVar.Key, func(t *testing.T) {
-			cleanup := setAndClearEnv(tt.envVar.Key, tt.setValue, t)
+			cleanup := setAndClearEnv(t, tt.envVar.Key, tt.setValue)
 			defer cleanup()
 
 			value, _ := getEnv(tt.envVar)
@@ -118,14 +133,15 @@ func TestGetEnvReturnsBooleanValues(t *testing.T) {
 }
 
 func TestGetEnvHandlesEmptyEnvVarGracefully(t *testing.T) {
-	if err := os.Setenv(defaultUsername.Key, ""); err != nil {
-		panic(fmt.Sprintf("Error setting %s: %s", defaultUsername.Key, ""))
-	}
+	t.Setenv(defaultUsername.Key, "")
+
 	defer func() {
-		if err := os.Unsetenv(defaultUsername.Key); err != nil {
+		err := os.Unsetenv(defaultUsername.Key)
+		if err != nil {
 			t.Fatalf("Error unsetting %s: %v", defaultUsername.Key, err)
 		}
 	}()
+
 	expectedValue := defaultUsername.DefaultValue
 
 	value, _ := getEnv(defaultUsername)
@@ -136,6 +152,8 @@ func TestGetEnvHandlesEmptyEnvVarGracefully(t *testing.T) {
 }
 
 func TestGetEnvLogsWarningsCorrectly(t *testing.T) {
+	t.Parallel()
+
 	tests := [...]struct {
 		name        string
 		env         Env
@@ -148,8 +166,10 @@ func TestGetEnvLogsWarningsCorrectly(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 
-			if err := os.Unsetenv(tt.env.Key); err != nil {
+			err := os.Unsetenv(tt.env.Key)
+			if err != nil {
 				t.Fatalf("Error unsetting %s: %v", tt.env.Key, err)
 			}
 
@@ -162,12 +182,14 @@ func TestGetEnvLogsWarningsCorrectly(t *testing.T) {
 	}
 }
 
-func setAndClearEnv(key, value string, t *testing.T) func() {
-	if err := os.Setenv(key, value); err != nil {
-		panic(fmt.Sprintf("Error setting %s: %s", key, value))
-	}
+func setAndClearEnv(t *testing.T, key, value string) func() {
+	t.Helper()
+
+	t.Setenv(key, value)
+
 	return func() {
-		if err := os.Unsetenv(key); err != nil {
+		err := os.Unsetenv(key)
+		if err != nil {
 			t.Fatalf("Error unsetting %s: %v", key, err)
 		}
 	}

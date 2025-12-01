@@ -30,6 +30,7 @@ var ReverseLogLevels = func(m map[string]slog.Level) map[slog.Level]string {
 	for k, v := range m {
 		rev[v] = k
 	}
+
 	return rev
 }(LogLevels)
 
@@ -58,26 +59,6 @@ const (
 	Purple string = "\033[35m"
 )
 
-func (h *PrettyHandler) Handle(ctx context.Context, r slog.Record) error {
-	level := ReverseLogLevels[slog.Level(r.Level)]
-	timeStr := fmt.Sprintf("[%02d-%02d-%02d %02d:%02d:%02d]", r.Time.Year(), r.Time.Month(), r.Time.Day(), r.Time.Hour(), r.Time.Minute(), r.Time.Second())
-
-	color := ColorLogLevel[r.Level]
-
-	coloredLevel := fmt.Sprintf("%s%s%s", color, level, Reset)
-
-	output := os.Stdout
-	if r.Level >= slog.LevelWarn {
-		output = os.Stderr
-	}
-
-	if _, err := fmt.Fprintf(output, "%s %s %s\n", timeStr, coloredLevel, r.Message); err != nil {
-		fmt.Printf("Can't write log %s\n", err)
-	}
-
-	return nil
-}
-
 func NewPrettyHandler(
 	out io.Writer,
 	opts slog.HandlerOptions,
@@ -89,8 +70,30 @@ func NewPrettyHandler(
 	return h
 }
 
+func (h *PrettyHandler) Handle(ctx context.Context, r slog.Record) error {
+	level := ReverseLogLevels[r.Level]
+	timeStr := fmt.Sprintf("[%02d-%02d-%02d %02d:%02d:%02d]", r.Time.Year(), r.Time.Month(), r.Time.Day(), r.Time.Hour(), r.Time.Minute(), r.Time.Second())
+
+	color := ColorLogLevel[r.Level]
+
+	coloredLevel := fmt.Sprintf("%s%s%s", color, level, Reset)
+
+	output := os.Stdout
+	if r.Level >= slog.LevelWarn {
+		output = os.Stderr
+	}
+
+	_, err := fmt.Fprintf(output, "%s %s %s\n", timeStr, coloredLevel, r.Message)
+	if err != nil {
+		fmt.Printf("Can't write log %s\n", err)
+	}
+
+	return nil
+}
+
 func SetLogLevel(logLevel string) string {
 	upperLogLevel := strings.ToUpper(logLevel)
+
 	level, found := LogLevels[upperLogLevel]
 	if !found {
 		upperLogLevel = "INFO"
@@ -98,31 +101,32 @@ func SetLogLevel(logLevel string) string {
 	}
 
 	opts := slog.HandlerOptions{
-		Level: slog.Level(level),
+		Level: level,
 	}
 
 	handler := NewPrettyHandler(os.Stdout, opts)
 	Log = &Logger{slog.New(handler)}
+
 	return upperLogLevel
 }
 
 var Log *Logger
 
 func Trace(msg string) {
-	Log.Log(context.Background(), slog.Level(LevelTrace), msg)
+	Log.Log(context.Background(), LevelTrace, msg)
 }
 
 func Debug(msg string) {
-	Log.Log(context.Background(), slog.Level(LevelDebug), msg)
+	Log.Log(context.Background(), LevelDebug, msg)
 }
 
 func Info(msg string) {
-	Log.Log(context.Background(), slog.Level(LevelInfo), msg)
+	Log.Log(context.Background(), LevelInfo, msg)
 }
 func Warn(msg string) {
-	Log.Log(context.Background(), slog.Level(LevelWarn), msg)
+	Log.Log(context.Background(), LevelWarn, msg)
 }
 
 func Error(msg string) {
-	Log.Log(context.Background(), slog.Level(LevelError), msg)
+	Log.Log(context.Background(), LevelError, msg)
 }

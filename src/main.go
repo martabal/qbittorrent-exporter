@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"time"
 
 	app "qbit-exp/app"
 	logger "qbit-exp/logger"
@@ -24,15 +25,23 @@ func main() {
 	if app.Exporter.BasicAuth != nil {
 		metrics = basicAuth(metrics)
 	}
+
 	http.HandleFunc(app.Exporter.Path, metrics)
 
 	http.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
 		http.Redirect(w, req, app.Exporter.Path, http.StatusFound)
 	})
+
 	addr := fmt.Sprintf(":%d", app.Exporter.Port)
 
 	logger.Info("Starting the exporter")
-	err := http.ListenAndServe(addr, nil)
+
+	server := &http.Server{
+		Addr:              addr,
+		ReadHeaderTimeout: 3 * time.Second,
+	}
+
+	err := server.ListenAndServe()
 	if err != nil {
 		panic(err)
 	}
@@ -40,13 +49,16 @@ func main() {
 
 func metrics(w http.ResponseWriter, req *http.Request, allRequestsFunc func(*prometheus.Registry) error) {
 	ip, _, err := net.SplitHostPort(req.RemoteAddr)
+
 	logMsg := "New request"
 	if err == nil {
 		logMsg = fmt.Sprintf("%s from %s", logMsg, ip)
 	}
+
 	logger.Trace(logMsg)
 
 	registry := prometheus.NewRegistry()
+
 	err = allRequestsFunc(registry)
 	if err != nil {
 		http.Error(w, "", http.StatusServiceUnavailable)
@@ -54,7 +66,6 @@ func metrics(w http.ResponseWriter, req *http.Request, allRequestsFunc func(*pro
 		h := promhttp.HandlerFor(registry, promhttp.HandlerOpts{})
 		h.ServeHTTP(w, req)
 	}
-
 }
 
 func basicAuth(h http.HandlerFunc) http.HandlerFunc {
@@ -63,14 +74,18 @@ func basicAuth(h http.HandlerFunc) http.HandlerFunc {
 		if ok {
 			if username == app.Exporter.BasicAuth.Username && password == app.Exporter.BasicAuth.Password {
 				h.ServeHTTP(w, r)
+
 				return
 			}
 		}
+
 		logErr := "Invalid auth"
+
 		ip, _, err := net.SplitHostPort(r.RemoteAddr)
 		if err == nil {
 			logErr = fmt.Sprintf("%s from %s", logErr, ip)
 		}
+
 		logger.Warn(logErr)
 
 		w.Header().Set("WWW-Authenticate", `Basic realm="restricted", charset="UTF-8"`)

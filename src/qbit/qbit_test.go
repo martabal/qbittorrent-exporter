@@ -31,6 +31,8 @@ func setupMockApp() {
 }
 
 func createTlsServer(t *testing.T, discardServerLogs bool, maxTlsVersion uint16, handler http.Handler) (*httptest.Server, *x509.Certificate) {
+	t.Helper()
+
 	// Generate ECC private key for CA
 	caPrivKey, err := ecdsa.GenerateKey(elliptic.P384(), rand.Reader)
 	if err != nil {
@@ -52,6 +54,7 @@ func createTlsServer(t *testing.T, discardServerLogs bool, maxTlsVersion uint16,
 	if err != nil {
 		t.Fatalf("Failed to create CA certificate: %v", err)
 	}
+
 	caCert, err := x509.ParseCertificate(caCertDER)
 	if err != nil {
 		t.Fatalf("Failed to parse CA certificate: %v", err)
@@ -88,13 +91,15 @@ func createTlsServer(t *testing.T, discardServerLogs bool, maxTlsVersion uint16,
 
 	// Create test server with custom TLS config
 	server := httptest.NewUnstartedServer(handler)
-	server.TLS = &tls.Config{
+
+	server.TLS = &tls.Config{ //nolint:gosec
 		Certificates: []tls.Certificate{serverCert},
 		MaxVersion:   maxTlsVersion,
 	}
 	if discardServerLogs {
 		server.Config.ErrorLog = log.New(io.Discard, "", 0)
 	}
+
 	server.StartTLS()
 
 	return server, caCert
@@ -102,6 +107,7 @@ func createTlsServer(t *testing.T, discardServerLogs bool, maxTlsVersion uint16,
 
 func TestApiRequest_Success(t *testing.T) {
 	setupMockApp()
+
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		_, _ = w.Write([]byte("success"))
@@ -115,9 +121,11 @@ func TestApiRequest_Success(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}
+
 	if reAuth {
 		t.Fatalf("Expected reAuth to be false, got %v", reAuth)
 	}
+
 	if string(body) != "success" {
 		t.Fatalf("Expected body to be 'success', got %s", body)
 	}
@@ -125,6 +133,7 @@ func TestApiRequest_Success(t *testing.T) {
 
 func TestApiRequest_Forbidden(t *testing.T) {
 	setupMockApp()
+
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusForbidden)
 	}))
@@ -138,6 +147,7 @@ func TestApiRequest_Forbidden(t *testing.T) {
 	if err == nil || err.Error() != "403" {
 		t.Fatalf("Expected error '403', got %v", err)
 	}
+
 	if !reAuth {
 		t.Fatalf("Expected reAuth to be true, got %v", reAuth)
 	}
@@ -145,6 +155,7 @@ func TestApiRequest_Forbidden(t *testing.T) {
 
 func TestApiRequest_Timeout(t *testing.T) {
 	setupMockApp()
+
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		time.Sleep(20 * time.Millisecond)
 		w.WriteHeader(http.StatusOK)
@@ -158,9 +169,11 @@ func TestApiRequest_Timeout(t *testing.T) {
 	if !errors.Is(err, context.DeadlineExceeded) {
 		t.Fatalf("Expected DeadlineExceeded error, got %v", err)
 	}
+
 	if body != nil {
 		t.Fatalf("Expected no body, got %v", body)
 	}
+
 	if reAuth {
 		t.Fatalf("Expected reAuth to be false, got %v", reAuth)
 	}
@@ -168,10 +181,12 @@ func TestApiRequest_Timeout(t *testing.T) {
 
 func TestApiRequest_WithQueryParams(t *testing.T) {
 	setupMockApp()
+
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.RawQuery != "param1=value1&param2=value2" {
 			t.Fatalf("Expected query params 'param1=value1&param2=value2', got %s", r.URL.RawQuery)
 		}
+
 		w.WriteHeader(http.StatusOK)
 		_, _ = w.Write([]byte("query success"))
 	}))
@@ -189,9 +204,11 @@ func TestApiRequest_WithQueryParams(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}
+
 	if retry {
 		t.Fatalf("Expected no retry, got %v", retry)
 	}
+
 	if string(body) != "query success" {
 		t.Fatalf("Expected body to be 'query success', got %s", body)
 	}
@@ -199,6 +216,7 @@ func TestApiRequest_WithQueryParams(t *testing.T) {
 
 func TestApiRequest_Non200Status(t *testing.T) {
 	setupMockApp()
+
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 	}))
@@ -211,9 +229,11 @@ func TestApiRequest_Non200Status(t *testing.T) {
 	if err == nil || err.Error() != "500" {
 		t.Fatalf("Expected error '500', got %v", err)
 	}
+
 	if body != nil {
 		t.Fatalf("Expected no body, got %v", body)
 	}
+
 	if retry {
 		t.Fatalf("Expected reAuth to be false, got %v", retry)
 	}
@@ -221,8 +241,10 @@ func TestApiRequest_Non200Status(t *testing.T) {
 
 func TestApiRequest_WithRequestAuthorization_Success(t *testing.T) {
 	setupMockApp()
+
 	httpBasicAuthUsername := "your-username"
 	httpBasicAuthPassword := "your-password"
+
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		expectedAuth := "Basic " + base64.StdEncoding.EncodeToString([]byte(httpBasicAuthUsername+":"+httpBasicAuthPassword))
 		if r.Header.Get("Authorization") != expectedAuth {
@@ -248,9 +270,11 @@ func TestApiRequest_WithRequestAuthorization_Success(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}
+
 	if retry {
 		t.Fatalf("Expected no retry, got %v", retry)
 	}
+
 	if string(body) != "basic auth success" {
 		t.Fatalf("Expected body to be 'basic auth success', got %s", body)
 	}
@@ -280,9 +304,11 @@ func TestApiRequest_ServerWithoutAuthRequirement(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}
+
 	if retry {
 		t.Fatalf("Expected no retry, got %v", retry)
 	}
+
 	if string(body) != "no auth needed" {
 		t.Fatalf("Expected body to be 'no auth needed', got %s", body)
 	}
@@ -290,6 +316,7 @@ func TestApiRequest_ServerWithoutAuthRequirement(t *testing.T) {
 
 func TestApiRequest_EmptyCredentials(t *testing.T) {
 	setupMockApp()
+
 	httpBasicAuthUsername := ""
 	httpBasicAuthPassword := ""
 
@@ -310,6 +337,7 @@ func TestApiRequest_EmptyCredentials(t *testing.T) {
 	if err == nil {
 		t.Fatalf("Expected error due to empty credentials, but got nil")
 	}
+
 	if retry {
 		t.Fatalf("Expected no retry when authentication failure, but got retry=%v", retry)
 	}
@@ -317,6 +345,7 @@ func TestApiRequest_EmptyCredentials(t *testing.T) {
 
 func TestApiRequest_InvalidAuthorization(t *testing.T) {
 	setupMockApp()
+
 	httpBasicAuthUsername := "wrong-user"
 	httpBasicAuthPassword := "wrong-pass"
 
@@ -325,6 +354,7 @@ func TestApiRequest_InvalidAuthorization(t *testing.T) {
 		if r.Header.Get("Authorization") != expectedAuth {
 			w.WriteHeader(http.StatusUnauthorized)
 			_, _ = w.Write([]byte("invalid auth"))
+
 			return
 		}
 
@@ -345,6 +375,7 @@ func TestApiRequest_InvalidAuthorization(t *testing.T) {
 	if err == nil {
 		t.Fatalf("Expected error due to invalid authentication, but got nil")
 	}
+
 	if retry {
 		t.Fatalf("Expected no retry when authentication failure, but got retry=%v", retry)
 	}
@@ -352,6 +383,7 @@ func TestApiRequest_InvalidAuthorization(t *testing.T) {
 
 func TestCustomCA(t *testing.T) {
 	setupMockApp()
+
 	app.QBittorrent.Timeout = 2 * time.Second
 
 	server, caCert := createTlsServer(t, false, 0,
@@ -364,11 +396,12 @@ func TestCustomCA(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to get system cert pool: %v", err)
 	}
+
 	caPool.AddCert(caCert)
 
 	app.HttpClient = http.Client{
 		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{
+			TLSClientConfig: &tls.Config{ //nolint:gosec
 				RootCAs: caPool,
 			},
 		},
@@ -395,7 +428,7 @@ func TestSkipCertValidation(t *testing.T) {
 	app.HttpClient = http.Client{
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
-				InsecureSkipVerify: true,
+				InsecureSkipVerify: true, //nolint:gosec
 			},
 		},
 	}

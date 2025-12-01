@@ -3,7 +3,6 @@ package qbit
 import (
 	"bytes"
 	"encoding/base64"
-	"fmt"
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
@@ -21,33 +20,37 @@ var buff = &bytes.Buffer{}
 
 const defaultTimeout time.Duration = 10 * time.Millisecond
 
+const defaultUsername = "testuser"
+const defaultPassword = "testpass"
+
 func init() {
 	logger.Log = &logger.Logger{Logger: slog.New(slog.NewTextHandler(buff, &slog.HandlerOptions{}))}
 }
 
 func TestAuthSuccess(t *testing.T) {
-	t.Cleanup(resetState)
 	password := "abc123"
+
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			t.Errorf("expected POST request, got %s", r.Method)
 		}
+
 		w.Header().Set("Set-Cookie", "SID=abc123; Path=/")
 		w.WriteHeader(http.StatusOK)
+
 		_, err := w.Write([]byte("Success"))
 		if err != nil {
-			panic(fmt.Sprintf("Error with the response %s", err.Error()))
+			panic("Error with the response " + err.Error())
 		}
 	}))
 	defer ts.Close()
 
 	app.QBittorrent.BaseUrl = ts.URL
-	app.QBittorrent.Username = "testuser"
-	app.QBittorrent.Password = "testpass"
+	app.QBittorrent.Username = defaultUsername
+	app.QBittorrent.Password = defaultPassword
 	app.QBittorrent.Timeout = defaultTimeout
 
 	err := Auth()
-
 	if err != nil {
 		t.Errorf("There was an error: %s", err.Error())
 	}
@@ -58,12 +61,12 @@ func TestAuthSuccess(t *testing.T) {
 }
 
 func TestAuthFail(t *testing.T) {
-	t.Cleanup(resetState)
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
+
 		_, err := w.Write([]byte("Fails."))
 		if err != nil {
-			panic(fmt.Sprintf("Error with the response %s", err.Error()))
+			panic("Error with the response " + err.Error())
 		}
 	}))
 	defer ts.Close()
@@ -80,7 +83,6 @@ func TestAuthFail(t *testing.T) {
 	}()
 
 	err := Auth()
-
 	if err == nil {
 		t.Errorf("There wasn't an error")
 	}
@@ -88,6 +90,7 @@ func TestAuthFail(t *testing.T) {
 
 func TestAuthInvalidUrl(t *testing.T) {
 	t.Cleanup(resetState)
+
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	}))
@@ -108,7 +111,6 @@ func TestAuthInvalidUrl(t *testing.T) {
 }
 
 func TestAuthTimeout(t *testing.T) {
-	t.Cleanup(resetState)
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		time.Sleep(defaultTimeout * 5)
 	}))
@@ -127,6 +129,7 @@ func TestAuthTimeout(t *testing.T) {
 
 func TestUnknownStatusCode(t *testing.T) {
 	t.Cleanup(resetState)
+
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusCreated)
 	}))
@@ -145,9 +148,11 @@ func TestUnknownStatusCode(t *testing.T) {
 
 func TestAuth_BasicAuthSuccess(t *testing.T) {
 	t.Cleanup(resetState)
+
 	httpBasicAuthUsername := "your-username"
 	httpBasicAuthPassword := "your-password"
 	password := "abc123"
+
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			t.Errorf("expected POST request, got %s", r.Method)
@@ -160,16 +165,17 @@ func TestAuth_BasicAuthSuccess(t *testing.T) {
 
 		w.Header().Set("Set-Cookie", "SID=abc123; Path=/")
 		w.WriteHeader(http.StatusOK)
+
 		_, err := w.Write([]byte("Success"))
 		if err != nil {
-			panic(fmt.Sprintf("Error with the response %s", err.Error()))
+			panic("Error with the response " + err.Error())
 		}
 	}))
 	defer ts.Close()
 
 	app.QBittorrent.BaseUrl = ts.URL
-	app.QBittorrent.Username = "testuser"
-	app.QBittorrent.Password = "testpass"
+	app.QBittorrent.Username = defaultUsername
+	app.QBittorrent.Password = defaultPassword
 	app.QBittorrent.Timeout = defaultTimeout
 	app.QBittorrent.BasicAuth = &app.BasicAuth{
 		Username: httpBasicAuthUsername,
@@ -177,7 +183,6 @@ func TestAuth_BasicAuthSuccess(t *testing.T) {
 	}
 
 	err := Auth()
-
 	if err != nil {
 		t.Errorf("There was an error: %s", err.Error())
 	}
@@ -189,8 +194,10 @@ func TestAuth_BasicAuthSuccess(t *testing.T) {
 
 func TestAuth_BasicAuthInvalidAuthentication(t *testing.T) {
 	t.Cleanup(resetState)
+
 	httpBasicAuthUsername := "wrong-username"
 	httpBasicAuthPassword := "wrong-password"
+
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			t.Errorf("expected POST request, got %s", r.Method)
@@ -200,21 +207,23 @@ func TestAuth_BasicAuthInvalidAuthentication(t *testing.T) {
 		if r.Header.Get("Authorization") != expectedAuth {
 			w.WriteHeader(http.StatusUnauthorized)
 			_, _ = w.Write([]byte("invalid auth"))
+
 			return
 		}
 
 		w.Header().Set("Set-Cookie", "SID=abc123; Path=/")
 		w.WriteHeader(http.StatusOK)
+
 		_, err := w.Write([]byte("Success"))
 		if err != nil {
-			panic(fmt.Sprintf("Error with the response %s", err.Error()))
+			panic("Error with the response " + err.Error())
 		}
 	}))
 	defer ts.Close()
 
 	app.QBittorrent.BaseUrl = ts.URL
-	app.QBittorrent.Username = "testuser"
-	app.QBittorrent.Password = "testpass"
+	app.QBittorrent.Username = defaultUsername
+	app.QBittorrent.Password = defaultPassword
 	app.QBittorrent.Timeout = defaultTimeout
 	app.QBittorrent.BasicAuth = &app.BasicAuth{
 		Username: httpBasicAuthUsername,
@@ -232,7 +241,6 @@ func TestAuth_BasicAuthInvalidAuthentication(t *testing.T) {
 }
 
 func TestAuthStatusNoContent(t *testing.T) {
-	t.Cleanup(resetState)
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			t.Errorf("expected POST request, got %s", r.Method)
@@ -268,5 +276,6 @@ func TestAuthStatusNoContent(t *testing.T) {
 
 func resetState() {
 	app.QBittorrent.Cookie = nil
+
 	buff.Reset()
 }

@@ -35,12 +35,12 @@ type GaugeSetting struct {
 
 type GaugeSet []GaugeSetting
 
-// Metric prefix
+// Metric prefix.
 const metricPrefix string = "qbittorrent"
 
 const separator string = "_"
 
-// Metric categories
+// Metric categories.
 const (
 	metricCatApp      string = metricPrefix + separator + metricNameApp + separator
 	metricCatGlobal   string = metricPrefix + separator + metricNameGlobal + separator
@@ -56,7 +56,7 @@ const (
 	labelSeeders    string = "seeders"
 
 	torrentLabelAddedOn                string = "added_on"
-	torrentLabelAllTimeHelper          string = "alltime"
+	torrentLabelAllTimeHelper          string = "alltime" //nolint:misspell
 	torrentLabelAllTimeDownloaded      string = torrentLabelAllTimeHelper + separator + torrentLabelDownload + separator + torrentLabelBytes
 	torrentLabelAllTimeUploaded        string = torrentLabelAllTimeHelper + separator + torrentLabelUploaded + separator + torrentLabelBytes
 	torrentLabelAltRatesLimitEnabled   string = "alt_rate_limits_enabled"
@@ -118,7 +118,7 @@ const (
 	trackerLabelStatus  string = "status"
 	trackerLabelTier    string = "tier"
 
-	// Global-specific labels
+	// Global-specific labels.
 	globalLabelDownloadRateLimit    string = "download_rate_limit" + separator + torrentLabelBytes
 	globalLabelUploadRateLimit      string = "upload_rate_limit" + separator + torrentLabelBytes
 	globalLabelAltDownloadRateLimit string = "alt_download_rate_limit" + separator + torrentLabelBytes
@@ -153,22 +153,22 @@ var allStates = [...]string{
 	"unknown",
 }
 
-// Reference the API changes
+// Reference the API changes.
 const (
 	stateRenamedVersion string = "2.11.0" // https://qbittorrent-api.readthedocs.io/en/latest/apidoc/definitions.html#qbittorrentapi.definitions.TorrentState
 )
 
 const (
-	// Web API >= v2.11.0
+	// Web API >= v2.11.0.
 	stateStoppedUp string = "stoppedUP"
 	stateStoppedDl string = "stoppedDL"
 
-	// Web API < v2.11.0
+	// Web API < v2.11.0.
 	statePausedUp string = "pausedUP"
 	statePausedDl string = "pausedDL"
 )
 
-// App
+// App.
 const (
 	qbittorrentAppVersion                  string = metricCatApp + torrentLabelVersion
 	qbittorrentAppAltRateLimitsEnabled     string = metricCatApp + torrentLabelAltRatesLimitEnabled
@@ -176,7 +176,7 @@ const (
 	helpQbittorrentAppAltRateLimitsEnabled string = "If alternate rate limits are enabled"
 )
 
-// Global
+// Global.
 const (
 	qbittorrentGlobalTorrents                  string = metricCatGlobal + torrentLabelTorrents
 	qbittorrentGlobalRatio                     string = metricCatGlobal + torrentLabelRatio
@@ -231,7 +231,7 @@ const (
 	helpqbittorrentGlobalWastedSession             string = "The number of wasted session" + BytesHelper
 )
 
-// Torrent metrics
+// Torrent metrics.
 const (
 	qbittorrentTorrentEta                    string = metricCatTorrent + torrentLabelEta
 	qbittorrentTorrentDownloadSpeedBytes     string = metricCatTorrent + torrentLabelDownloadSpeed
@@ -283,7 +283,7 @@ const (
 	helpQbittorrentTorrentTransferConnectionStatus string = "Connection status (connected, firewalled or disconnected)"
 )
 
-// Trackers
+// Trackers.
 const (
 	qbittorrentTrackerDownloaded string = metricCatTracker + labelDownloaded
 	qbittorrentTrackerLeeches    string = metricCatTracker + trackerLabelLeeches
@@ -389,9 +389,11 @@ func Torrent(result *API.SliceInfo, webUIVersion *string, r *prometheus.Registry
 	if app.Exporter.ExperimentalFeatures.EnableLabelWithHash {
 		labels = append(labels, torrentLabelHash)
 	}
+
 	if app.Exporter.ExperimentalFeatures.EnableLabelWithTracker {
 		labels = append(labels, torrentLabelTracker)
 	}
+
 	labelsWithTag := append(append([]string{}, labels...), torrentLabelTag)
 	labelsWithComment := append(append([]string{}, labels...), torrentLabelComment)
 	labelsWithState := append(append([]string{}, labels...), torrentLabelState)
@@ -466,9 +468,11 @@ func Torrent(result *API.SliceInfo, webUIVersion *string, r *prometheus.Registry
 		if app.Exporter.ExperimentalFeatures.EnableLabelWithHash {
 			l[torrentLabelHash] = t.Hash
 		}
+
 		if app.Exporter.ExperimentalFeatures.EnableLabelWithTracker {
 			l[torrentLabelTracker] = t.Tracker
 		}
+
 		return l
 	}
 
@@ -505,10 +509,12 @@ func Torrent(result *API.SliceInfo, webUIVersion *string, r *prometheus.Registry
 			for _, state := range allStates {
 				tagState := baseTorrentLabels(torrent)
 				tagState[torrentLabelState] = state
+
 				value := 0.0
 				if torrent.State == state {
 					value = 1.0
 				}
+
 				metrics[qbittorrentTorrentState].With(tagState).Set(value)
 			}
 		}
@@ -516,8 +522,9 @@ func Torrent(result *API.SliceInfo, webUIVersion *string, r *prometheus.Registry
 		if _, exists := countStates[torrent.State]; exists {
 			countStates[torrent.State]++
 		} else {
-			logger.Error(fmt.Sprintf("Unknown state: %s", torrent.State))
+			logger.Error("Unknown state: " + torrent.State)
 		}
+
 		countTotal++
 
 		var infoLabels prometheus.Labels
@@ -532,7 +539,7 @@ func Torrent(result *API.SliceInfo, webUIVersion *string, r *prometheus.Registry
 		}
 
 		if torrent.Tags != "" {
-			for _, tag := range strings.Split(torrent.Tags, ", ") {
+			for tag := range strings.SplitSeq(torrent.Tags, ", ") {
 				tagLabels := baseTorrentLabels(torrent)
 				tagLabels[torrentLabelTag] = tag
 				metrics[qbittorrentTorrentTags].With(tagLabels).Set(1)
@@ -543,6 +550,7 @@ func Torrent(result *API.SliceInfo, webUIVersion *string, r *prometheus.Registry
 	for state, count := range countStates {
 		metrics[qbittorrentTorrentStates].With(prometheus.Labels{labelName: state}).Set(count)
 	}
+
 	qbittorrentGlobalTorrents.Set(countTotal)
 }
 
@@ -563,6 +571,7 @@ func Preference(result *API.Preferences, r *prometheus.Registry) {
 func Trackers(result []*API.Trackers, r *prometheus.Registry) {
 	if len(result) == 0 {
 		logger.Trace("No tracker")
+
 		return
 	}
 
@@ -591,8 +600,10 @@ func Trackers(result []*API.Trackers, r *prometheus.Registry) {
 				tier, err := strconv.Atoi(string(tracker.Tier))
 				if err != nil {
 					logger.Trace(fmt.Sprintf("can't convert \"%s\" to int", tracker.Tier))
+
 					tier = 0
 				}
+
 				labels := prometheus.Labels{trackerLabelURL: tracker.URL}
 				metrics[qbittorrentTrackerDownloaded].With(labels).Set(float64(tracker.NumDownloaded))
 				metrics[qbittorrentTrackerLeeches].With(labels).Set(float64(tracker.NumLeeches))
@@ -607,7 +618,7 @@ func Trackers(result []*API.Trackers, r *prometheus.Registry) {
 						labelDownloaded:     strconv.Itoa(tracker.NumDownloaded),
 						trackerLabelLeeches: strconv.Itoa(tracker.NumLeeches),
 						trackerLabelPeers:   strconv.Itoa(tracker.NumPeers),
-						labelSeeders:        strconv.Itoa(int(tracker.NumSeeds)),
+						labelSeeders:        strconv.Itoa(tracker.NumSeeds),
 						trackerLabelStatus:  strconv.Itoa((tracker.Status)),
 						trackerLabelTier:    strconv.Itoa(tier),
 						trackerLabelURL:     tracker.URL}
@@ -619,19 +630,23 @@ func Trackers(result []*API.Trackers, r *prometheus.Registry) {
 }
 
 func MainData(result *API.MainData, r *prometheus.Registry) {
-	var globalRatio float64
-	var err error
+	var (
+		globalRatio float64
+		err         error
+	)
 
 	globalRatio, err = strconv.ParseFloat(result.ServerState.GlobalRatio, 64)
-
 	if err != nil {
 		logger.Trace("retrying to convert ratio...")
+
 		newGlobalRatioState := strings.ReplaceAll(result.ServerState.GlobalRatio, ",", ".")
+
 		globalRatio, err = strconv.ParseFloat(newGlobalRatioState, 64)
 		if err != nil {
 			logger.Warn(fmt.Sprintf("error to convert ratio \"%s\"", result.ServerState.GlobalRatio))
 		}
 	}
+
 	if err == nil {
 		qbittorrentGlobalRatio := prometheus.NewGauge(prometheus.GaugeOpts{
 			Name: qbittorrentGlobalRatio,
@@ -640,10 +655,12 @@ func MainData(result *API.MainData, r *prometheus.Registry) {
 		r.MustRegister(qbittorrentGlobalRatio)
 		qbittorrentGlobalRatio.Set(globalRatio)
 	}
+
 	useAltSpeedLimits := 0.0
 	if result.ServerState.UseAltSpeedLimits {
 		useAltSpeedLimits = 1.0
 	}
+
 	qbittorrentAppAltRateLimitsEnabled := prometheus.NewGauge(prometheus.GaugeOpts{
 		Name: qbittorrentAppAltRateLimitsEnabled,
 		Help: helpQbittorrentAppAltRateLimitsEnabled,
@@ -685,6 +702,7 @@ func MainData(result *API.MainData, r *prometheus.Registry) {
 		Help: helpqbittorrentGlobalTags,
 	}, []string{torrentLabelTag})
 	r.MustRegister(qbittorrentGlobalTags)
+
 	if len(result.Tags) > 0 {
 		for _, tag := range result.Tags {
 			labels := prometheus.Labels{
@@ -693,11 +711,13 @@ func MainData(result *API.MainData, r *prometheus.Registry) {
 			qbittorrentGlobalTags.With(labels).Set(1)
 		}
 	}
+
 	qbittorrentGlobalCategories := prometheus.NewGaugeVec(prometheus.GaugeOpts{
 		Name: qbittorrentGlobalCategories,
 		Help: helpqbittorrentGlobalCategories,
 	}, []string{torrentLabelCategory})
 	r.MustRegister(qbittorrentGlobalCategories)
+
 	for _, category := range result.CategoryMap {
 		labels := prometheus.Labels{
 			torrentLabelCategory: category.Name,
@@ -723,6 +743,7 @@ func registerGauge(gauges *GaugeList, r *prometheus.Registry) map[string]*promet
 		metrics[gauge.Name] = newGaugeVec(gauge.Name, gauge.Help, gauge.Labels)
 		r.MustRegister(metrics[gauge.Name])
 	}
+
 	return metrics
 }
 
