@@ -55,23 +55,23 @@ func BenchmarkTorrentMetrics(b *testing.B) {
 func BenchmarkMainDataProcessing(b *testing.B) {
 	mainData := &API.MainData{
 		ServerState: API.ServerState{
-			AlltimeDl:          1024 * 1024 * 1024 * 100,
-			AlltimeUl:          1024 * 1024 * 1024 * 150,
-			DlInfoData:         1024 * 1024 * 1024,
-			UpInfoData:         1024 * 1024 * 1024 * 2,
-			DlInfoSpeed:        1024 * 100,
-			UpInfoSpeed:        1024 * 50,
-			GlobalRatio:        "1.5",
-			DHTNodes:           100,
-			ConnectionStatus:   "connected",
-			UseAltSpeedLimits:  false,
-			AverageTimeQueue:   30,
-			FreeSpaceOnDisk:    1024 * 1024 * 1024 * 500,
-			QueuedIoJobs:       10,
-			TotalBuffersSize:   1024 * 1024 * 10,
-			TotalQueuedSize:    1024 * 1024 * 50,
+			AlltimeDl:            1024 * 1024 * 1024 * 100,
+			AlltimeUl:            1024 * 1024 * 1024 * 150,
+			DlInfoData:           1024 * 1024 * 1024,
+			UpInfoData:           1024 * 1024 * 1024 * 2,
+			DlInfoSpeed:          1024 * 100,
+			UpInfoSpeed:          1024 * 50,
+			GlobalRatio:          "1.5",
+			DHTNodes:             100,
+			ConnectionStatus:     "connected",
+			UseAltSpeedLimits:    false,
+			AverageTimeQueue:     30,
+			FreeSpaceOnDisk:      1024 * 1024 * 1024 * 500,
+			QueuedIoJobs:         10,
+			TotalBuffersSize:     1024 * 1024 * 10,
+			TotalQueuedSize:      1024 * 1024 * 50,
 			TotalPeerConnections: 50,
-			TotalWastedSession: 1024 * 1024,
+			TotalWastedSession:   1024 * 1024,
 		},
 		Tags: []string{"tag1", "tag2", "tag3"},
 		CategoryMap: map[string]API.Category{
@@ -90,7 +90,7 @@ func BenchmarkMainDataProcessing(b *testing.B) {
 // BenchmarkTagProcessing benchmarks tag processing
 func BenchmarkTagProcessing(b *testing.B) {
 	tagString := "tag1, tag2, tag3, tag4, tag5, tag6, tag7, tag8, tag9, tag10"
-	
+
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		// Simulate the tag splitting operation

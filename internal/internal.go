@@ -26,7 +26,7 @@ func EnsureLeadingSlash(input *string) {
 func CompareSemVer(v1, v2 string) int {
 	// Parse versions in-place without allocating slices
 	i1, i2 := 0, 0
-	
+
 	for i1 < len(v1) || i2 < len(v2) {
 		// Extract next number from v1
 		n1 := 0
@@ -39,7 +39,7 @@ func CompareSemVer(v1, v2 string) int {
 		if i1 < len(v1) {
 			i1++ // skip '.'
 		}
-		
+
 		// Extract next number from v2
 		n2 := 0
 		for i2 < len(v2) && v2[i2] != '.' {
@@ -51,7 +51,7 @@ func CompareSemVer(v1, v2 string) int {
 		if i2 < len(v2) {
 			i2++ // skip '.'
 		}
-		
+
 		if n1 < n2 {
 			return -1
 		} else if n1 > n2 {

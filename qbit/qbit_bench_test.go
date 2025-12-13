@@ -34,7 +34,7 @@ func BenchmarkUniqueTrackerBuilding(b *testing.B) {
 // BenchmarkCreateUrl benchmarks URL creation
 func BenchmarkCreateUrl(b *testing.B) {
 	url := "/api/v2/torrents/info"
-	
+
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		_ = createUrl(url)
