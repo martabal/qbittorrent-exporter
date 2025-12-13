@@ -162,6 +162,7 @@ func getTrackers(torrentList *API.SliceInfo, r *prometheus.Registry) {
 
 	processData := func(trackerInfo *Data) {
 		defer wg.Done()
+
 		getTrackersInfo(trackerInfo, tracker)
 	}
 	for i := range uniqueTrackers {
