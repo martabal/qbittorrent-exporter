@@ -31,4 +31,4 @@ test-coverage-web:
 	go test ./... -coverprofile=cover.out && go tool cover -html=cover.out && rm cover.out
 
 update:
-	go get -u . && go mod tidy
+	go mod edit -toolchain=$(go version | awk '{print $3}') && go get -u . && go mod tidy

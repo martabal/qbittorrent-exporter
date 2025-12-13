@@ -2,7 +2,7 @@ module qbit-exp
 
 go 1.25
 
-toolchain go1.25.4
+toolchain go1.25.5
 
 require (
 	github.com/joho/godotenv v1.5.1
@@ -18,6 +18,6 @@ require (
 	github.com/prometheus/common v0.67.4 // indirect
 	github.com/prometheus/procfs v0.19.2 // indirect
 	go.yaml.in/yaml/v2 v2.4.3 // indirect
-	golang.org/x/sys v0.38.0 // indirect
-	google.golang.org/protobuf v1.36.10 // indirect
+	golang.org/x/sys v0.39.0 // indirect
+	google.golang.org/protobuf v1.36.11 // indirect
 )
