@@ -376,3 +376,228 @@ func testMultipleMetrics(t *testing.T, multipleMetrics map[string][]string, regi
 		}
 	}
 }
+
+func TestCreateTorrentInfoLabels(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name                     string
+		enableHighCardinality    bool
+		enableLabelWithHash      bool
+		enableLabelWithTags      bool
+		expectedLabelsCount      int
+		mustContainLabels        []string
+		mustNotContainLabels     []string
+	}{
+		{
+			name:                  "High cardinality disabled, no extra labels",
+			enableHighCardinality: false,
+			enableLabelWithHash:   false,
+			enableLabelWithTags:   false,
+			expectedLabelsCount:   8,
+			mustContainLabels:     []string{"added_on", "category", "name", "state"},
+			mustNotContainLabels:  []string{"hash", "tags"},
+		},
+		{
+			name:                  "High cardinality enabled, no extra labels",
+			enableHighCardinality: true,
+			enableLabelWithHash:   false,
+			enableLabelWithTags:   false,
+			expectedLabelsCount:   23,
+			mustContainLabels:     []string{"added_on", "category", "progress", "size"},
+			mustNotContainLabels:  []string{"hash", "tags"},
+		},
+		{
+			name:                  "High cardinality disabled with hash label",
+			enableHighCardinality: false,
+			enableLabelWithHash:   true,
+			enableLabelWithTags:   false,
+			expectedLabelsCount:   9,
+			mustContainLabels:     []string{"hash", "name"},
+			mustNotContainLabels:  []string{"tags"},
+		},
+		{
+			name:                  "High cardinality disabled with tags label",
+			enableHighCardinality: false,
+			enableLabelWithHash:   false,
+			enableLabelWithTags:   true,
+			expectedLabelsCount:   9,
+			mustContainLabels:     []string{"tags", "name"},
+			mustNotContainLabels:  []string{"hash"},
+		},
+		{
+			name:                  "High cardinality enabled with both extra labels",
+			enableHighCardinality: true,
+			enableLabelWithHash:   true,
+			enableLabelWithTags:   true,
+			expectedLabelsCount:   25,
+			mustContainLabels:     []string{"hash", "tags", "progress"},
+			mustNotContainLabels:  []string{},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			labels := createTorrentInfoLabels(tt.enableHighCardinality, tt.enableLabelWithHash, tt.enableLabelWithTags)
+
+			if len(labels) != tt.expectedLabelsCount {
+				t.Errorf("expected %d labels, got %d: %v", tt.expectedLabelsCount, len(labels), labels)
+			}
+
+			for _, mustContain := range tt.mustContainLabels {
+				found := false
+				for _, label := range labels {
+					if label == mustContain {
+						found = true
+						break
+					}
+				}
+				if !found {
+					t.Errorf("expected labels to contain %q, but it was not found", mustContain)
+				}
+			}
+
+			for _, mustNotContain := range tt.mustNotContainLabels {
+				for _, label := range labels {
+					if label == mustNotContain {
+						t.Errorf("expected labels not to contain %q, but it was found", mustNotContain)
+					}
+				}
+			}
+		})
+	}
+}
+
+func TestCreateTorrentLabels(t *testing.T) {
+	t.Parallel()
+
+	mockTorrent := API.Info{
+		Name:              "Test Torrent",
+		Hash:              "abc123hash",
+		Category:          "movies",
+		State:             "downloading",
+		Tracker:           "http://tracker.example.com",
+		Comment:           "test comment",
+		SavePath:          "/downloads",
+		AddedOn:           1234567890,
+		CompletionOn:      1234567900,
+		Size:              1000000000,
+		Progress:          0.5,
+		NumSeeds:          10,
+		NumLeechs:         5,
+		Dlspeed:           500000,
+		Upspeed:           100000,
+		AmountLeft:        500000000,
+		TimeActive:        3600,
+		Eta:               7200,
+		Uploaded:          50000000,
+		UploadedSession:   25000000,
+		Downloaded:        500000000,
+		DownloadedSession: 250000000,
+		MaxRatio:          2.0,
+		Ratio:             0.1,
+		Tags:              "tag1, tag2",
+	}
+
+	tests := []struct {
+		name                     string
+		enableHighCardinality    bool
+		enableLabelWithHash      bool
+		enableLabelWithTags      bool
+		expectedLabelsCount      int
+		mustContainLabels        map[string]string
+		mustNotContainLabels     []string
+	}{
+		{
+			name:                  "Basic labels only",
+			enableHighCardinality: false,
+			enableLabelWithHash:   false,
+			enableLabelWithTags:   false,
+			expectedLabelsCount:   8,
+			mustContainLabels: map[string]string{
+				"name":     "Test Torrent",
+				"category": "movies",
+				"state":    "downloading",
+			},
+			mustNotContainLabels: []string{"hash", "tags", "size"},
+		},
+		{
+			name:                  "High cardinality enabled",
+			enableHighCardinality: true,
+			enableLabelWithHash:   false,
+			enableLabelWithTags:   false,
+			expectedLabelsCount:   23,
+			mustContainLabels: map[string]string{
+				"name":     "Test Torrent",
+				"size":     "1000000000",
+				"progress": "0.5000",
+			},
+			mustNotContainLabels: []string{"hash", "tags"},
+		},
+		{
+			name:                  "With hash label",
+			enableHighCardinality: false,
+			enableLabelWithHash:   true,
+			enableLabelWithTags:   false,
+			expectedLabelsCount:   9,
+			mustContainLabels: map[string]string{
+				"hash": "abc123hash",
+				"name": "Test Torrent",
+			},
+			mustNotContainLabels: []string{"tags"},
+		},
+		{
+			name:                  "With tags label",
+			enableHighCardinality: false,
+			enableLabelWithHash:   false,
+			enableLabelWithTags:   true,
+			expectedLabelsCount:   9,
+			mustContainLabels: map[string]string{
+				"tags": "tag1, tag2",
+				"name": "Test Torrent",
+			},
+			mustNotContainLabels: []string{"hash"},
+		},
+		{
+			name:                  "All options enabled",
+			enableHighCardinality: true,
+			enableLabelWithHash:   true,
+			enableLabelWithTags:   true,
+			expectedLabelsCount:   25,
+			mustContainLabels: map[string]string{
+				"hash":     "abc123hash",
+				"tags":     "tag1, tag2",
+				"progress": "0.5000",
+			},
+			mustNotContainLabels: []string{},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			labels := createTorrentLabels(mockTorrent, tt.enableHighCardinality, tt.enableLabelWithHash, tt.enableLabelWithTags)
+
+			if len(labels) != tt.expectedLabelsCount {
+				t.Errorf("expected %d labels, got %d", tt.expectedLabelsCount, len(labels))
+			}
+
+			for key, expectedValue := range tt.mustContainLabels {
+				if actualValue, exists := labels[key]; !exists {
+					t.Errorf("expected label %q to exist", key)
+				} else if actualValue != expectedValue {
+					t.Errorf("label %q: expected %q, got %q", key, expectedValue, actualValue)
+				}
+			}
+
+			for _, mustNotContain := range tt.mustNotContainLabels {
+				if _, exists := labels[mustNotContain]; exists {
+					t.Errorf("expected label %q not to exist, but it was found", mustNotContain)
+				}
+			}
+		})
+	}
+}
