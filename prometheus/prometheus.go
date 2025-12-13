@@ -5,7 +5,6 @@ import (
 	"math"
 	"strconv"
 	"strings"
-	"sync"
 
 	API "qbit-exp/api"
 	"qbit-exp/app"
@@ -14,13 +13,6 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus"
 )
-
-// Pool for reusing byte buffers to reduce allocations
-var bufferPool = sync.Pool{
-	New: func() interface{} {
-		return make([]byte, 0, 64)
-	},
-}
 
 type Gauge struct {
 	Name   string
