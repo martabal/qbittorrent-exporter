@@ -65,10 +65,6 @@ func TestMetricsReturnMetric(t *testing.T) {
 
 	req.RemoteAddr = "127.0.0.1:80"
 
-	if err != nil {
-		t.Fatal(err)
-	}
-
 	rec := httptest.NewRecorder()
 
 	metrics(rec, req, func(registry *prometheus.Registry) error {
