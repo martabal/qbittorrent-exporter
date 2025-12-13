@@ -381,13 +381,13 @@ func TestCreateTorrentInfoLabels(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name                     string
-		enableHighCardinality    bool
-		enableLabelWithHash      bool
-		enableLabelWithTags      bool
-		expectedLabelsCount      int
-		mustContainLabels        []string
-		mustNotContainLabels     []string
+		name                  string
+		enableHighCardinality bool
+		enableLabelWithHash   bool
+		enableLabelWithTags   bool
+		expectedLabelsCount   int
+		mustContainLabels     []string
+		mustNotContainLabels  []string
 	}{
 		{
 			name:                  "High cardinality disabled, no extra labels",
@@ -502,13 +502,13 @@ func TestCreateTorrentLabels(t *testing.T) {
 	}
 
 	tests := []struct {
-		name                     string
-		enableHighCardinality    bool
-		enableLabelWithHash      bool
-		enableLabelWithTags      bool
-		expectedLabelsCount      int
-		mustContainLabels        map[string]string
-		mustNotContainLabels     []string
+		name                  string
+		enableHighCardinality bool
+		enableLabelWithHash   bool
+		enableLabelWithTags   bool
+		expectedLabelsCount   int
+		mustContainLabels     map[string]string
+		mustNotContainLabels  []string
 	}{
 		{
 			name:                  "Basic labels only",

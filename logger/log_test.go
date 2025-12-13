@@ -42,10 +42,10 @@ func TestSetLogLevel(t *testing.T) {
 
 func TestLoggingFunctions(t *testing.T) {
 	tests := []struct {
-		name     string
-		logFunc  func(string)
-		message  string
-		level    slog.Level
+		name    string
+		logFunc func(string)
+		message string
+		level   slog.Level
 	}{
 		{"Trace", Trace, "trace message", LevelTrace},
 		{"Debug", Debug, "debug message", LevelDebug},

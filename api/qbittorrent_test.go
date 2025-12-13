@@ -136,7 +136,7 @@ func TestPreferencesUnmarshal(t *testing.T) {
 	}
 }
 
-func TestMainDataUnmarshal(t *testing.T) {
+func TestMainDataUnmarshal(t *testing.T) { //nolint:misspell
 	t.Parallel()
 
 	jsonData := `{
@@ -248,7 +248,7 @@ func TestTrackersUnmarshal(t *testing.T) {
 	}
 }
 
-func TestServerStateUnmarshal(t *testing.T) {
+func TestServerStateUnmarshal(t *testing.T) { //nolint:misspell
 	t.Parallel()
 
 	jsonData := `{
