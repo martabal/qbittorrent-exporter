@@ -2,7 +2,6 @@ package internal
 
 import (
 	"net/url"
-	"strconv"
 	"strings"
 )
 
@@ -25,18 +24,35 @@ func EnsureLeadingSlash(input *string) {
 }
 
 func CompareSemVer(v1, v2 string) int {
-	v1Parts := strings.Split(v1, ".")
-	v2Parts := strings.Split(v2, ".")
+	i1, i2 := 0, 0
 
-	for i := 0; i < len(v1Parts) || i < len(v2Parts); i++ {
-		var n1 int
-		if i < len(v1Parts) {
-			n1, _ = strconv.Atoi(v1Parts[i])
+	for i1 < len(v1) || i2 < len(v2) {
+		n1 := 0
+
+		for i1 < len(v1) && v1[i1] != '.' {
+			if v1[i1] >= '0' && v1[i1] <= '9' {
+				n1 = n1*10 + int(v1[i1]-'0')
+			}
+
+			i1++
 		}
 
-		var n2 int
-		if i < len(v2Parts) {
-			n2, _ = strconv.Atoi(v2Parts[i])
+		if i1 < len(v1) {
+			i1++
+		}
+
+		n2 := 0
+
+		for i2 < len(v2) && v2[i2] != '.' {
+			if v2[i2] >= '0' && v2[i2] <= '9' {
+				n2 = n2*10 + int(v2[i2]-'0')
+			}
+
+			i2++
+		}
+
+		if i2 < len(v2) {
+			i2++
 		}
 
 		if n1 < n2 {

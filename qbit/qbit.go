@@ -92,7 +92,7 @@ var otherAPIRequests = [...]Data{
 }
 
 func createUrl(url string) string {
-	return fmt.Sprintf("%s%s", app.QBittorrent.BaseUrl, url)
+	return app.QBittorrent.BaseUrl + url
 }
 
 func getData(r *prometheus.Registry, data *Data, webUIVersion *string, c chan func() (bool, error)) {
@@ -160,11 +160,6 @@ func getTrackers(torrentList *API.SliceInfo, r *prometheus.Registry) {
 	responses := new([]*API.Trackers)
 	tracker := make(chan func() (*API.Trackers, error), len(uniqueTrackers))
 
-	processData := func(trackerInfo *Data) {
-		defer wg.Done()
-
-		getTrackersInfo(trackerInfo, tracker)
-	}
 	for i := range uniqueTrackers {
 		var trackerInfo = Data{
 			URL:        "/api/v2/torrents/trackers",
@@ -178,7 +173,9 @@ func getTrackers(torrentList *API.SliceInfo, r *prometheus.Registry) {
 		}
 
 		wg.Add(1)
-		processData(&trackerInfo)
+		defer wg.Done()
+
+		go getTrackersInfo(&trackerInfo, tracker)
 	}
 
 	go func() {
