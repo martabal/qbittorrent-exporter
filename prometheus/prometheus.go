@@ -539,7 +539,9 @@ func Torrent(result *API.SliceInfo, webUIVersion *string, r *prometheus.Registry
 		}
 
 		if torrent.Tags != "" {
-			for tag := range strings.SplitSeq(torrent.Tags, ", ") {
+			// Pre-split tags to avoid iterator overhead
+			tags := strings.Split(torrent.Tags, ", ")
+			for _, tag := range tags {
 				tagLabels := baseTorrentLabels(torrent)
 				tagLabels[torrentLabelTag] = tag
 				metrics[qbittorrentTorrentTags].With(tagLabels).Set(1)

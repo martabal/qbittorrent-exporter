@@ -92,7 +92,8 @@ var otherAPIRequests = [...]Data{
 }
 
 func createUrl(url string) string {
-	return fmt.Sprintf("%s%s", app.QBittorrent.BaseUrl, url)
+	// Optimize string concatenation to avoid fmt.Sprintf overhead
+	return app.QBittorrent.BaseUrl + url
 }
 
 func getData(r *prometheus.Registry, data *Data, webUIVersion *string, c chan func() (bool, error)) {
@@ -146,9 +147,10 @@ func getTrackersInfo(data *Data, c chan func() (*API.Trackers, error)) {
 func getTrackers(torrentList *API.SliceInfo, r *prometheus.Registry) {
 	var wg sync.WaitGroup
 
-	uniqueValues := make(map[string]struct{})
-
-	var uniqueTrackers []UniqueTracker
+	// Pre-allocate with reasonable capacity
+	torrentCount := len(*torrentList)
+	uniqueValues := make(map[string]struct{}, torrentCount/10) // Estimate ~10% unique trackers
+	uniqueTrackers := make([]UniqueTracker, 0, torrentCount/10)
 
 	for _, obj := range *torrentList {
 		if _, exists := uniqueValues[obj.Tracker]; !exists {
@@ -157,7 +159,8 @@ func getTrackers(torrentList *API.SliceInfo, r *prometheus.Registry) {
 		}
 	}
 
-	responses := new([]*API.Trackers)
+	// Pre-allocate responses slice
+	responses := make([]*API.Trackers, 0, len(uniqueTrackers))
 	tracker := make(chan func() (*API.Trackers, error), len(uniqueTrackers))
 
 	processData := func(trackerInfo *Data) {
@@ -178,7 +181,7 @@ func getTrackers(torrentList *API.SliceInfo, r *prometheus.Registry) {
 		}
 
 		wg.Add(1)
-		processData(&trackerInfo)
+		go processData(&trackerInfo)
 	}
 
 	go func() {
@@ -189,13 +192,13 @@ func getTrackers(torrentList *API.SliceInfo, r *prometheus.Registry) {
 	for respFunc := range tracker {
 		res, err := respFunc()
 		if err == nil {
-			*responses = append(*responses, res)
+			responses = append(responses, res)
 		} else {
 			logger.Error(err.Error())
 		}
 	}
 
-	prom.Trackers(*responses, r)
+	prom.Trackers(responses, r)
 }
 
 func AllRequests(r *prometheus.Registry) error {
