@@ -157,56 +157,6 @@ scrape_configs:
       - targets: ["<your_ip_address>:8090"]
 ```
 
-## Testing
-
-This project includes comprehensive unit tests to ensure code quality and reliability.
-
-### Running Tests
-
-To run all tests:
-
-```sh
-go test ./...
-```
-
-To run tests with coverage report:
-
-```sh
-go test -cover ./...
-```
-
-To generate a detailed coverage report:
-
-```sh
-go test -coverprofile=coverage.out ./...
-go tool cover -html=coverage.out
-```
-
-### Test Coverage
-
-Current test coverage by package:
-- **api**: Data structure marshaling/unmarshaling tests
-- **app**: Environment configuration and helper function tests
-- **internal**: 100% - URL validation and utility function tests
-- **logger**: Logging functionality and handler tests
-- **main**: HTTP handlers and authentication tests
-- **prometheus**: Metric generation and label creation tests
-- **qbit**: API request and authentication tests
-
-### Writing Tests
-
-Tests follow Go's standard testing conventions:
-- Test files are named `*_test.go`
-- Test functions start with `Test`
-- Use `t.Parallel()` for tests that can run concurrently
-- Mock external dependencies using `httptest` for HTTP servers
-
 ### Contribute
 
 Contributions are welcome! To get started, copy and rename the `.env.example` file to `.env`, and run `just dev` from the root directory.
-
-When contributing code:
-1. Write tests for new functionality
-2. Ensure existing tests pass: `go test ./...`
-3. Check test coverage: `go test -cover ./...`
-4. Follow the existing code style and conventions
