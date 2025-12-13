@@ -432,7 +432,7 @@ func TestCreateTorrentInfoLabels(t *testing.T) {
 			enableLabelWithTags:   true,
 			expectedLabelsCount:   25,
 			mustContainLabels:     []string{"hash", "tags", "progress"},
-			mustNotContainLabels:  []string{},
+			mustNotContainLabels:  nil,
 		},
 	}
 
@@ -571,7 +571,7 @@ func TestCreateTorrentLabels(t *testing.T) {
 				"tags":     "tag1, tag2",
 				"progress": "0.5000",
 			},
-			mustNotContainLabels: []string{},
+			mustNotContainLabels: nil,
 		},
 	}
 
