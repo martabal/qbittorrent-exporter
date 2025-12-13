@@ -173,3 +173,107 @@ func TestPassFileAndPassSet(t *testing.T) { //nolint:paralleltest
 		t.Errorf("GetPassword() = %q; want %q", got, expected)
 	}
 }
+
+func TestGetBasicAuth(t *testing.T) {
+	tests := []struct {
+		name         string
+		username     *string
+		password     *string
+		wantNil      bool
+		wantUsername string
+		wantPassword string
+	}{
+		{
+			name:     "Both nil returns nil",
+			username: nil,
+			password: nil,
+			wantNil:  true,
+		},
+		{
+			name:         "Both set returns BasicAuth",
+			username:     strPtr("user"),
+			password:     strPtr("pass"),
+			wantNil:      false,
+			wantUsername: "user",
+			wantPassword: "pass",
+		},
+		{
+			name:         "Only username set",
+			username:     strPtr("user"),
+			password:     nil,
+			wantNil:      false,
+			wantUsername: "user",
+			wantPassword: "",
+		},
+		{
+			name:         "Only password set",
+			username:     nil,
+			password:     strPtr("pass"),
+			wantNil:      false,
+			wantUsername: "",
+			wantPassword: "pass",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := getBasicAuth(tt.username, tt.password, "DEFAULT_USER", "DEFAULT_PASS")
+
+			if tt.wantNil {
+				if result != nil {
+					t.Errorf("expected nil, got %+v", result)
+				}
+			} else {
+				if result == nil {
+					t.Fatal("expected non-nil BasicAuth")
+				}
+
+				if result.Username != tt.wantUsername {
+					t.Errorf("username: expected %q, got %q", tt.wantUsername, result.Username)
+				}
+
+				if result.Password != tt.wantPassword {
+					t.Errorf("password: expected %q, got %q", tt.wantPassword, result.Password)
+				}
+			}
+		})
+	}
+}
+
+func TestGetPasswordMasked(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name     string
+		password string
+		want     string
+	}{
+		{"Empty password", "", ""},
+		{"Short password", "abc", "***"},
+		{"Normal password", "password123", "***********"},
+		{"Long password", "verylongpasswordhere", "********************"},
+		{"Special chars", "p@$$w0rd!", "*********"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			got := GetPasswordMasked(tt.password)
+			if got != tt.want {
+				t.Errorf("GetPasswordMasked(%q) = %q, want %q", tt.password, got, tt.want)
+			}
+
+			// Verify all characters are asterisks
+			for _, char := range got {
+				if char != '*' {
+					t.Errorf("GetPasswordMasked result contains non-asterisk character: %c", char)
+				}
+			}
+		})
+	}
+}
+
+func strPtr(s string) *string {
+	return &s
+}

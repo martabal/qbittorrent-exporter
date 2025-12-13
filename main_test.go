@@ -10,6 +10,7 @@ import (
 	"strings"
 	"testing"
 
+	"qbit-exp/app"
 	"qbit-exp/logger"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -64,10 +65,6 @@ func TestMetricsReturnMetric(t *testing.T) {
 
 	req.RemoteAddr = "127.0.0.1:80"
 
-	if err != nil {
-		t.Fatal(err)
-	}
-
 	rec := httptest.NewRecorder()
 
 	metrics(rec, req, func(registry *prometheus.Registry) error {
@@ -97,5 +94,128 @@ func TestMetricsReturnMetric(t *testing.T) {
 	traceMessage := "New request from"
 	if !strings.Contains(buff.String(), traceMessage) {
 		t.Errorf("expected %s, got %s", traceMessage, buff.String())
+	}
+}
+
+func TestBasicAuth_Success(t *testing.T) {
+	t.Parallel()
+
+	buff.Reset()
+
+	app.Exporter.BasicAuth = &app.BasicAuth{
+		Username: "testuser",
+		Password: "testpass",
+	}
+
+	handlerCalled := false
+	testHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		handlerCalled = true
+
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte("success"))
+	})
+
+	wrappedHandler := basicAuth(testHandler)
+
+	req := httptest.NewRequest(http.MethodGet, "/metrics", nil)
+	req.SetBasicAuth("testuser", "testpass")
+
+	rec := httptest.NewRecorder()
+
+	wrappedHandler.ServeHTTP(rec, req)
+
+	if !handlerCalled {
+		t.Error("expected handler to be called")
+	}
+
+	if rec.Code != http.StatusOK {
+		t.Errorf("expected status code 200, got %d", rec.Code)
+	}
+
+	if rec.Body.String() != "success" {
+		t.Errorf("expected body 'success', got %s", rec.Body.String())
+	}
+}
+
+func TestBasicAuth_InvalidCredentials(t *testing.T) {
+	t.Parallel()
+
+	buff.Reset()
+
+	opts := &slog.HandlerOptions{
+		Level: logger.LevelWarn,
+	}
+
+	logger.Log = &logger.Logger{Logger: slog.New(slog.NewTextHandler(buff, opts))}
+
+	app.Exporter.BasicAuth = &app.BasicAuth{
+		Username: "testuser",
+		Password: "testpass",
+	}
+
+	handlerCalled := false
+	testHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		handlerCalled = true
+
+		w.WriteHeader(http.StatusOK)
+	})
+
+	wrappedHandler := basicAuth(testHandler)
+
+	req := httptest.NewRequest(http.MethodGet, "/metrics", nil)
+	req.SetBasicAuth("wronguser", "wrongpass")
+	req.RemoteAddr = "127.0.0.1:12345"
+	rec := httptest.NewRecorder()
+
+	wrappedHandler.ServeHTTP(rec, req)
+
+	if handlerCalled {
+		t.Error("expected handler not to be called")
+	}
+
+	if rec.Code != http.StatusUnauthorized {
+		t.Errorf("expected status code 401, got %d", rec.Code)
+	}
+
+	if !strings.Contains(buff.String(), "Invalid auth") {
+		t.Errorf("expected log to contain 'Invalid auth', got %s", buff.String())
+	}
+}
+
+func TestBasicAuth_NoCredentials(t *testing.T) {
+	t.Parallel()
+
+	app.Exporter.BasicAuth = &app.BasicAuth{
+		Username: "testuser",
+		Password: "testpass",
+	}
+
+	handlerCalled := false
+	testHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		handlerCalled = true
+
+		w.WriteHeader(http.StatusOK)
+	})
+
+	wrappedHandler := basicAuth(testHandler)
+
+	req := httptest.NewRequest(http.MethodGet, "/metrics", nil)
+	rec := httptest.NewRecorder()
+
+	wrappedHandler.ServeHTTP(rec, req)
+
+	if handlerCalled {
+		t.Error("expected handler not to be called")
+	}
+
+	if rec.Code != http.StatusUnauthorized {
+		t.Errorf("expected status code 401, got %d", rec.Code)
+	}
+
+	authHeader := rec.Header().Get("WWW-Authenticate")
+
+	expectedHeader := `Basic realm="restricted", charset="UTF-8"`
+	if authHeader != expectedHeader {
+		t.Errorf("expected WWW-Authenticate header %q, got %q", expectedHeader, authHeader)
 	}
 }

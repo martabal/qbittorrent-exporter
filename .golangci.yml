@@ -54,7 +54,6 @@ linters:
     - modernize
     - musttag
     - nakedret
-    - nestif
     - nilerr
     - nilnesserr
     - nilnil
