@@ -147,12 +147,9 @@ func getTrackersInfo(data *Data, c chan func() (*API.Trackers, error)) {
 func getTrackers(torrentList *API.SliceInfo, r *prometheus.Registry) {
 	var wg sync.WaitGroup
 
-	// Pre-allocate with reasonable capacity
-	// Estimate ~10% unique trackers based on typical torrent tracker distribution
-	// where many torrents often share the same tracker URLs
-	torrentCount := len(*torrentList)
-	uniqueValues := make(map[string]struct{}, torrentCount/10)
-	uniqueTrackers := make([]UniqueTracker, 0, torrentCount/10)
+	uniqueValues := make(map[string]struct{})
+
+	var uniqueTrackers []UniqueTracker
 
 	for _, obj := range *torrentList {
 		if _, exists := uniqueValues[obj.Tracker]; !exists {
@@ -161,8 +158,7 @@ func getTrackers(torrentList *API.SliceInfo, r *prometheus.Registry) {
 		}
 	}
 
-	// Pre-allocate responses slice
-	responses := make([]*API.Trackers, 0, len(uniqueTrackers))
+	responses := new([]*API.Trackers)
 	tracker := make(chan func() (*API.Trackers, error), len(uniqueTrackers))
 
 	processData := func(trackerInfo *Data) {
@@ -194,13 +190,13 @@ func getTrackers(torrentList *API.SliceInfo, r *prometheus.Registry) {
 	for respFunc := range tracker {
 		res, err := respFunc()
 		if err == nil {
-			responses = append(responses, res)
+			*responses = append(*responses, res)
 		} else {
 			logger.Error(err.Error())
 		}
 	}
 
-	prom.Trackers(responses, r)
+	prom.Trackers(*responses, r)
 }
 
 func AllRequests(r *prometheus.Registry) error {

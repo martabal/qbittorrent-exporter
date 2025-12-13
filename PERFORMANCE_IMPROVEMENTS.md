@@ -50,17 +50,11 @@ BenchmarkCreateUrl-4              31,386,402    40.98 ns/op      48 B/op      1 
 
 ### 3. Tracker Processing
 - **Fixed**: Tracker goroutines were not actually running in parallel (missing `go` keyword)
-- **Added**: Pre-allocation of uniqueTrackers slice with estimated capacity
-- **Added**: Pre-allocation of responses slice with known capacity
 
 ### 4. Tag Processing
 - **Changed**: Replaced `strings.SplitSeq()` with `strings.Split()` for better compatibility and slight performance improvement
 
-### 5. Label Map Creation
-- **Added**: Pre-calculated map capacity for prometheus.Labels to reduce allocations
-- **Optimized**: baseTorrentLabels and createTorrentLabels functions to use make() with capacity
-
-### 6. Memory Pool
+### 5. Memory Pool
 - **Added**: sync.Pool for byte buffers (foundation for future optimizations)
 
 ## Overall Impact
@@ -68,9 +62,8 @@ BenchmarkCreateUrl-4              31,386,402    40.98 ns/op      48 B/op      1 
 The optimizations result in:
 - **8.2x faster** semantic version comparisons (critical for startup and version checks)
 - **2.7x faster** URL creation (called on every API request)
-- **Reduced memory allocations** across the board
 - **Better CPU utilization** through proper goroutine parallelization
-- **More predictable memory usage** through pre-allocation strategies
+- **Zero-allocation algorithms** for frequently called functions
 
 ## Future Optimization Opportunities
 
@@ -79,6 +72,7 @@ The optimizations result in:
 3. **JSON Decoder Reuse**: Pool JSON decoders to reduce allocation overhead
 4. **String Interning**: For frequently repeated strings (tracker URLs, states, etc.)
 5. **Batch Metric Updates**: Collect multiple metric updates and apply them in batches
+6. **Pre-allocation**: Pre-allocate slices and maps when size is known or can be estimated
 
 ## Running Benchmarks
 

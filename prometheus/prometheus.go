@@ -352,27 +352,16 @@ func createTorrentInfoLabels(enableHighCardinality, enableLabelWithHash bool, en
 }
 
 func createTorrentLabels(torrent API.Info, enableHighCardinality, enableLabelWithHash bool, enableLabelWithTags bool) prometheus.Labels {
-	// Pre-calculate capacity to reduce allocations
-	capacity := 8 // base labels
-	if enableHighCardinality {
-		capacity += 14
+	infoLabels := prometheus.Labels{
+		labelName:                torrent.Name,
+		torrentLabelCategory:     torrent.Category,
+		torrentLabelState:        torrent.State,
+		torrentLabelTracker:      torrent.Tracker,
+		torrentLabelComment:      torrent.Comment,
+		torrentLabelSavePath:     torrent.SavePath,
+		torrentLabelAddedOn:      strconv.Itoa(int(torrent.AddedOn)),
+		torrentLabelCompletionOn: strconv.Itoa(int(torrent.CompletionOn)),
 	}
-	if enableLabelWithHash {
-		capacity++
-	}
-	if enableLabelWithTags {
-		capacity++
-	}
-
-	infoLabels := make(prometheus.Labels, capacity)
-	infoLabels[labelName] = torrent.Name
-	infoLabels[torrentLabelCategory] = torrent.Category
-	infoLabels[torrentLabelState] = torrent.State
-	infoLabels[torrentLabelTracker] = torrent.Tracker
-	infoLabels[torrentLabelComment] = torrent.Comment
-	infoLabels[torrentLabelSavePath] = torrent.SavePath
-	infoLabels[torrentLabelAddedOn] = strconv.Itoa(int(torrent.AddedOn))
-	infoLabels[torrentLabelCompletionOn] = strconv.Itoa(int(torrent.CompletionOn))
 
 	if enableHighCardinality {
 		infoLabels[torrentLabelSize] = strconv.FormatInt(torrent.Size, 10)
@@ -480,18 +469,10 @@ func Torrent(result *API.SliceInfo, webUIVersion *string, r *prometheus.Registry
 
 	countTotal := 0.0
 
-	// Pre-calculate label capacity for optimization
-	labelCapacity := 1
-	if app.Exporter.ExperimentalFeatures.EnableLabelWithHash {
-		labelCapacity++
-	}
-	if app.Exporter.ExperimentalFeatures.EnableLabelWithTracker {
-		labelCapacity++
-	}
-
 	baseTorrentLabels := func(t API.Info) prometheus.Labels {
-		l := make(prometheus.Labels, labelCapacity)
-		l[labelName] = t.Name
+		l := prometheus.Labels{
+			labelName: t.Name,
+		}
 		if app.Exporter.ExperimentalFeatures.EnableLabelWithHash {
 			l[torrentLabelHash] = t.Hash
 		}
