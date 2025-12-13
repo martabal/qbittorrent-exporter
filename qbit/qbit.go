@@ -160,6 +160,10 @@ func getTrackers(torrentList *API.SliceInfo, r *prometheus.Registry) {
 	responses := new([]*API.Trackers)
 	tracker := make(chan func() (*API.Trackers, error), len(uniqueTrackers))
 
+	processData := func(trackerInfo *Data) {
+		defer wg.Done()
+		getTrackersInfo(trackerInfo, tracker)
+	}
 	for i := range uniqueTrackers {
 		var trackerInfo = Data{
 			URL:        "/api/v2/torrents/trackers",
@@ -173,9 +177,8 @@ func getTrackers(torrentList *API.SliceInfo, r *prometheus.Registry) {
 		}
 
 		wg.Add(1)
-		defer wg.Done()
 
-		go getTrackersInfo(&trackerInfo, tracker)
+		go processData(&trackerInfo)
 	}
 
 	go func() {
