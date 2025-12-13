@@ -148,8 +148,10 @@ func getTrackers(torrentList *API.SliceInfo, r *prometheus.Registry) {
 	var wg sync.WaitGroup
 
 	// Pre-allocate with reasonable capacity
+	// Estimate ~10% unique trackers based on typical torrent tracker distribution
+	// where many torrents often share the same tracker URLs
 	torrentCount := len(*torrentList)
-	uniqueValues := make(map[string]struct{}, torrentCount/10) // Estimate ~10% unique trackers
+	uniqueValues := make(map[string]struct{}, torrentCount/10)
 	uniqueTrackers := make([]UniqueTracker, 0, torrentCount/10)
 
 	for _, obj := range *torrentList {

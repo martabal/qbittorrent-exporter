@@ -23,6 +23,10 @@ func EnsureLeadingSlash(input *string) {
 	}
 }
 
+// CompareSemVer compares two semantic version strings.
+// Returns -1 if v1 < v2, 0 if v1 == v2, 1 if v1 > v2.
+// Note: This function only compares numeric version parts (e.g., "2.11.0")
+// and silently ignores non-digit characters. Pre-release identifiers are not supported.
 func CompareSemVer(v1, v2 string) int {
 	// Parse versions in-place without allocating slices
 	i1, i2 := 0, 0
