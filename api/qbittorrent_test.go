@@ -37,6 +37,7 @@ func TestInfoUnmarshal(t *testing.T) {
 	}`
 
 	var info Info
+
 	err := json.Unmarshal([]byte(jsonData), &info)
 	if err != nil {
 		t.Fatalf("Failed to unmarshal Info: %v", err)
@@ -86,6 +87,7 @@ func TestSliceInfoUnmarshal(t *testing.T) {
 	]`
 
 	var sliceInfo SliceInfo
+
 	err := json.Unmarshal([]byte(jsonData), &sliceInfo)
 	if err != nil {
 		t.Fatalf("Failed to unmarshal SliceInfo: %v", err)
@@ -118,6 +120,7 @@ func TestPreferencesUnmarshal(t *testing.T) {
 	}`
 
 	var prefs Preferences
+
 	err := json.Unmarshal([]byte(jsonData), &prefs)
 	if err != nil {
 		t.Fatalf("Failed to unmarshal Preferences: %v", err)
@@ -136,7 +139,7 @@ func TestPreferencesUnmarshal(t *testing.T) {
 	}
 }
 
-func TestMainDataUnmarshal(t *testing.T) { //nolint:misspell
+func TestMainDataUnmarshal(t *testing.T) {
 	t.Parallel()
 
 	jsonData := `{
@@ -151,8 +154,8 @@ func TestMainDataUnmarshal(t *testing.T) { //nolint:misspell
 			}
 		},
 		"server_state": {
-			"alltime_dl": 1000000000,
-			"alltime_ul": 500000000,
+			"all-time_dl": 1000000000,
+			"all-time_ul": 500000000,
 			"average_time_queue": 100,
 			"connection_status": "connected",
 			"dht_nodes": 500,
@@ -173,6 +176,7 @@ func TestMainDataUnmarshal(t *testing.T) { //nolint:misspell
 	}`
 
 	var mainData MainData
+
 	err := json.Unmarshal([]byte(jsonData), &mainData)
 	if err != nil {
 		t.Fatalf("Failed to unmarshal MainData: %v", err)
@@ -226,6 +230,7 @@ func TestTrackersUnmarshal(t *testing.T) {
 	]`
 
 	var trackers Trackers
+
 	err := json.Unmarshal([]byte(jsonData), &trackers)
 	if err != nil {
 		t.Fatalf("Failed to unmarshal Trackers: %v", err)
@@ -248,12 +253,13 @@ func TestTrackersUnmarshal(t *testing.T) {
 	}
 }
 
-func TestServerStateUnmarshal(t *testing.T) { //nolint:misspell
+func TestServerStateUnmarshal(t *testing.T) {
 	t.Parallel()
 
+	//nolint:misspell
 	jsonData := `{
 		"alltime_dl": 1234567890,
-		"alltime_ul": 9876543210,
+		"alltime_ul": 9876543210, 
 		"average_time_queue": 50,
 		"connection_status": "firewalled",
 		"dht_nodes": 1000,
@@ -272,6 +278,7 @@ func TestServerStateUnmarshal(t *testing.T) { //nolint:misspell
 	}`
 
 	var serverState ServerState
+
 	err := json.Unmarshal([]byte(jsonData), &serverState)
 	if err != nil {
 		t.Fatalf("Failed to unmarshal ServerState: %v", err)
@@ -303,6 +310,7 @@ func TestCategoryUnmarshal(t *testing.T) {
 	}`
 
 	var category Category
+
 	err := json.Unmarshal([]byte(jsonData), &category)
 	if err != nil {
 		t.Fatalf("Failed to unmarshal Category: %v", err)

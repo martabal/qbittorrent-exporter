@@ -227,9 +227,11 @@ func TestGetBasicAuth(t *testing.T) {
 				if result == nil {
 					t.Fatal("expected non-nil BasicAuth")
 				}
+
 				if result.Username != tt.wantUsername {
 					t.Errorf("username: expected %q, got %q", tt.wantUsername, result.Username)
 				}
+
 				if result.Password != tt.wantPassword {
 					t.Errorf("password: expected %q, got %q", tt.wantPassword, result.Password)
 				}

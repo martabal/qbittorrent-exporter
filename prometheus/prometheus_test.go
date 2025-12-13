@@ -3,6 +3,7 @@ package prom
 import (
 	"bytes"
 	"log/slog"
+	"slices"
 	"testing"
 	"time"
 
@@ -447,13 +448,8 @@ func TestCreateTorrentInfoLabels(t *testing.T) {
 			}
 
 			for _, mustContain := range tt.mustContainLabels {
-				found := false
-				for _, label := range labels {
-					if label == mustContain {
-						found = true
-						break
-					}
-				}
+				found := slices.Contains(labels, mustContain)
+
 				if !found {
 					t.Errorf("expected labels to contain %q, but it was not found", mustContain)
 				}

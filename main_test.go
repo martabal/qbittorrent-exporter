@@ -110,6 +110,7 @@ func TestBasicAuth_Success(t *testing.T) {
 	handlerCalled := false
 	testHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		handlerCalled = true
+
 		w.WriteHeader(http.StatusOK)
 		_, _ = w.Write([]byte("success"))
 	})
@@ -118,6 +119,7 @@ func TestBasicAuth_Success(t *testing.T) {
 
 	req := httptest.NewRequest(http.MethodGet, "/metrics", nil)
 	req.SetBasicAuth("testuser", "testpass")
+
 	rec := httptest.NewRecorder()
 
 	wrappedHandler.ServeHTTP(rec, req)
@@ -154,6 +156,7 @@ func TestBasicAuth_InvalidCredentials(t *testing.T) {
 	handlerCalled := false
 	testHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		handlerCalled = true
+
 		w.WriteHeader(http.StatusOK)
 	})
 
@@ -190,6 +193,7 @@ func TestBasicAuth_NoCredentials(t *testing.T) {
 	handlerCalled := false
 	testHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		handlerCalled = true
+
 		w.WriteHeader(http.StatusOK)
 	})
 
@@ -209,6 +213,7 @@ func TestBasicAuth_NoCredentials(t *testing.T) {
 	}
 
 	authHeader := rec.Header().Get("WWW-Authenticate")
+
 	expectedHeader := `Basic realm="restricted", charset="UTF-8"`
 	if authHeader != expectedHeader {
 		t.Errorf("expected WWW-Authenticate header %q, got %q", expectedHeader, authHeader)

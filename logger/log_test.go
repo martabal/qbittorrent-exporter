@@ -58,6 +58,7 @@ func TestLoggingFunctions(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			// Setup a logger that will accept the log level
 			var buf bytes.Buffer
+
 			opts := &slog.HandlerOptions{
 				Level: tt.level,
 			}
@@ -96,6 +97,7 @@ func TestPrettyHandler_Handle(t *testing.T) {
 			handler := NewPrettyHandler(os.Stdout, slog.HandlerOptions{Level: tt.level})
 
 			record := slog.NewRecord(time.Now(), tt.level, tt.message, 0)
+
 			err := handler.Handle(context.Background(), record)
 			if err != nil {
 				t.Fatalf("Handle() error = %v", err)
