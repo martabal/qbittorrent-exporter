@@ -141,9 +141,10 @@ var allStates = [...]string{
 	"stalledUP",
 	"checkingUP",
 	"forcedUP",
-	"allocating",
+	"allocating", // not sure if still used?
 	"downloading",
 	"metaDL",
+	"forcedMetaDL",
 	"queuedDL",
 	"stalledDL",
 	"checkingDL",
