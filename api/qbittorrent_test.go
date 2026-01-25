@@ -341,3 +341,199 @@ func TestConstantValues(t *testing.T) {
 		t.Errorf("ErrorConnect: expected %q, got %q", "Can't connect to qBittorrent", ErrorConnect)
 	}
 }
+
+func TestDeltaInfoUnmarshal(t *testing.T) {
+	t.Parallel()
+
+	// Test partial update - only some fields present
+	jsonData := `{
+		"state": "seeding",
+		"dlspeed": 0,
+		"progress": 1.0
+	}`
+
+	var delta DeltaInfo
+
+	err := json.Unmarshal([]byte(jsonData), &delta)
+	if err != nil {
+		t.Fatalf("Failed to unmarshal DeltaInfo: %v", err)
+	}
+
+	// Present fields should be non-nil with correct values
+	if delta.State == nil || *delta.State != "seeding" {
+		t.Errorf("State: expected %q, got %v", "seeding", delta.State)
+	}
+
+	if delta.Dlspeed == nil || *delta.Dlspeed != 0 {
+		t.Errorf("Dlspeed: expected 0, got %v", delta.Dlspeed)
+	}
+
+	if delta.Progress == nil || *delta.Progress != 1.0 {
+		t.Errorf("Progress: expected 1.0, got %v", delta.Progress)
+	}
+
+	// Absent fields should be nil
+	if delta.Name != nil {
+		t.Errorf("Name: expected nil, got %v", delta.Name)
+	}
+
+	if delta.Size != nil {
+		t.Errorf("Size: expected nil, got %v", delta.Size)
+	}
+
+	if delta.Tracker != nil {
+		t.Errorf("Tracker: expected nil, got %v", delta.Tracker)
+	}
+}
+
+func TestDeltaInfoUnmarshalZeroVsNil(t *testing.T) {
+	t.Parallel()
+
+	// Critical test: distinguish between "field is 0" and "field not present"
+	jsonWithZero := `{"dlspeed": 0}`
+	jsonWithoutField := `{}`
+
+	var deltaWithZero DeltaInfo
+
+	var deltaWithout DeltaInfo
+
+	err := json.Unmarshal([]byte(jsonWithZero), &deltaWithZero)
+	if err != nil {
+		t.Fatalf("Failed to unmarshal: %v", err)
+	}
+
+	err = json.Unmarshal([]byte(jsonWithoutField), &deltaWithout)
+	if err != nil {
+		t.Fatalf("Failed to unmarshal: %v", err)
+	}
+
+	// With zero: pointer is non-nil, value is 0
+	if deltaWithZero.Dlspeed == nil {
+		t.Fatal("Dlspeed with 0 value should be non-nil")
+	}
+
+	if *deltaWithZero.Dlspeed != 0 {
+		t.Errorf("Dlspeed: expected 0, got %d", *deltaWithZero.Dlspeed)
+	}
+
+	// Without field: pointer is nil
+	if deltaWithout.Dlspeed != nil {
+		t.Errorf("Dlspeed without field should be nil, got %d", *deltaWithout.Dlspeed)
+	}
+}
+
+func TestDeltaMainDataUnmarshal(t *testing.T) {
+	t.Parallel()
+
+	jsonData := `{
+		"rid": 12345,
+		"full_update": false,
+		"torrents": {
+			"abc123": {
+				"name": "Test Torrent",
+				"state": "downloading",
+				"progress": 0.5
+			},
+			"def456": {
+				"state": "seeding"
+			}
+		},
+		"torrents_removed": ["old789"],
+		"categories": {
+			"movies": {
+				"name": "movies",
+				"savePath": "/downloads/movies"
+			}
+		},
+		"categories_removed": ["oldcat"],
+		"tags": ["newtag"],
+		"tags_removed": ["oldtag"],
+		"server_state": {
+			"dht_nodes": 500,
+			"dl_info_speed": 1000000
+		}
+	}`
+
+	var delta DeltaMainData
+
+	err := json.Unmarshal([]byte(jsonData), &delta)
+	if err != nil {
+		t.Fatalf("Failed to unmarshal DeltaMainData: %v", err)
+	}
+
+	if delta.Rid != 12345 {
+		t.Errorf("Rid: expected 12345, got %d", delta.Rid)
+	}
+
+	if delta.FullUpdate {
+		t.Error("FullUpdate: expected false, got true")
+	}
+
+	if len(delta.Torrents) != 2 {
+		t.Errorf("Expected 2 torrents, got %d", len(delta.Torrents))
+	}
+
+	torrent1, ok := delta.Torrents["abc123"]
+	if !ok {
+		t.Fatal("Torrent abc123 not found")
+	}
+
+	if torrent1.Name == nil || *torrent1.Name != "Test Torrent" {
+		t.Errorf("Torrent name: expected %q, got %v", "Test Torrent", torrent1.Name)
+	}
+
+	torrent2, ok := delta.Torrents["def456"]
+	if !ok {
+		t.Fatal("Torrent def456 not found")
+	}
+
+	if torrent2.Name != nil {
+		t.Errorf("Torrent2 name should be nil (partial update), got %v", torrent2.Name)
+	}
+
+	if len(delta.TorrentsRemoved) != 1 || delta.TorrentsRemoved[0] != "old789" {
+		t.Errorf("TorrentsRemoved: expected [old789], got %v", delta.TorrentsRemoved)
+	}
+
+	if len(delta.Categories) != 1 {
+		t.Errorf("Expected 1 category, got %d", len(delta.Categories))
+	}
+
+	if len(delta.CategoriesRemoved) != 1 || delta.CategoriesRemoved[0] != "oldcat" {
+		t.Errorf("CategoriesRemoved: expected [oldcat], got %v", delta.CategoriesRemoved)
+	}
+
+	if len(delta.Tags) != 1 || delta.Tags[0] != "newtag" {
+		t.Errorf("Tags: expected [newtag], got %v", delta.Tags)
+	}
+
+	if len(delta.TagsRemoved) != 1 || delta.TagsRemoved[0] != "oldtag" {
+		t.Errorf("TagsRemoved: expected [oldtag], got %v", delta.TagsRemoved)
+	}
+
+	if delta.ServerState.DHTNodes == nil || *delta.ServerState.DHTNodes != 500 {
+		t.Errorf("ServerState.DHTNodes: expected 500, got %v", delta.ServerState.DHTNodes)
+	}
+}
+
+func TestDeltaMainDataFullUpdate(t *testing.T) {
+	t.Parallel()
+
+	jsonData := `{
+		"rid": 1,
+		"full_update": true,
+		"torrents": {},
+		"server_state": {}
+	}`
+
+	var delta DeltaMainData
+
+	err := json.Unmarshal([]byte(jsonData), &delta)
+	if err != nil {
+		t.Fatalf("Failed to unmarshal: %v", err)
+	}
+
+	if !delta.FullUpdate {
+		t.Error("FullUpdate: expected true, got false")
+	}
+}
