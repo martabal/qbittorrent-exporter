@@ -7,15 +7,27 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strconv"
 	"sync"
 
 	API "qbit-exp/api"
 	"qbit-exp/app"
+	"qbit-exp/deltasync"
 	"qbit-exp/logger"
 	prom "qbit-exp/prometheus"
 
 	"github.com/prometheus/client_golang/prometheus"
 )
+
+// syncState holds the persistent state for delta sync.
+// Initialized on first scrape, persists between scrapes.
+var syncState *deltasync.State
+
+// scrapeCount tracks number of scrapes for periodic full refresh.
+var scrapeCount int64
+
+// fullRefreshInterval forces a full sync every N scrapes to prevent state drift.
+const fullRefreshInterval = 100
 
 type QueryParams struct {
 	Key   string
@@ -50,7 +62,9 @@ func newData(url string, handler func(body []byte, r *prometheus.Registry, webUI
 
 var firstAPIRequest = newData("app/webapiVersion", nil)
 
-var otherAPIRequests = [...]Data{
+// staticAPIRequests are requests that don't benefit from delta sync.
+// These are small responses that change rarely.
+var staticAPIRequests = [...]Data{
 	newData("app/version", func(body []byte, r *prometheus.Registry, _ *string) error {
 		prom.Version(&body, r)
 
@@ -63,29 +77,6 @@ var otherAPIRequests = [...]Data{
 			return err
 		}
 		prom.Preference(result, r)
-
-		return nil
-	}),
-	newData("torrents/info", func(body []byte, r *prometheus.Registry, webUIVersion *string) error {
-		result := new(API.SliceInfo)
-		err := json.Unmarshal(body, result)
-		if err != nil {
-			return err
-		}
-		prom.Torrent(result, webUIVersion, r)
-		if app.Exporter.Features.EnableTracker {
-			getTrackers(result, r)
-		}
-
-		return nil
-	}),
-	newData("sync/maindata", func(body []byte, r *prometheus.Registry, _ *string) error {
-		result := new(API.MainData)
-		err := json.Unmarshal(body, result)
-		if err != nil {
-			return err
-		}
-		prom.MainData(result, r)
 
 		return nil
 	}),
@@ -218,7 +209,41 @@ func AllRequests(r *prometheus.Registry) error {
 		return err
 	}
 
-	c := make(chan func() (bool, error), len(otherAPIRequests))
+	// Initialize sync state if needed
+	if syncState == nil {
+		syncState = deltasync.NewState()
+	}
+
+	// Periodic full refresh to prevent state drift
+	scrapeCount++
+	if scrapeCount%fullRefreshInterval == 0 {
+		logger.Debug("Forcing full sync for state drift prevention")
+		syncState.Reset()
+	}
+
+	// Fetch delta maindata (replaces both torrents/info and sync/maindata)
+	deltaErr := fetchDeltaMainData()
+	if deltaErr != nil {
+		return deltaErr
+	}
+
+	// Get data from sync state for prometheus metrics
+	torrents := syncState.GetTorrents()
+	mainData := syncState.GetMainData()
+
+	// Register torrent metrics
+	prom.Torrent(&torrents, &webUIVersion, r)
+
+	// Register maindata metrics (categories, tags, server state)
+	prom.MainData(&mainData, r)
+
+	// Fetch tracker info if enabled
+	if app.Exporter.Features.EnableTracker {
+		getTrackers(&torrents, r)
+	}
+
+	// Fetch static requests in parallel (app/version, app/preferences)
+	c := make(chan func() (bool, error), len(staticAPIRequests))
 	processData := func(data *Data) {
 		defer wg.Done()
 		defer func() {
@@ -230,7 +255,7 @@ func AllRequests(r *prometheus.Registry) error {
 		getData(r, data, &webUIVersion, c)
 	}
 
-	for _, request := range otherAPIRequests {
+	for _, request := range staticAPIRequests {
 		wg.Add(1)
 
 		go processData(&request)
@@ -247,6 +272,50 @@ func AllRequests(r *prometheus.Registry) error {
 			return err
 		}
 	}
+
+	return nil
+}
+
+// fetchDeltaMainData fetches sync/maindata with rid parameter and applies to state.
+func fetchDeltaMainData() error {
+	rid := syncState.GetRID()
+	url := createUrl(baseAPIRUL + "sync/maindata")
+
+	queryParams := &[]QueryParams{
+		{Key: "rid", Value: strconv.FormatInt(rid, 10)},
+	}
+
+	body, retry, err := apiRequest(url, http.MethodGet, queryParams)
+	if retry {
+		logger.Debug("Retrying delta maindata request...")
+
+		body, _, err = apiRequest(url, http.MethodGet, queryParams)
+	}
+
+	if err != nil {
+		return err
+	}
+
+	var delta API.DeltaMainData
+
+	err = json.Unmarshal(body, &delta)
+	if err != nil {
+		errMsg := fmt.Errorf("%s %s: %w", unmarshError, url, err)
+		errorHelper(&body, &errMsg, &url)
+
+		return err
+	}
+
+	// Log sync mode for debugging
+	if delta.FullUpdate || rid == 0 {
+		logger.Debug(fmt.Sprintf("Full sync: %d torrents", len(delta.Torrents)))
+	} else {
+		logger.Trace(fmt.Sprintf("Delta sync: %d torrent updates, %d removed",
+			len(delta.Torrents), len(delta.TorrentsRemoved)))
+	}
+
+	// Apply delta to state
+	syncState.Apply(&delta)
 
 	return nil
 }
