@@ -34,7 +34,7 @@ func Auth() error {
 		req.SetBasicAuth(app.QBittorrent.BasicAuth.Username, app.QBittorrent.BasicAuth.Password)
 	}
 
-	resp, err := app.HttpClient.Do(req)
+	resp, err := app.HttpClient.Do(req) //nolint:gosec
 
 	if errors.Is(ctx.Err(), context.DeadlineExceeded) {
 		logger.Error(API.QbittorrentTimeOut)

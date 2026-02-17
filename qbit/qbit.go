@@ -58,21 +58,26 @@ var otherAPIRequests = [...]Data{
 	}),
 	newData("app/preferences", func(body []byte, r *prometheus.Registry, _ *string) error {
 		result := new(API.Preferences)
+
 		err := json.Unmarshal(body, result)
 		if err != nil {
 			return err
 		}
+
 		prom.Preference(result, r)
 
 		return nil
 	}),
 	newData("torrents/info", func(body []byte, r *prometheus.Registry, webUIVersion *string) error {
 		result := new(API.SliceInfo)
+
 		err := json.Unmarshal(body, result)
 		if err != nil {
 			return err
 		}
+
 		prom.Torrent(result, webUIVersion, r)
+
 		if app.Exporter.Features.EnableTracker {
 			getTrackers(result, r)
 		}
@@ -81,10 +86,12 @@ var otherAPIRequests = [...]Data{
 	}),
 	newData("sync/maindata", func(body []byte, r *prometheus.Registry, _ *string) error {
 		result := new(API.MainData)
+
 		err := json.Unmarshal(body, result)
 		if err != nil {
 			return err
 		}
+
 		prom.MainData(result, r)
 
 		return nil
@@ -293,7 +300,7 @@ func apiRequest(url string, method string, queryParams *[]QueryParams) ([]byte, 
 
 	req.AddCookie(&http.Cookie{Name: "SID", Value: *app.QBittorrent.Cookie})
 	logger.Trace("New request to " + req.URL.String())
-	resp, err := app.HttpClient.Do(req)
+	resp, err := app.HttpClient.Do(req) //nolint:gosec
 
 	if errors.Is(ctx.Err(), context.DeadlineExceeded) {
 		logger.Error(API.QbittorrentTimeOut)
