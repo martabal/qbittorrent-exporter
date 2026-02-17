@@ -85,17 +85,17 @@ func TestEnsureLeadingSlash(t *testing.T) {
 	}{
 		{
 			name:           "already has leading slash",
-			input:          strPtr("/example"),
+			input:          new("/example"),
 			expectedOutput: "/example",
 		},
 		{
 			name:           "missing leading slash",
-			input:          strPtr("example"),
+			input:          new("example"),
 			expectedOutput: "/example",
 		},
 		{
 			name:           "empty string",
-			input:          strPtr(""),
+			input:          new(""),
 			expectedOutput: "/",
 		},
 		{
@@ -126,10 +126,6 @@ func TestEnsureLeadingSlash(t *testing.T) {
 			}
 		})
 	}
-}
-
-func strPtr(s string) *string {
-	return &s
 }
 
 func TestCompareSemVer(t *testing.T) {

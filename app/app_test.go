@@ -191,15 +191,15 @@ func TestGetBasicAuth(t *testing.T) {
 		},
 		{
 			name:         "Both set returns BasicAuth",
-			username:     strPtr("user"),
-			password:     strPtr("pass"),
+			username:     new("user"),
+			password:     new("pass"),
 			wantNil:      false,
 			wantUsername: "user",
 			wantPassword: "pass",
 		},
 		{
 			name:         "Only username set",
-			username:     strPtr("user"),
+			username:     new("user"),
 			password:     nil,
 			wantNil:      false,
 			wantUsername: "user",
@@ -208,7 +208,7 @@ func TestGetBasicAuth(t *testing.T) {
 		{
 			name:         "Only password set",
 			username:     nil,
-			password:     strPtr("pass"),
+			password:     new("pass"),
 			wantNil:      false,
 			wantUsername: "",
 			wantPassword: "pass",
@@ -272,8 +272,4 @@ func TestGetPasswordMasked(t *testing.T) {
 			}
 		})
 	}
-}
-
-func strPtr(s string) *string {
-	return &s
 }
