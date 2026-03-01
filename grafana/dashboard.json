@@ -585,7 +585,7 @@
           "exemplar": true,
           "expr": "qbittorrent_global_alltime_uploaded_bytes",
           "interval": "",
-          "legendFormat": "Download",
+          "legendFormat": "Upload",
           "refId": "A"
         }
       ],
