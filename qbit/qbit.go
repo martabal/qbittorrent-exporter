@@ -26,9 +26,6 @@ var syncState *deltasync.State
 // scrapeCount tracks number of scrapes for periodic full refresh.
 var scrapeCount int64
 
-// fullRefreshInterval forces a full sync every N scrapes to prevent state drift.
-const fullRefreshInterval = 100
-
 type QueryParams struct {
 	Key   string
 	Value string
@@ -218,7 +215,7 @@ func AllRequests(r *prometheus.Registry) error {
 
 	// Periodic full refresh to prevent state drift
 	scrapeCount++
-	if scrapeCount%fullRefreshInterval == 0 {
+	if scrapeCount%int64(app.QBittorrent.FullRefreshInterval) == 0 {
 		logger.Debug("Forcing full sync for state drift prevention")
 		syncState.Reset()
 	}

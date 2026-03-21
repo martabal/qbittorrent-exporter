@@ -44,11 +44,12 @@ type BasicAuth struct {
 }
 
 type QBittorrentSettings struct {
-	Timeout  time.Duration
-	BaseUrl  string
-	Cookie   *string
-	Username string
-	Password string //nolint:gosec
+	Timeout              time.Duration
+	BaseUrl              string
+	Cookie               *string
+	Username             string
+	Password             string //nolint:gosec
+	FullRefreshInterval  int
 
 	// BasicAuth sets the Authorization header for requests to BaseUrl.
 	BasicAuth *BasicAuth
@@ -123,6 +124,7 @@ func LoadEnv() {
 	qbitBasicAuthPassword := getOptionalEnv(defaultQbitBasicAuthPassword)
 	exporterPortEnv, _ := getEnv(defaultPort)
 	timeoutDurationEnv, _ := getEnv(defaultTimeout)
+	fullRefreshIntervalEnv, _ := getEnv(defaultFullRefreshInterval)
 	enableTracker, _ := getEnv(defaultEnableTracker)
 	labelWithTracker, _ := getEnv(defaultLabelWithTracker)
 	labelWithTag, _ := getEnv(defaultLabelWithTag)
@@ -160,6 +162,15 @@ func LoadEnv() {
 
 	if timeoutDuration < 0 {
 		panic(fmt.Sprintf("%d must be > 0 (check %s)", timeoutDuration, defaultTimeout.Key))
+	}
+
+	fullRefreshInterval, errFullRefreshInterval := strconv.Atoi(fullRefreshIntervalEnv)
+	if errFullRefreshInterval != nil {
+		panic(fmt.Sprintf("%s must be an integer (check %s)", fullRefreshIntervalEnv, defaultFullRefreshInterval.Key))
+	}
+
+	if fullRefreshInterval < 1 {
+		panic(fmt.Sprintf("%d must be >= 1 (check %s)", fullRefreshInterval, defaultFullRefreshInterval.Key))
 	}
 
 	exporterUrl := ""
@@ -250,12 +261,13 @@ func LoadEnv() {
 	internal.EnsureLeadingSlash(&exporterPath)
 
 	QBittorrent = QBittorrentSettings{
-		BaseUrl:   baseUrl,
-		Username:  qbitUsername,
-		Password:  qbitPassword,
-		Timeout:   time.Duration(timeoutDuration) * time.Second,
-		Cookie:    nil,
-		BasicAuth: qbittorrentBasicAuth,
+		BaseUrl:             baseUrl,
+		Username:            qbitUsername,
+		Password:            qbitPassword,
+		Timeout:             time.Duration(timeoutDuration) * time.Second,
+		Cookie:              nil,
+		FullRefreshInterval: fullRefreshInterval,
+		BasicAuth:           qbittorrentBasicAuth,
 	}
 
 	Exporter = ExporterSettings{
