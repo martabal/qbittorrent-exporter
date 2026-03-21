@@ -53,10 +53,16 @@ func (s *State) GetMainData() API.MainData {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
+	categories := make(map[string]API.Category, len(s.categories))
+	maps.Copy(categories, s.categories)
+
+	tags := make([]string, len(s.tags))
+	copy(tags, s.tags)
+
 	return API.MainData{
-		CategoryMap: s.categories,
+		CategoryMap: categories,
 		ServerState: s.serverState,
-		Tags:        s.tags,
+		Tags:        tags,
 	}
 }
 
