@@ -1,6 +1,7 @@
 package deltasync
 
 import (
+	"encoding/json"
 	"maps"
 	"sync"
 
@@ -107,8 +108,14 @@ func (s *State) Reset() {
 func (s *State) applyFullUpdate(delta *API.DeltaMainData) {
 	// Clear and rebuild torrents
 	s.torrents = make(map[string]API.Info, len(delta.Torrents))
-	for hash, deltaInfo := range delta.Torrents {
-		s.torrents[hash] = deltaInfoToInfo(hash, deltaInfo)
+	for hash, raw := range delta.Torrents {
+		var info API.Info
+		if err := json.Unmarshal(raw, &info); err != nil {
+			continue
+		}
+
+		info.Hash = hash
+		s.torrents[hash] = info
 	}
 
 	// Clear and rebuild categories
@@ -120,22 +127,26 @@ func (s *State) applyFullUpdate(delta *API.DeltaMainData) {
 	copy(s.tags, delta.Tags)
 
 	// Replace server state (full update includes all fields)
-	s.serverState = MergeServerState(API.ServerState{}, delta.ServerState)
+	s.serverState = API.ServerState{}
+	if len(delta.ServerState) > 0 {
+		_ = json.Unmarshal(delta.ServerState, &s.serverState)
+	}
 
 	// Update rid
 	s.rid = delta.Rid
 }
 
 func (s *State) applyDeltaUpdate(delta *API.DeltaMainData) {
-	// Apply torrent updates
-	for hash, deltaInfo := range delta.Torrents {
-		if existing, exists := s.torrents[hash]; exists {
-			// Merge delta into existing torrent
-			s.torrents[hash] = MergeInfo(existing, deltaInfo)
-		} else {
-			// New torrent - create from delta
-			s.torrents[hash] = deltaInfoToInfo(hash, deltaInfo)
+	// Apply torrent updates — json.Unmarshal into an existing struct
+	// only overwrites fields present in the JSON, providing merge semantics.
+	for hash, raw := range delta.Torrents {
+		existing := s.torrents[hash] // zero value if new torrent
+		if err := json.Unmarshal(raw, &existing); err != nil {
+			continue
 		}
+
+		existing.Hash = hash
+		s.torrents[hash] = existing
 	}
 
 	// Remove deleted torrents
@@ -186,13 +197,10 @@ func (s *State) applyDeltaUpdate(delta *API.DeltaMainData) {
 	}
 
 	// Merge server state (only update fields present in delta)
-	s.serverState = MergeServerState(s.serverState, delta.ServerState)
+	if len(delta.ServerState) > 0 {
+		_ = json.Unmarshal(delta.ServerState, &s.serverState)
+	}
 
 	// Update rid
 	s.rid = delta.Rid
-}
-
-// deltaInfoToInfo converts a DeltaInfo to Info, using zero values for nil fields.
-func deltaInfoToInfo(hash string, d API.DeltaInfo) API.Info {
-	return MergeInfo(API.Info{Hash: hash}, d)
 }

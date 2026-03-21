@@ -342,86 +342,6 @@ func TestConstantValues(t *testing.T) {
 	}
 }
 
-func TestDeltaInfoUnmarshal(t *testing.T) {
-	t.Parallel()
-
-	// Test partial update - only some fields present
-	jsonData := `{
-		"state": "seeding",
-		"dlspeed": 0,
-		"progress": 1.0
-	}`
-
-	var delta DeltaInfo
-
-	err := json.Unmarshal([]byte(jsonData), &delta)
-	if err != nil {
-		t.Fatalf("Failed to unmarshal DeltaInfo: %v", err)
-	}
-
-	// Present fields should be non-nil with correct values
-	if delta.State == nil || *delta.State != "seeding" {
-		t.Errorf("State: expected %q, got %v", "seeding", delta.State)
-	}
-
-	if delta.Dlspeed == nil || *delta.Dlspeed != 0 {
-		t.Errorf("Dlspeed: expected 0, got %v", delta.Dlspeed)
-	}
-
-	if delta.Progress == nil || *delta.Progress != 1.0 {
-		t.Errorf("Progress: expected 1.0, got %v", delta.Progress)
-	}
-
-	// Absent fields should be nil
-	if delta.Name != nil {
-		t.Errorf("Name: expected nil, got %v", delta.Name)
-	}
-
-	if delta.Size != nil {
-		t.Errorf("Size: expected nil, got %v", delta.Size)
-	}
-
-	if delta.Tracker != nil {
-		t.Errorf("Tracker: expected nil, got %v", delta.Tracker)
-	}
-}
-
-func TestDeltaInfoUnmarshalZeroVsNil(t *testing.T) {
-	t.Parallel()
-
-	// Critical test: distinguish between "field is 0" and "field not present"
-	jsonWithZero := `{"dlspeed": 0}`
-	jsonWithoutField := `{}`
-
-	var deltaWithZero DeltaInfo
-
-	var deltaWithout DeltaInfo
-
-	err := json.Unmarshal([]byte(jsonWithZero), &deltaWithZero)
-	if err != nil {
-		t.Fatalf("Failed to unmarshal: %v", err)
-	}
-
-	err = json.Unmarshal([]byte(jsonWithoutField), &deltaWithout)
-	if err != nil {
-		t.Fatalf("Failed to unmarshal: %v", err)
-	}
-
-	// With zero: pointer is non-nil, value is 0
-	if deltaWithZero.Dlspeed == nil {
-		t.Fatal("Dlspeed with 0 value should be non-nil")
-	}
-
-	if *deltaWithZero.Dlspeed != 0 {
-		t.Errorf("Dlspeed: expected 0, got %d", *deltaWithZero.Dlspeed)
-	}
-
-	// Without field: pointer is nil
-	if deltaWithout.Dlspeed != nil {
-		t.Errorf("Dlspeed without field should be nil, got %d", *deltaWithout.Dlspeed)
-	}
-}
-
 func TestDeltaMainDataUnmarshal(t *testing.T) {
 	t.Parallel()
 
@@ -473,22 +393,25 @@ func TestDeltaMainDataUnmarshal(t *testing.T) {
 		t.Errorf("Expected 2 torrents, got %d", len(delta.Torrents))
 	}
 
-	torrent1, ok := delta.Torrents["abc123"]
+	// Verify torrent raw JSON can be unmarshalled into Info
+	torrent1Raw, ok := delta.Torrents["abc123"]
 	if !ok {
 		t.Fatal("Torrent abc123 not found")
 	}
 
-	if torrent1.Name == nil || *torrent1.Name != "Test Torrent" {
-		t.Errorf("Torrent name: expected %q, got %v", "Test Torrent", torrent1.Name)
+	var torrent1 Info
+
+	err = json.Unmarshal(torrent1Raw, &torrent1)
+	if err != nil {
+		t.Fatalf("Failed to unmarshal torrent1: %v", err)
 	}
 
-	torrent2, ok := delta.Torrents["def456"]
-	if !ok {
+	if torrent1.Name != "Test Torrent" {
+		t.Errorf("Torrent name: expected %q, got %q", "Test Torrent", torrent1.Name)
+	}
+
+	if _, ok := delta.Torrents["def456"]; !ok {
 		t.Fatal("Torrent def456 not found")
-	}
-
-	if torrent2.Name != nil {
-		t.Errorf("Torrent2 name should be nil (partial update), got %v", torrent2.Name)
 	}
 
 	if len(delta.TorrentsRemoved) != 1 || delta.TorrentsRemoved[0] != "old789" {
@@ -511,8 +434,16 @@ func TestDeltaMainDataUnmarshal(t *testing.T) {
 		t.Errorf("TagsRemoved: expected [oldtag], got %v", delta.TagsRemoved)
 	}
 
-	if delta.ServerState.DHTNodes == nil || *delta.ServerState.DHTNodes != 500 {
-		t.Errorf("ServerState.DHTNodes: expected 500, got %v", delta.ServerState.DHTNodes)
+	// Verify server state raw JSON can be unmarshalled into ServerState
+	var serverState ServerState
+
+	err = json.Unmarshal(delta.ServerState, &serverState)
+	if err != nil {
+		t.Fatalf("Failed to unmarshal server state: %v", err)
+	}
+
+	if serverState.DHTNodes != 500 {
+		t.Errorf("ServerState.DHTNodes: expected 500, got %d", serverState.DHTNodes)
 	}
 }
 
