@@ -52,14 +52,21 @@ func buildFullDelta(count int) *API.DeltaMainData {
 			"upspeed":  500000,
 			"size":     50000000,
 		}
-		raw, _ := json.Marshal(data)
+		raw, err := json.Marshal(data)
+		if err != nil {
+			panic(err)
+		}
+
 		torrents[hash] = raw
 	}
 
-	serverState, _ := json.Marshal(map[string]any{
+	serverState, err := json.Marshal(map[string]any{
 		"dht_nodes": 500, "dl_info_speed": 1000000,
 		"global_ratio": "1.5", "connection_status": "connected",
 	})
+	if err != nil {
+		panic(err)
+	}
 
 	return &API.DeltaMainData{
 		Rid:         1,
@@ -74,7 +81,12 @@ func buildPartialDelta(changed, ridOffset int) *API.DeltaMainData {
 	for i := range changed {
 		hash := fmt.Sprintf("hash_%d", i)
 		data := map[string]any{"dlspeed": 999, "state": "seeding"}
-		raw, _ := json.Marshal(data)
+
+		raw, err := json.Marshal(data)
+		if err != nil {
+			panic(err)
+		}
+
 		torrents[hash] = raw
 	}
 

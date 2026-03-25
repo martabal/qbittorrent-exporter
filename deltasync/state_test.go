@@ -220,7 +220,7 @@ func TestState_DeltaPreservesUnchangedFields(t *testing.T) {
 
 	// Delta only updates dlspeed — everything else must be preserved
 	state.Apply(&API.DeltaMainData{
-		Rid:        2,
+		Rid: 2,
 		Torrents: map[string]json.RawMessage{
 			"hash1": raw(map[string]any{"dlspeed": 0}),
 		},

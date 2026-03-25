@@ -44,12 +44,12 @@ type BasicAuth struct {
 }
 
 type QBittorrentSettings struct {
-	Timeout              time.Duration
-	BaseUrl              string
-	Cookie               *string
-	Username             string
-	Password             string //nolint:gosec
-	FullRefreshInterval  int
+	Timeout             time.Duration
+	BaseUrl             string
+	Cookie              *string
+	Username            string
+	Password            string //nolint:gosec
+	FullRefreshInterval int
 
 	// BasicAuth sets the Authorization header for requests to BaseUrl.
 	BasicAuth *BasicAuth

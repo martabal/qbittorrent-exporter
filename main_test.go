@@ -23,7 +23,6 @@ func init() {
 }
 
 func TestMetricsFailureResponse(t *testing.T) {
-	t.Parallel()
 
 	retryCtx, cancel := context.WithCancel(context.WithoutCancel(t.Context()))
 	defer cancel()
@@ -45,7 +44,6 @@ func TestMetricsFailureResponse(t *testing.T) {
 }
 
 func TestMetricsReturnMetric(t *testing.T) {
-	t.Parallel()
 
 	buff.Reset()
 
@@ -98,7 +96,6 @@ func TestMetricsReturnMetric(t *testing.T) {
 }
 
 func TestBasicAuth_Success(t *testing.T) {
-	t.Parallel()
 
 	buff.Reset()
 
@@ -138,7 +135,6 @@ func TestBasicAuth_Success(t *testing.T) {
 }
 
 func TestBasicAuth_InvalidCredentials(t *testing.T) {
-	t.Parallel()
 
 	buff.Reset()
 
@@ -183,7 +179,6 @@ func TestBasicAuth_InvalidCredentials(t *testing.T) {
 }
 
 func TestBasicAuth_NoCredentials(t *testing.T) {
-	t.Parallel()
 
 	app.Exporter.BasicAuth = &app.BasicAuth{
 		Username: "testuser",

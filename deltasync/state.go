@@ -110,7 +110,8 @@ func (s *State) applyFullUpdate(delta *API.DeltaMainData) {
 	s.torrents = make(map[string]API.Info, len(delta.Torrents))
 	for hash, raw := range delta.Torrents {
 		var info API.Info
-		if err := json.Unmarshal(raw, &info); err != nil {
+		err := json.Unmarshal(raw, &info)
+		if err != nil {
 			continue
 		}
 
@@ -141,7 +142,9 @@ func (s *State) applyDeltaUpdate(delta *API.DeltaMainData) {
 	// only overwrites fields present in the JSON, providing merge semantics.
 	for hash, raw := range delta.Torrents {
 		existing := s.torrents[hash] // zero value if new torrent
-		if err := json.Unmarshal(raw, &existing); err != nil {
+
+		err := json.Unmarshal(raw, &existing)
+		if err != nil {
 			continue
 		}
 
