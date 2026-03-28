@@ -16,6 +16,7 @@ type Env struct {
 
 const defaultExporterPort int = 8090
 const DefaultTimeout int = 30
+const DefaultFullRefreshInterval int = 100
 const defaultExporterPath string = "/metrics"
 
 const TLS12 string = "TLS_1_2"
@@ -131,6 +132,12 @@ var defaultUsername = Env{
 var defaultTimeout = Env{
 	Key:          "QBITTORRENT_TIMEOUT",
 	DefaultValue: strconv.Itoa(DefaultTimeout),
+	Help:         "",
+}
+
+var defaultFullRefreshInterval = Env{
+	Key:          "QBITTORRENT_FULL_REFRESH_INTERVAL",
+	DefaultValue: strconv.Itoa(DefaultFullRefreshInterval),
 	Help:         "",
 }
 

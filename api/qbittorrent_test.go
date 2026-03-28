@@ -341,3 +341,130 @@ func TestConstantValues(t *testing.T) {
 		t.Errorf("ErrorConnect: expected %q, got %q", "Can't connect to qBittorrent", ErrorConnect)
 	}
 }
+
+func TestDeltaMainDataUnmarshal(t *testing.T) {
+	t.Parallel()
+
+	jsonData := `{
+		"rid": 12345,
+		"full_update": false,
+		"torrents": {
+			"abc123": {
+				"name": "Test Torrent",
+				"state": "downloading",
+				"progress": 0.5
+			},
+			"def456": {
+				"state": "seeding"
+			}
+		},
+		"torrents_removed": ["old789"],
+		"categories": {
+			"movies": {
+				"name": "movies",
+				"savePath": "/downloads/movies"
+			}
+		},
+		"categories_removed": ["oldcat"],
+		"tags": ["newtag"],
+		"tags_removed": ["oldtag"],
+		"server_state": {
+			"dht_nodes": 500,
+			"dl_info_speed": 1000000
+		}
+	}`
+
+	var delta DeltaMainData
+
+	err := json.Unmarshal([]byte(jsonData), &delta)
+	if err != nil {
+		t.Fatalf("Failed to unmarshal DeltaMainData: %v", err)
+	}
+
+	if delta.Rid != 12345 {
+		t.Errorf("Rid: expected 12345, got %d", delta.Rid)
+	}
+
+	if delta.FullUpdate {
+		t.Error("FullUpdate: expected false, got true")
+	}
+
+	if len(delta.Torrents) != 2 {
+		t.Errorf("Expected 2 torrents, got %d", len(delta.Torrents))
+	}
+
+	// Verify torrent raw JSON can be unmarshalled into Info
+	torrent1Raw, ok := delta.Torrents["abc123"]
+	if !ok {
+		t.Fatal("Torrent abc123 not found")
+	}
+
+	var torrent1 Info
+
+	err = json.Unmarshal(torrent1Raw, &torrent1)
+	if err != nil {
+		t.Fatalf("Failed to unmarshal torrent1: %v", err)
+	}
+
+	if torrent1.Name != "Test Torrent" {
+		t.Errorf("Torrent name: expected %q, got %q", "Test Torrent", torrent1.Name)
+	}
+
+	if _, ok := delta.Torrents["def456"]; !ok {
+		t.Fatal("Torrent def456 not found")
+	}
+
+	if len(delta.TorrentsRemoved) != 1 || delta.TorrentsRemoved[0] != "old789" {
+		t.Errorf("TorrentsRemoved: expected [old789], got %v", delta.TorrentsRemoved)
+	}
+
+	if len(delta.Categories) != 1 {
+		t.Errorf("Expected 1 category, got %d", len(delta.Categories))
+	}
+
+	if len(delta.CategoriesRemoved) != 1 || delta.CategoriesRemoved[0] != "oldcat" {
+		t.Errorf("CategoriesRemoved: expected [oldcat], got %v", delta.CategoriesRemoved)
+	}
+
+	if len(delta.Tags) != 1 || delta.Tags[0] != "newtag" {
+		t.Errorf("Tags: expected [newtag], got %v", delta.Tags)
+	}
+
+	if len(delta.TagsRemoved) != 1 || delta.TagsRemoved[0] != "oldtag" {
+		t.Errorf("TagsRemoved: expected [oldtag], got %v", delta.TagsRemoved)
+	}
+
+	// Verify server state raw JSON can be unmarshalled into ServerState
+	var serverState ServerState
+
+	err = json.Unmarshal(delta.ServerState, &serverState)
+	if err != nil {
+		t.Fatalf("Failed to unmarshal server state: %v", err)
+	}
+
+	if serverState.DHTNodes != 500 {
+		t.Errorf("ServerState.DHTNodes: expected 500, got %d", serverState.DHTNodes)
+	}
+}
+
+func TestDeltaMainDataFullUpdate(t *testing.T) {
+	t.Parallel()
+
+	jsonData := `{
+		"rid": 1,
+		"full_update": true,
+		"torrents": {},
+		"server_state": {}
+	}`
+
+	var delta DeltaMainData
+
+	err := json.Unmarshal([]byte(jsonData), &delta)
+	if err != nil {
+		t.Fatalf("Failed to unmarshal: %v", err)
+	}
+
+	if !delta.FullUpdate {
+		t.Error("FullUpdate: expected true, got false")
+	}
+}

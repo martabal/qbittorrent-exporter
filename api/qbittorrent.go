@@ -87,3 +87,20 @@ type Trackers []struct {
 	Tier          json.RawMessage `json:"tier"`
 	URL           string          `json:"url"`
 }
+
+// DeltaMainData represents the response from sync/maindata with rid parameter.
+// Unlike MainData, this includes torrent data and supports incremental updates.
+// Torrents and ServerState use json.RawMessage so that partial JSON can be
+// unmarshalled directly into existing Info/ServerState structs (json.Unmarshal
+// only overwrites fields present in the JSON, naturally providing merge semantics).
+type DeltaMainData struct {
+	Rid               int64                      `json:"rid"`
+	FullUpdate        bool                       `json:"full_update"`
+	Torrents          map[string]json.RawMessage `json:"torrents"`
+	TorrentsRemoved   []string                   `json:"torrents_removed"`
+	Categories        map[string]Category        `json:"categories"`
+	CategoriesRemoved []string                   `json:"categories_removed"`
+	Tags              []string                   `json:"tags"`
+	TagsRemoved       []string                   `json:"tags_removed"`
+	ServerState       json.RawMessage            `json:"server_state"`
+}
