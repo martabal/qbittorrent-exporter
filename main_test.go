@@ -9,6 +9,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
 	"qbit-exp/app"
 	"qbit-exp/logger"
@@ -23,7 +24,6 @@ func init() {
 }
 
 func TestMetricsFailureResponse(t *testing.T) {
-
 	retryCtx, cancel := context.WithCancel(context.WithoutCancel(t.Context()))
 	defer cancel()
 
@@ -44,7 +44,6 @@ func TestMetricsFailureResponse(t *testing.T) {
 }
 
 func TestMetricsReturnMetric(t *testing.T) {
-
 	buff.Reset()
 
 	opts := &slog.HandlerOptions{
@@ -96,7 +95,6 @@ func TestMetricsReturnMetric(t *testing.T) {
 }
 
 func TestBasicAuth_Success(t *testing.T) {
-
 	buff.Reset()
 
 	app.Exporter.BasicAuth = &app.BasicAuth{
@@ -114,7 +112,10 @@ func TestBasicAuth_Success(t *testing.T) {
 
 	wrappedHandler := basicAuth(testHandler)
 
-	req := httptest.NewRequest(http.MethodGet, "/metrics", nil)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
+	req := httptest.NewRequestWithContext(ctx, http.MethodGet, "/metrics", nil)
 	req.SetBasicAuth("testuser", "testpass")
 
 	rec := httptest.NewRecorder()
@@ -135,7 +136,6 @@ func TestBasicAuth_Success(t *testing.T) {
 }
 
 func TestBasicAuth_InvalidCredentials(t *testing.T) {
-
 	buff.Reset()
 
 	opts := &slog.HandlerOptions{
@@ -158,7 +158,10 @@ func TestBasicAuth_InvalidCredentials(t *testing.T) {
 
 	wrappedHandler := basicAuth(testHandler)
 
-	req := httptest.NewRequest(http.MethodGet, "/metrics", nil)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
+	req := httptest.NewRequestWithContext(ctx, http.MethodGet, "/metrics", nil)
 	req.SetBasicAuth("wronguser", "wrongpass")
 	req.RemoteAddr = "127.0.0.1:12345"
 	rec := httptest.NewRecorder()
@@ -179,7 +182,6 @@ func TestBasicAuth_InvalidCredentials(t *testing.T) {
 }
 
 func TestBasicAuth_NoCredentials(t *testing.T) {
-
 	app.Exporter.BasicAuth = &app.BasicAuth{
 		Username: "testuser",
 		Password: "testpass",
@@ -194,7 +196,10 @@ func TestBasicAuth_NoCredentials(t *testing.T) {
 
 	wrappedHandler := basicAuth(testHandler)
 
-	req := httptest.NewRequest(http.MethodGet, "/metrics", nil)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
+	req := httptest.NewRequestWithContext(ctx, http.MethodGet, "/metrics", nil)
 	rec := httptest.NewRecorder()
 
 	wrappedHandler.ServeHTTP(rec, req)

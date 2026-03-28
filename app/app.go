@@ -40,7 +40,7 @@ type ExporterSettings struct {
 
 type BasicAuth struct {
 	Username string
-	Password string //nolint:gosec
+	Password string
 }
 
 type QBittorrentSettings struct {
@@ -48,7 +48,7 @@ type QBittorrentSettings struct {
 	BaseUrl             string
 	Cookie              *string
 	Username            string
-	Password            string //nolint:gosec
+	Password            string
 	FullRefreshInterval int
 
 	// BasicAuth sets the Authorization header for requests to BaseUrl.

@@ -52,6 +52,7 @@ func buildFullDelta(count int) *API.DeltaMainData {
 			"upspeed":  500000,
 			"size":     50000000,
 		}
+
 		raw, err := json.Marshal(data)
 		if err != nil {
 			panic(err)

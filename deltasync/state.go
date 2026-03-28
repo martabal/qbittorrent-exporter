@@ -110,6 +110,7 @@ func (s *State) applyFullUpdate(delta *API.DeltaMainData) {
 	s.torrents = make(map[string]API.Info, len(delta.Torrents))
 	for hash, raw := range delta.Torrents {
 		var info API.Info
+
 		err := json.Unmarshal(raw, &info)
 		if err != nil {
 			continue
