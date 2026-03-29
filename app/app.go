@@ -5,6 +5,7 @@ import (
 	"crypto/x509"
 	"flag"
 	"fmt"
+	"net"
 	"net/http"
 	"os"
 	"strconv"
@@ -158,7 +159,7 @@ func LoadEnv() {
 	}
 
 	if exporterHostEnv != "" {
-		logger.Info(fmt.Sprintf("Binding to host %s", exporterHostEnv))
+		logger.Info("Binding to host " + exporterHostEnv)
 	}
 
 	timeoutDuration, errTimeoutDuration := strconv.Atoi(timeoutDurationEnv)
@@ -180,13 +181,15 @@ func LoadEnv() {
 	}
 
 	exporterUrl := ""
+
 	if version == devVersion {
 		hostForUrl := exporterHostEnv
 		if hostForUrl == "" {
 			hostForUrl = "localhost"
 		}
 
-		exporterUrl = fmt.Sprintf("http://%s:%d%s", formatHostForURL(hostForUrl), exporterPort, exporterPath)
+		addr := net.JoinHostPort(hostForUrl, strconv.Itoa(exporterPort))
+		exporterUrl = "http://" + addr + exporterPath
 	}
 
 	if exporterUrlEnv != nil {
@@ -331,14 +334,6 @@ func getBasicAuth(basicAuthUsername *string, basicAuthPassword *string, defaultB
 
 func envSetToTrue(env string) bool {
 	return strings.ToLower(env) == "true"
-}
-
-func formatHostForURL(host string) string {
-	if strings.Contains(host, ":") && !(strings.HasPrefix(host, "[") && strings.HasSuffix(host, "]")) {
-		return "[" + host + "]"
-	}
-
-	return host
 }
 
 func GetPasswordMasked(password string) string {
