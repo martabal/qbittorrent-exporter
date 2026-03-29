@@ -31,6 +31,7 @@ var (
 
 type ExporterSettings struct {
 	Port                 int
+	Host                 string
 	LogLevel             string
 	ExperimentalFeatures ExperimentalFeatures
 	Features             Features
@@ -123,6 +124,7 @@ func LoadEnv() {
 	qbitBasicAuthUsername := getOptionalEnv(defaultQbitBasicAuthUsername)
 	qbitBasicAuthPassword := getOptionalEnv(defaultQbitBasicAuthPassword)
 	exporterPortEnv, _ := getEnv(defaultPort)
+	exporterHostEnv, _ := getEnv(defaultHost)
 	timeoutDurationEnv, _ := getEnv(defaultTimeout)
 	fullRefreshIntervalEnv, _ := getEnv(defaultFullRefreshInterval)
 	enableTracker, _ := getEnv(defaultEnableTracker)
@@ -155,6 +157,10 @@ func LoadEnv() {
 		logger.Info(fmt.Sprintf("Listening on port %d", exporterPort))
 	}
 
+	if exporterHostEnv != "" {
+		logger.Info(fmt.Sprintf("Binding to host %s", exporterHostEnv))
+	}
+
 	timeoutDuration, errTimeoutDuration := strconv.Atoi(timeoutDurationEnv)
 	if errTimeoutDuration != nil {
 		panic(fmt.Sprintf("%s must be an integer (check %s)", timeoutDurationEnv, defaultTimeout.Key))
@@ -175,7 +181,12 @@ func LoadEnv() {
 
 	exporterUrl := ""
 	if version == devVersion {
-		exporterUrl = fmt.Sprintf("http://localhost:%d%s", exporterPort, exporterPath)
+		hostForUrl := exporterHostEnv
+		if hostForUrl == "" {
+			hostForUrl = "localhost"
+		}
+
+		exporterUrl = fmt.Sprintf("http://%s:%d%s", formatHostForURL(hostForUrl), exporterPort, exporterPath)
 	}
 
 	if exporterUrlEnv != nil {
@@ -284,6 +295,7 @@ func LoadEnv() {
 		},
 		LogLevel:  loglevel,
 		Port:      exporterPort,
+		Host:      exporterHostEnv,
 		Path:      exporterPath,
 		BasicAuth: exporterBasicAuth,
 	}
@@ -319,6 +331,14 @@ func getBasicAuth(basicAuthUsername *string, basicAuthPassword *string, defaultB
 
 func envSetToTrue(env string) bool {
 	return strings.ToLower(env) == "true"
+}
+
+func formatHostForURL(host string) string {
+	if strings.Contains(host, ":") && !(strings.HasPrefix(host, "[") && strings.HasSuffix(host, "]")) {
+		return "[" + host + "]"
+	}
+
+	return host
 }
 
 func GetPasswordMasked(password string) string {

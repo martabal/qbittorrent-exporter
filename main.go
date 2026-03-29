@@ -32,7 +32,7 @@ func main() {
 		http.Redirect(w, req, app.Exporter.Path, http.StatusFound)
 	})
 
-	addr := fmt.Sprintf(":%d", app.Exporter.Port)
+	addr := fmt.Sprintf("%s:%d", app.Exporter.Host, app.Exporter.Port)
 
 	logger.Info("Starting the exporter")
 
