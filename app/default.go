@@ -85,6 +85,12 @@ var defaultPort = Env{
 	Help:         "",
 }
 
+var defaultHost = Env{
+	Key:          "EXPORTER_HOST",
+	DefaultValue: "",
+	Help:         "",
+}
+
 // QBittorrent
 
 var defaultBaseUrl = Env{

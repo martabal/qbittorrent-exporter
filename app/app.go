@@ -5,6 +5,7 @@ import (
 	"crypto/x509"
 	"flag"
 	"fmt"
+	"net"
 	"net/http"
 	"os"
 	"strconv"
@@ -31,6 +32,7 @@ var (
 
 type ExporterSettings struct {
 	Port                 int
+	Host                 string
 	LogLevel             string
 	ExperimentalFeatures ExperimentalFeatures
 	Features             Features
@@ -123,6 +125,7 @@ func LoadEnv() {
 	qbitBasicAuthUsername := getOptionalEnv(defaultQbitBasicAuthUsername)
 	qbitBasicAuthPassword := getOptionalEnv(defaultQbitBasicAuthPassword)
 	exporterPortEnv, _ := getEnv(defaultPort)
+	exporterHostEnv, _ := getEnv(defaultHost)
 	timeoutDurationEnv, _ := getEnv(defaultTimeout)
 	fullRefreshIntervalEnv, _ := getEnv(defaultFullRefreshInterval)
 	enableTracker, _ := getEnv(defaultEnableTracker)
@@ -155,6 +158,10 @@ func LoadEnv() {
 		logger.Info(fmt.Sprintf("Listening on port %d", exporterPort))
 	}
 
+	if exporterHostEnv != "" {
+		logger.Info("Binding to host " + exporterHostEnv)
+	}
+
 	timeoutDuration, errTimeoutDuration := strconv.Atoi(timeoutDurationEnv)
 	if errTimeoutDuration != nil {
 		panic(fmt.Sprintf("%s must be an integer (check %s)", timeoutDurationEnv, defaultTimeout.Key))
@@ -174,8 +181,15 @@ func LoadEnv() {
 	}
 
 	exporterUrl := ""
+
 	if version == devVersion {
-		exporterUrl = fmt.Sprintf("http://localhost:%d%s", exporterPort, exporterPath)
+		hostForUrl := exporterHostEnv
+		if hostForUrl == "" {
+			hostForUrl = "localhost"
+		}
+
+		addr := net.JoinHostPort(hostForUrl, strconv.Itoa(exporterPort))
+		exporterUrl = "http://" + addr + exporterPath
 	}
 
 	if exporterUrlEnv != nil {
@@ -284,6 +298,7 @@ func LoadEnv() {
 		},
 		LogLevel:  loglevel,
 		Port:      exporterPort,
+		Host:      exporterHostEnv,
 		Path:      exporterPath,
 		BasicAuth: exporterBasicAuth,
 	}
