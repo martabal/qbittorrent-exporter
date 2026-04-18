@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"log/slog"
 	"slices"
+	"strings"
 	"testing"
 	"time"
 
@@ -345,6 +346,46 @@ func testMetrics(t *testing.T, expectedMetrics map[string]float64, registry *pro
 	}
 }
 
+// getMetricValue returns the gauge value of the first instance of the named
+// metric family, and whether it was found.
+func getMetricValue(t *testing.T, registry *prometheus.Registry, name string) (float64, bool) {
+	t.Helper()
+
+	families, err := registry.Gather()
+	if err != nil {
+		t.Fatalf("Failed to gather metrics: %v", err)
+	}
+
+	for _, mf := range families {
+		if mf.GetName() == name && len(mf.GetMetric()) > 0 {
+			if g := mf.GetMetric()[0].GetGauge(); g != nil {
+				return g.GetValue(), true
+			}
+		}
+	}
+
+	return 0, false
+}
+
+// hasMetric returns true when the registry contains at least one observed
+// instance of the named metric.
+func hasMetric(t *testing.T, registry *prometheus.Registry, name string) bool {
+	t.Helper()
+
+	families, err := registry.Gather()
+	if err != nil {
+		t.Fatalf("Failed to gather metrics: %v", err)
+	}
+
+	for _, mf := range families {
+		if mf.GetName() == name && len(mf.GetMetric()) > 0 {
+			return true
+		}
+	}
+
+	return false
+}
+
 func testMultipleMetrics(t *testing.T, multipleMetrics map[string][]string, registry *prometheus.Registry) {
 	t.Helper()
 
@@ -595,5 +636,329 @@ func TestCreateTorrentLabels(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+func TestTorrentEmptyList(t *testing.T) {
+	t.Parallel()
+
+	registry := prometheus.NewRegistry()
+	emptyList := &API.SliceInfo{}
+	version := "2.11.2"
+
+	Torrent(emptyList, &version, registry)
+
+	val, found := getMetricValue(t, registry, "qbittorrent_global_torrents")
+	if !found {
+		t.Fatal("expected qbittorrent_global_torrents to be registered")
+	}
+
+	if val != 0 {
+		t.Errorf("expected qbittorrent_global_torrents=0 for empty list, got %f", val)
+	}
+}
+
+func TestTorrentLegacyWebUIVersion(t *testing.T) {
+	t.Parallel()
+
+	registry := prometheus.NewRegistry()
+	mockInfo := &API.SliceInfo{
+		{Name: "Paused Torrent", State: "pausedUP"},
+	}
+	version := "2.10.0" // < 2.11.0
+
+	Torrent(mockInfo, &version, registry)
+
+	families, err := registry.Gather()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var pausedUPFound, stoppedUPFound bool
+
+	for _, mf := range families {
+		if mf.GetName() != "qbittorrent_torrent_states" {
+			continue
+		}
+
+		for _, m := range mf.GetMetric() {
+			for _, lbl := range m.GetLabel() {
+				switch lbl.GetValue() {
+				case "pausedUP":
+					pausedUPFound = true
+				case "stoppedUP":
+					stoppedUPFound = true
+				}
+			}
+		}
+	}
+
+	if !pausedUPFound {
+		t.Error("expected pausedUP state metric for WebUI version < 2.11.0")
+	}
+
+	if stoppedUPFound {
+		t.Error("expected stoppedUP state metric to be absent for WebUI version < 2.11.0")
+	}
+}
+
+func TestTorrentUnknownState(t *testing.T) {
+	t.Parallel()
+
+	registry := prometheus.NewRegistry()
+	mockInfo := &API.SliceInfo{
+		{Name: "Test", State: "customUnknownState123"},
+	}
+	version := "2.11.2"
+
+	Torrent(mockInfo, &version, registry)
+
+	if !strings.Contains(buff.String(), "Unknown state: customUnknownState123") {
+		t.Errorf("expected error log 'Unknown state: customUnknownState123', got: %s", buff.String())
+	}
+}
+
+func TestTorrentIncreasedCardinality(t *testing.T) {
+	origIncreased := app.Exporter.Features.EnableIncreasedCardinality
+	origHigh := app.Exporter.Features.EnableHighCardinality
+
+	t.Cleanup(func() {
+		app.Exporter.Features.EnableIncreasedCardinality = origIncreased
+		app.Exporter.Features.EnableHighCardinality = origHigh
+	})
+
+	app.Exporter.Features.EnableIncreasedCardinality = true
+	app.Exporter.Features.EnableHighCardinality = false
+
+	registry := prometheus.NewRegistry()
+	mockInfo := &API.SliceInfo{
+		{
+			Name:     "Test Torrent",
+			State:    "downloading",
+			Comment:  "some comment",
+			SavePath: "/data",
+		},
+	}
+	version := "2.11.2"
+
+	Torrent(mockInfo, &version, registry)
+
+	for _, name := range []string{
+		"qbittorrent_torrent_state",
+		"qbittorrent_torrent_comment",
+		"qbittorrent_torrent_save_path",
+		"qbittorrent_torrent_info",
+	} {
+		if !hasMetric(t, registry, name) {
+			t.Errorf("expected metric %s with EnableIncreasedCardinality=true", name)
+		}
+	}
+}
+
+func TestTorrentLabelWithTracker(t *testing.T) {
+	origLabelWithTracker := app.Exporter.ExperimentalFeatures.EnableLabelWithTracker
+
+	t.Cleanup(func() {
+		app.Exporter.ExperimentalFeatures.EnableLabelWithTracker = origLabelWithTracker
+	})
+
+	app.Exporter.ExperimentalFeatures.EnableLabelWithTracker = true
+
+	registry := prometheus.NewRegistry()
+	mockInfo := &API.SliceInfo{
+		{
+			Name:    "Test Torrent",
+			Tracker: "http://tracker.example.com",
+		},
+	}
+	version := "2.11.2"
+
+	Torrent(mockInfo, &version, registry)
+
+	families, err := registry.Gather()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var trackerLabelFound bool
+
+	for _, mf := range families {
+		if mf.GetName() != "qbittorrent_torrent_eta" {
+			continue
+		}
+
+		for _, m := range mf.GetMetric() {
+			for _, lbl := range m.GetLabel() {
+				if lbl.GetName() == "tracker" {
+					trackerLabelFound = true
+				}
+			}
+		}
+	}
+
+	if !trackerLabelFound {
+		t.Error("expected 'tracker' label on torrent metrics when EnableLabelWithTracker=true")
+	}
+}
+
+func TestTrackersEmpty(t *testing.T) {
+	t.Parallel()
+
+	registry := prometheus.NewRegistry()
+	Trackers([]*API.Trackers{}, registry)
+
+	families, err := registry.Gather()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for _, mf := range families {
+		if strings.HasPrefix(mf.GetName(), "qbittorrent_tracker_") {
+			t.Errorf("unexpected tracker metric %s for empty input", mf.GetName())
+		}
+	}
+}
+
+func TestTrackersHighCardinality(t *testing.T) {
+	origHigh := app.Exporter.Features.EnableHighCardinality
+
+	t.Cleanup(func() {
+		app.Exporter.Features.EnableHighCardinality = origHigh
+	})
+
+	app.Exporter.Features.EnableHighCardinality = true
+
+	mockTrackers := []*API.Trackers{
+		{
+			{
+				URL:           "http://tracker.example.com",
+				NumDownloaded: 10,
+				NumLeeches:    2,
+				NumSeeds:      5,
+				NumPeers:      7,
+				Status:        2,
+				Tier:          []byte("0"),
+				Message:       "working",
+			},
+		},
+	}
+
+	registry := prometheus.NewRegistry()
+	Trackers(mockTrackers, registry)
+
+	if !hasMetric(t, registry, "qbittorrent_tracker_info") {
+		t.Error("expected qbittorrent_tracker_info metric with EnableHighCardinality=true")
+	}
+}
+
+func TestTrackersInvalidURL(t *testing.T) {
+	t.Parallel()
+
+	mockTrackers := []*API.Trackers{
+		{
+			{
+				URL:    "not-a-valid-url",
+				Status: 2,
+				Tier:   []byte("0"),
+			},
+			{
+				URL:    "http://valid.tracker.com",
+				Status: 1,
+				Tier:   []byte("0"),
+			},
+		},
+	}
+
+	registry := prometheus.NewRegistry()
+	Trackers(mockTrackers, registry)
+
+	families, err := registry.Gather()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for _, mf := range families {
+		if mf.GetName() != "qbittorrent_tracker_status" {
+			continue
+		}
+
+		if count := len(mf.GetMetric()); count != 1 {
+			t.Errorf("expected 1 tracker_status instance (invalid URL filtered), got %d", count)
+		}
+	}
+}
+
+func TestTrackersNonNumericTier(t *testing.T) {
+	t.Parallel()
+
+	mockTrackers := []*API.Trackers{
+		{
+			{
+				URL:  "http://tracker.example.com",
+				Tier: []byte("abc"),
+			},
+		},
+	}
+
+	registry := prometheus.NewRegistry()
+	Trackers(mockTrackers, registry)
+
+	families, err := registry.Gather()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for _, mf := range families {
+		if mf.GetName() != "qbittorrent_tracker_tier" {
+			continue
+		}
+
+		if len(mf.GetMetric()) == 0 {
+			t.Fatal("expected qbittorrent_tracker_tier to have an instance")
+		}
+
+		if val := mf.GetMetric()[0].GetGauge().GetValue(); val != 0 {
+			t.Errorf("expected tier=0 for non-numeric value, got %f", val)
+		}
+	}
+}
+
+func TestMainDataInvalidRatio(t *testing.T) {
+	t.Parallel()
+
+	data := &API.MainData{
+		ServerState: API.ServerState{
+			GlobalRatio: "not-a-valid-ratio",
+		},
+	}
+
+	registry := prometheus.NewRegistry()
+	MainData(data, registry)
+
+	if hasMetric(t, registry, "qbittorrent_global_ratio") {
+		t.Error("expected qbittorrent_global_ratio to be absent for invalid ratio string")
+	}
+}
+
+func TestMainDataAltSpeedLimitsDisabled(t *testing.T) {
+	t.Parallel()
+
+	data := &API.MainData{
+		ServerState: API.ServerState{
+			GlobalRatio:       "1.5",
+			UseAltSpeedLimits: false,
+		},
+	}
+
+	registry := prometheus.NewRegistry()
+	MainData(data, registry)
+
+	val, found := getMetricValue(t, registry, "qbittorrent_app_alt_rate_limits_enabled")
+	if !found {
+		t.Fatal("expected qbittorrent_app_alt_rate_limits_enabled to be registered")
+	}
+
+	if val != 0 {
+		t.Errorf("expected qbittorrent_app_alt_rate_limits_enabled=0 when disabled, got %f", val)
 	}
 }
