@@ -36,7 +36,7 @@ func main() {
 
 	logger.Info("Starting the exporter")
 
-	server := &http.Server{
+	server := &http.Server{ //nolint:exhaustruct
 		Addr:              addr,
 		ReadHeaderTimeout: 3 * time.Second,
 	}
@@ -63,7 +63,7 @@ func metrics(w http.ResponseWriter, req *http.Request, allRequestsFunc func(*pro
 	if err != nil {
 		http.Error(w, "", http.StatusServiceUnavailable)
 	} else {
-		h := promhttp.HandlerFor(registry, promhttp.HandlerOpts{})
+		h := promhttp.HandlerFor(registry, promhttp.HandlerOpts{}) //nolint:exhaustruct
 		h.ServeHTTP(w, req)
 	}
 }

@@ -87,21 +87,25 @@ func TestEnsureLeadingSlash(t *testing.T) {
 			name:           "already has leading slash",
 			input:          new("/example"),
 			expectedOutput: "/example",
+			expectPanic:    false,
 		},
 		{
 			name:           "missing leading slash",
 			input:          new("example"),
 			expectedOutput: "/example",
+			expectPanic:    false,
 		},
 		{
 			name:           "empty string",
 			input:          new(""),
 			expectedOutput: "/",
+			expectPanic:    false,
 		},
 		{
-			name:        "Nil input",
-			input:       nil,
-			expectPanic: true,
+			name:           "Nil input",
+			input:          nil,
+			expectedOutput: "",
+			expectPanic:    true,
 		},
 	}
 

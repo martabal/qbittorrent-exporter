@@ -1,28 +1,26 @@
 linters:
   default: all
   disable:
-    - exhaustruct
-    - varnamelen
-    - funlen
-    - gocognit
-    - cyclop
-    - lll
-    - mnd
-    - revive
-    - gochecknoglobals
-    - paralleltest
     - contextcheck
+    - cyclop
     - depguard
     - err113
     - forbidigo
+    - funlen
+    - gochecknoglobals
     - gochecknoinits
+    - gocognit
+    - goconst
     - gocyclo
+    - lll
+    - mnd
     - nestif
-    - staticcheck
+    - paralleltest
+    - revive
     - tagliatelle
     - testpackage
     - unparam
+    - varnamelen
     - wrapcheck
-    - wsl
     - maintidx
 version: "2"
