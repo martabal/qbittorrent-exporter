@@ -22,9 +22,12 @@ type State struct {
 // NewState creates a new empty sync state.
 func NewState() *State {
 	return &State{
-		torrents:   make(map[string]API.Info),
-		categories: make(map[string]API.Category),
-		tags:       []string{},
+		mu:          sync.RWMutex{},
+		rid:         0,
+		torrents:    make(map[string]API.Info),
+		categories:  make(map[string]API.Category),
+		tags:        make([]string, 0),
+		serverState: API.ServerState{}, //nolint:exhaustruct
 	}
 }
 
@@ -102,12 +105,13 @@ func (s *State) Reset() {
 	s.torrents = make(map[string]API.Info)
 	s.categories = make(map[string]API.Category)
 	s.tags = []string{}
-	s.serverState = API.ServerState{}
+	s.serverState = API.ServerState{} //nolint:exhaustruct
 }
 
 func (s *State) applyFullUpdate(delta *API.DeltaMainData) {
 	// Clear and rebuild torrents
 	s.torrents = make(map[string]API.Info, len(delta.Torrents))
+
 	for hash, raw := range delta.Torrents {
 		var info API.Info
 
@@ -129,7 +133,7 @@ func (s *State) applyFullUpdate(delta *API.DeltaMainData) {
 	copy(s.tags, delta.Tags)
 
 	// Replace server state (full update includes all fields)
-	s.serverState = API.ServerState{}
+	s.serverState = API.ServerState{} //nolint:exhaustruct
 	if len(delta.ServerState) > 0 {
 		_ = json.Unmarshal(delta.ServerState, &s.serverState)
 	}
@@ -191,6 +195,7 @@ func (s *State) applyDeltaUpdate(delta *API.DeltaMainData) {
 		}
 
 		filtered := make([]string, 0, len(s.tags))
+
 		for _, tag := range s.tags {
 			if _, remove := removeSet[tag]; !remove {
 				filtered = append(filtered, tag)

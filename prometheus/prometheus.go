@@ -304,7 +304,7 @@ const (
 )
 
 func Version(result *[]byte, r *prometheus.Registry) {
-	qbittorrentAppVersion := prometheus.NewGauge(prometheus.GaugeOpts{
+	qbittorrentAppVersion := prometheus.NewGauge(prometheus.GaugeOpts{ //nolint:exhaustruct
 		Name: qbittorrentAppVersion,
 		Help: helpQbittorrentAppVersion,
 		ConstLabels: map[string]string{
@@ -441,7 +441,7 @@ func Torrent(result *API.SliceInfo, webUIVersion *string, r *prometheus.Registry
 		r.MustRegister(metrics[qbittorrentTorrentInfo])
 	}
 
-	qbittorrentGlobalTorrents := prometheus.NewGauge(prometheus.GaugeOpts{
+	qbittorrentGlobalTorrents := prometheus.NewGauge(prometheus.GaugeOpts{ //nolint:exhaustruct
 		Name: qbittorrentGlobalTorrents,
 		Help: helpqbittorrentGlobalTorrents,
 	})
@@ -649,7 +649,7 @@ func MainData(result *API.MainData, r *prometheus.Registry) {
 	}
 
 	if err == nil {
-		qbittorrentGlobalRatio := prometheus.NewGauge(prometheus.GaugeOpts{
+		qbittorrentGlobalRatio := prometheus.NewGauge(prometheus.GaugeOpts{ //nolint:exhaustruct
 			Name: qbittorrentGlobalRatio,
 			Help: helpqbittorrentGlobalRatio,
 		})
@@ -662,7 +662,7 @@ func MainData(result *API.MainData, r *prometheus.Registry) {
 		useAltSpeedLimits = 1.0
 	}
 
-	qbittorrentAppAltRateLimitsEnabled := prometheus.NewGauge(prometheus.GaugeOpts{
+	qbittorrentAppAltRateLimitsEnabled := prometheus.NewGauge(prometheus.GaugeOpts{ //nolint:exhaustruct
 		Name: qbittorrentAppAltRateLimitsEnabled,
 		Help: helpQbittorrentAppAltRateLimitsEnabled,
 	})
@@ -686,7 +686,7 @@ func MainData(result *API.MainData, r *prometheus.Registry) {
 		{qbittorrentGlobalTotalWastedSessionBytes, helpqbittorrentGlobalWastedSession, float64(result.ServerState.TotalWastedSession)},
 	}
 
-	qbittorrentTransferConnectionStatus := prometheus.NewGaugeVec(prometheus.GaugeOpts{
+	qbittorrentTransferConnectionStatus := prometheus.NewGaugeVec(prometheus.GaugeOpts{ //nolint:exhaustruct
 		Name: qbittorrentTorrentTransferConnectionStatus,
 		Help: helpQbittorrentTorrentTransferConnectionStatus,
 	}, []string{torrentLabelConnectionStatus})
@@ -698,7 +698,7 @@ func MainData(result *API.MainData, r *prometheus.Registry) {
 
 	registerGaugeGlobalAndSet(&gauges, r)
 
-	qbittorrentGlobalTags := prometheus.NewGaugeVec(prometheus.GaugeOpts{
+	qbittorrentGlobalTags := prometheus.NewGaugeVec(prometheus.GaugeOpts{ //nolint:exhaustruct
 		Name: qbittorrentGlobalTags,
 		Help: helpqbittorrentGlobalTags,
 	}, []string{torrentLabelTag})
@@ -713,7 +713,7 @@ func MainData(result *API.MainData, r *prometheus.Registry) {
 		}
 	}
 
-	qbittorrentGlobalCategories := prometheus.NewGaugeVec(prometheus.GaugeOpts{
+	qbittorrentGlobalCategories := prometheus.NewGaugeVec(prometheus.GaugeOpts{ //nolint:exhaustruct
 		Name: qbittorrentGlobalCategories,
 		Help: helpqbittorrentGlobalCategories,
 	}, []string{torrentLabelCategory})
@@ -729,7 +729,7 @@ func MainData(result *API.MainData, r *prometheus.Registry) {
 
 func registerGaugeGlobalAndSet(gauges *GaugeSet, r *prometheus.Registry) {
 	for _, gauge := range *gauges {
-		g := prometheus.NewGauge(prometheus.GaugeOpts{
+		g := prometheus.NewGauge(prometheus.GaugeOpts{ //nolint:exhaustruct
 			Name: gauge.Name,
 			Help: gauge.Help,
 		})
@@ -749,7 +749,7 @@ func registerGauge(gauges *GaugeList, r *prometheus.Registry) map[string]*promet
 }
 
 func newGaugeVec(name, help string, labels []string) *prometheus.GaugeVec {
-	return prometheus.NewGaugeVec(prometheus.GaugeOpts{
+	return prometheus.NewGaugeVec(prometheus.GaugeOpts{ //nolint:exhaustruct
 		Name: name,
 		Help: help,
 	}, labels)
