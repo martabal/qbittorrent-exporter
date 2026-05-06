@@ -100,7 +100,7 @@ func SetLogLevel(logLevel string) string {
 		level = LevelInfo
 	}
 
-	opts := slog.HandlerOptions{
+	opts := slog.HandlerOptions{ //nolint:exhaustruct
 		Level: level,
 	}
 

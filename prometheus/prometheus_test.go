@@ -17,17 +17,20 @@ import (
 var buff = &bytes.Buffer{}
 
 func init() {
-	logger.Log = &logger.Logger{Logger: slog.New(slog.NewTextHandler(buff, &slog.HandlerOptions{}))}
+	logger.Log = &logger.Logger{Logger: slog.New(slog.NewTextHandler(buff, &slog.HandlerOptions{}))} //nolint:exhaustruct
 }
 
 func TestMain(t *testing.T) {
 	t.Parallel()
 
 	app.QBittorrent = app.QBittorrentSettings{
-		BaseUrl:  "http://localhost:8080",
-		Username: "admin",
-		Password: "adminadmin",
-		Timeout:  time.Duration(30) * time.Second,
+		BaseUrl:             "http://localhost:8080",
+		Username:            "admin",
+		Password:            "adminadmin",
+		Timeout:             time.Duration(30) * time.Second,
+		Cookie:              nil,
+		FullRefreshInterval: 5,
+		BasicAuth:           nil,
 	}
 
 	result := app.GetPasswordMasked(app.QBittorrent.Password)
@@ -80,19 +83,28 @@ func TestPreference(t *testing.T) {
 func createMockMainData(globalRatio string) *API.MainData {
 	return &API.MainData{
 		ServerState: API.ServerState{
-			GlobalRatio:       globalRatio,
-			UseAltSpeedLimits: true,
-			AlltimeDl:         100000,
-			AlltimeUl:         100001,
-			DlInfoData:        100002,
-			UpInfoData:        100003,
-			DlInfoSpeed:       100004,
-			UpInfoSpeed:       100005,
+			GlobalRatio:          globalRatio,
+			UseAltSpeedLimits:    true,
+			AlltimeDl:            100000,
+			AlltimeUl:            100001,
+			DlInfoData:           100002,
+			UpInfoData:           100003,
+			DlInfoSpeed:          100004,
+			UpInfoSpeed:          100005,
+			AverageTimeQueue:     0,
+			ConnectionStatus:     "",
+			DHTNodes:             0,
+			FreeSpaceOnDisk:      0,
+			QueuedIoJobs:         0,
+			TotalBuffersSize:     0,
+			TotalQueuedSize:      0,
+			TotalPeerConnections: 0,
+			TotalWastedSession:   0,
 		},
 		Tags: []string{"tag1", "tag2"},
 		CategoryMap: map[string]API.Category{
-			"cat1": {Name: "cat1"},
-			"cat2": {Name: "cat2"},
+			"cat1": {Name: "cat1", SavePath: ""},
+			"cat2": {Name: "cat2", SavePath: ""},
 		},
 	}
 }
@@ -210,6 +222,11 @@ func TestTorrent(t *testing.T) {
 			Tags:              "tag1, tag2",
 			AddedOn:           1664715487,
 			CompletionOn:      1664719487,
+			Category:          "",
+			Comment:           "",
+			MaxRatio:          0,
+			SavePath:          "",
+			Tracker:           "",
 		},
 	}
 

@@ -59,7 +59,7 @@ func TestLoggingFunctions(t *testing.T) {
 			// Setup a logger that will accept the log level
 			var buf bytes.Buffer
 
-			opts := &slog.HandlerOptions{
+			opts := &slog.HandlerOptions{ //nolint:exhaustruct
 				Level: tt.level,
 			}
 			Log = &Logger{Logger: slog.New(slog.NewTextHandler(&buf, opts))}
@@ -94,7 +94,7 @@ func TestPrettyHandler_Handle(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			// Since PrettyHandler writes directly to os.Stdout/os.Stderr,
 			// we'll just ensure it doesn't error and verify the level name exists in ReverseLogLevels
-			handler := NewPrettyHandler(os.Stdout, slog.HandlerOptions{Level: tt.level})
+			handler := NewPrettyHandler(os.Stdout, slog.HandlerOptions{Level: tt.level}) //nolint:exhaustruct
 
 			record := slog.NewRecord(time.Now(), tt.level, tt.message, 0)
 

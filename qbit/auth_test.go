@@ -24,7 +24,7 @@ const defaultUsername = "testuser"
 const defaultPassword = "testpass"
 
 func init() {
-	logger.Log = &logger.Logger{Logger: slog.New(slog.NewTextHandler(buff, &slog.HandlerOptions{}))}
+	logger.Log = &logger.Logger{Logger: slog.New(slog.NewTextHandler(buff, &slog.HandlerOptions{}))} //nolint:exhaustruct
 }
 
 func TestAuthSuccess(t *testing.T) {

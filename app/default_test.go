@@ -14,7 +14,7 @@ import (
 var buff = &bytes.Buffer{}
 
 func init() {
-	logger.Log = &logger.Logger{Logger: slog.New(slog.NewTextHandler(buff, &slog.HandlerOptions{}))}
+	logger.Log = &logger.Logger{Logger: slog.New(slog.NewTextHandler(buff, &slog.HandlerOptions{}))} //nolint:exhaustruct
 }
 
 func TestGetEnvReturnsEnvValue(t *testing.T) {

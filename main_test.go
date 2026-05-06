@@ -20,7 +20,7 @@ import (
 var buff = &bytes.Buffer{}
 
 func init() {
-	logger.Log = &logger.Logger{Logger: slog.New(slog.NewTextHandler(buff, &slog.HandlerOptions{}))}
+	logger.Log = &logger.Logger{Logger: slog.New(slog.NewTextHandler(buff, &slog.HandlerOptions{}))} //nolint:exhaustruct
 }
 
 func TestMetricsFailureResponse(t *testing.T) {
@@ -46,7 +46,7 @@ func TestMetricsFailureResponse(t *testing.T) {
 func TestMetricsReturnMetric(t *testing.T) {
 	buff.Reset()
 
-	opts := &slog.HandlerOptions{
+	opts := &slog.HandlerOptions{ //nolint:exhaustruct
 		Level: logger.LevelTrace,
 	}
 
@@ -65,7 +65,7 @@ func TestMetricsReturnMetric(t *testing.T) {
 	rec := httptest.NewRecorder()
 
 	metrics(rec, req, func(registry *prometheus.Registry) error {
-		qbittorrent_app_version := prometheus.NewGauge(prometheus.GaugeOpts{
+		qbittorrent_app_version := prometheus.NewGauge(prometheus.GaugeOpts{ //nolint:exhaustruct
 			Name: "qbittorrent_app_version",
 			Help: "The current qBittorrent version",
 			ConstLabels: map[string]string{
@@ -138,7 +138,7 @@ func TestBasicAuth_Success(t *testing.T) {
 func TestBasicAuth_InvalidCredentials(t *testing.T) {
 	buff.Reset()
 
-	opts := &slog.HandlerOptions{
+	opts := &slog.HandlerOptions{ //nolint:exhaustruct
 		Level: logger.LevelWarn,
 	}
 

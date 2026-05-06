@@ -32,7 +32,7 @@ type QueryParams struct {
 }
 
 type Data struct {
-	Process     string
+	Process     *string
 	URL         string
 	HTTPMethod  string
 	QueryParams *[]QueryParams
@@ -50,10 +50,11 @@ const baseAPIRUL string = "/api/v2/"
 
 func newData(url string, handler func(body []byte, r *prometheus.Registry, webUIVersion *string) error) Data {
 	return Data{
-		Process:    url,
-		URL:        baseAPIRUL + url,
-		HTTPMethod: http.MethodGet,
-		Handle:     handler,
+		Process:     &url,
+		URL:         baseAPIRUL + url,
+		HTTPMethod:  http.MethodGet,
+		Handle:      handler,
+		QueryParams: nil,
 	}
 }
 
@@ -126,7 +127,7 @@ func getTrackersInfo(data *Data, c chan func() (*API.Trackers, error)) {
 
 	err = json.Unmarshal(body, &result)
 	if err != nil {
-		errMsg := fmt.Errorf("%s %s", unmarshError, data.Process)
+		errMsg := fmt.Errorf("%s %s", unmarshError, *data.Process)
 		errorHelper(&body, &errMsg, &url)
 	} else {
 		c <- (func() (*API.Trackers, error) { return result, err })
@@ -143,6 +144,7 @@ func getTrackers(torrentList *API.SliceInfo, r *prometheus.Registry) {
 	for _, obj := range *torrentList {
 		if _, exists := uniqueValues[obj.Tracker]; !exists {
 			uniqueValues[obj.Tracker] = struct{}{}
+
 			uniqueTrackers = append(uniqueTrackers, UniqueTracker{Tracker: obj.Tracker, Hash: obj.Hash})
 		}
 	}
@@ -155,6 +157,7 @@ func getTrackers(torrentList *API.SliceInfo, r *prometheus.Registry) {
 
 		getTrackersInfo(trackerInfo, tracker)
 	}
+
 	for i := range uniqueTrackers {
 		var trackerInfo = Data{
 			URL:        "/api/v2/torrents/trackers",
@@ -165,6 +168,8 @@ func getTrackers(torrentList *API.SliceInfo, r *prometheus.Registry) {
 					Value: uniqueTrackers[i].Hash,
 				},
 			},
+			Handle:  nil,
+			Process: nil,
 		}
 
 		wg.Add(1)
@@ -359,7 +364,9 @@ func apiRequest(url string, method string, queryParams *[]QueryParams) ([]byte, 
 		req.SetBasicAuth(app.QBittorrent.BasicAuth.Username, app.QBittorrent.BasicAuth.Password)
 	}
 
-	req.AddCookie(&http.Cookie{Name: "SID", Value: *app.QBittorrent.Cookie})
+	req.AddCookie(&http.Cookie{Name: "SID", Value: *app.QBittorrent.Cookie, Secure: true, //nolint:exhaustruct
+		HttpOnly: true,
+		SameSite: http.SameSiteStrictMode})
 	logger.Trace("New request to " + req.URL.String())
 	resp, err := app.HttpClient.Do(req)
 

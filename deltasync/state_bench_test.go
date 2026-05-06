@@ -42,6 +42,7 @@ func BenchmarkApplyDeltaUpdate(b *testing.B) {
 
 func buildFullDelta(count int) *API.DeltaMainData {
 	torrents := make(map[string]json.RawMessage, count)
+
 	for i := range count {
 		hash := fmt.Sprintf("hash_%d", i)
 		data := map[string]any{
@@ -69,7 +70,7 @@ func buildFullDelta(count int) *API.DeltaMainData {
 		panic(err)
 	}
 
-	return &API.DeltaMainData{
+	return &API.DeltaMainData{ //nolint:exhaustruct
 		Rid:         1,
 		FullUpdate:  true,
 		Torrents:    torrents,
@@ -79,6 +80,7 @@ func buildFullDelta(count int) *API.DeltaMainData {
 
 func buildPartialDelta(changed, ridOffset int) *API.DeltaMainData {
 	torrents := make(map[string]json.RawMessage, changed)
+
 	for i := range changed {
 		hash := fmt.Sprintf("hash_%d", i)
 		data := map[string]any{"dlspeed": 999, "state": "seeding"}
@@ -91,7 +93,7 @@ func buildPartialDelta(changed, ridOffset int) *API.DeltaMainData {
 		torrents[hash] = raw
 	}
 
-	return &API.DeltaMainData{
+	return &API.DeltaMainData{ //nolint:exhaustruct
 		Rid:         int64(ridOffset + 1),
 		Torrents:    torrents,
 		ServerState: json.RawMessage(`{"dht_nodes": 600}`),

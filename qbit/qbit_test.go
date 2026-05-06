@@ -40,9 +40,9 @@ func createTlsServer(t *testing.T, discardServerLogs bool, maxTlsVersion uint16,
 	}
 
 	// Create CA certificate
-	caTemplate := &x509.Certificate{
+	caTemplate := &x509.Certificate{ //nolint:exhaustruct
 		SerialNumber:          big.NewInt(1),
-		Subject:               pkix.Name{CommonName: "Test CA"},
+		Subject:               pkix.Name{CommonName: "Test CA"}, //nolint:exhaustruct
 		NotBefore:             time.Now(),
 		NotAfter:              time.Now().Add(24 * time.Hour),
 		IsCA:                  true,
@@ -67,9 +67,9 @@ func createTlsServer(t *testing.T, discardServerLogs bool, maxTlsVersion uint16,
 	}
 
 	// Create server certificate
-	serverTemplate := &x509.Certificate{
+	serverTemplate := &x509.Certificate{ //nolint:exhaustruct
 		SerialNumber: big.NewInt(2),
-		Subject:      pkix.Name{CommonName: "localhost"},
+		Subject:      pkix.Name{CommonName: "localhost"}, //nolint:exhaustruct
 		NotBefore:    time.Now(),
 		NotAfter:     time.Now().Add(24 * time.Hour),
 		KeyUsage:     x509.KeyUsageDigitalSignature,
@@ -84,7 +84,7 @@ func createTlsServer(t *testing.T, discardServerLogs bool, maxTlsVersion uint16,
 	}
 
 	// Create TLS config for server
-	serverCert := tls.Certificate{
+	serverCert := tls.Certificate{ //nolint:exhaustruct
 		Certificate: [][]byte{serverCertDER, caCertDER},
 		PrivateKey:  serverPrivKey,
 	}
@@ -92,7 +92,7 @@ func createTlsServer(t *testing.T, discardServerLogs bool, maxTlsVersion uint16,
 	// Create test server with custom TLS config
 	server := httptest.NewUnstartedServer(handler)
 
-	server.TLS = &tls.Config{ //nolint:gosec
+	server.TLS = &tls.Config{ //nolint:exhaustruct
 		Certificates: []tls.Certificate{serverCert},
 		MaxVersion:   maxTlsVersion,
 	}
@@ -399,9 +399,9 @@ func TestCustomCA(t *testing.T) {
 
 	caPool.AddCert(caCert)
 
-	app.HttpClient = http.Client{
-		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{ //nolint:gosec
+	app.HttpClient = http.Client{ //nolint:exhaustruct
+		Transport: &http.Transport{ //nolint:exhaustruct
+			TLSClientConfig: &tls.Config{ //nolint:exhaustruct
 				RootCAs: caPool,
 			},
 		},
@@ -425,9 +425,9 @@ func TestSkipCertValidation(t *testing.T) {
 		}))
 	defer server.Close()
 
-	app.HttpClient = http.Client{
-		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{
+	app.HttpClient = http.Client{ //nolint:exhaustruct
+		Transport: &http.Transport{ //nolint:exhaustruct
+			TLSClientConfig: &tls.Config{ //nolint:exhaustruct
 				InsecureSkipVerify: true, //nolint:gosec
 			},
 		},
@@ -451,9 +451,9 @@ func TestMinTlsVersion(t *testing.T) {
 		}))
 	defer server.Close()
 
-	app.HttpClient = http.Client{
-		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{
+	app.HttpClient = http.Client{ //nolint:exhaustruct
+		Transport: &http.Transport{ //nolint:exhaustruct
+			TLSClientConfig: &tls.Config{ //nolint:exhaustruct
 				MinVersion: tls.VersionTLS13,
 			},
 		},
