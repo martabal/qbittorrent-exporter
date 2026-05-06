@@ -28,7 +28,8 @@ func TestMain(t *testing.T) {
 		Username:            "admin",
 		Password:            "adminadmin",
 		Timeout:             time.Duration(30) * time.Second,
-		Cookie:              nil,
+		Cookie:              app.QBittorrent.Cookie,
+		APIKey:              nil,
 		FullRefreshInterval: 5,
 		BasicAuth:           nil,
 	}
