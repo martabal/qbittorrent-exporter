@@ -67,7 +67,7 @@ func Auth() error {
 		}
 	} else if resp.StatusCode != http.StatusNoContent {
 		err := fmt.Errorf("authentication failed, status code: %d", resp.StatusCode)
-		if resp.StatusCode == http.StatusForbidden && app.QBittorrent.Cookie == nil {
+		if resp.StatusCode == http.StatusForbidden && app.QBittorrent.Cookie.Value == nil {
 			panic(err.Error() + ". qBittorrent has probably banned your IP")
 		}
 
@@ -80,7 +80,7 @@ func Auth() error {
 
 	cookie := resp.Header.Get("Set-Cookie")
 	cookieValue := strings.Split(strings.Split(cookie, ";")[0], "=")[1]
-	app.QBittorrent.Cookie = &cookieValue
+	app.QBittorrent.Cookie.Value = &cookieValue
 
 	return nil
 }

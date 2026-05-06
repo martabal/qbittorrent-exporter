@@ -105,6 +105,8 @@ var defaultBasicAuthPassword = "EXPORTER_BASIC_AUTH_PASSWORD"
 
 var defaultCertificateAuthorityPath = "CERTIFICATE_AUTHORITY_PATH"
 
+var defaultAPIKEY = "QBITTORRENT_API_KEY" //nolint:gosec
+
 var defaultInsecureSkipVerify = Env{
 	Key:          "INSECURE_SKIP_VERIFY",
 	DefaultValue: "false",
@@ -133,6 +135,12 @@ var defaultUsername = Env{
 	Key:          "QBITTORRENT_USERNAME",
 	DefaultValue: "admin",
 	Help:         "qBittorrent username is not set. Using default username",
+}
+
+var defaultCookieName = Env{
+	Key:          "QBITTORRENT_COOKIE_NAME",
+	DefaultValue: "SID",
+	Help:         "SID for qBittorrent < 5.2.0; QBT_SID_<qBittorrent_port> for > 5.2.0",
 }
 
 var defaultTimeout = Env{

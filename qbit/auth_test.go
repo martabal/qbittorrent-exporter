@@ -55,8 +55,8 @@ func TestAuthSuccess(t *testing.T) {
 		t.Errorf("There was an error: %s", err.Error())
 	}
 
-	if *app.QBittorrent.Cookie != password {
-		t.Errorf("expected cookie value to be 'abc123', got '%s'", *app.QBittorrent.Cookie)
+	if *app.QBittorrent.Cookie.Value != password {
+		t.Errorf("expected cookie value to be 'abc123', got '%s'", *app.QBittorrent.Cookie.Value)
 	}
 }
 
@@ -187,8 +187,8 @@ func TestAuth_BasicAuthSuccess(t *testing.T) {
 		t.Errorf("There was an error: %s", err.Error())
 	}
 
-	if *app.QBittorrent.Cookie != password {
-		t.Errorf("expected cookie value to be 'abc123', got '%s'", *app.QBittorrent.Cookie)
+	if *app.QBittorrent.Cookie.Value != password {
+		t.Errorf("expected cookie value to be 'abc123', got '%s'", *app.QBittorrent.Cookie.Value)
 	}
 }
 
@@ -261,12 +261,12 @@ func TestAuthStatusNoContent(t *testing.T) {
 		t.Fatalf("unexpected error for 204 status: %v", err)
 	}
 
-	if app.QBittorrent.Cookie == nil {
+	if app.QBittorrent.Cookie.Value == nil {
 		t.Fatalf("expected cookie to be set for 204, got nil")
 	}
 
-	if *app.QBittorrent.Cookie != "xyz789" {
-		t.Fatalf("expected cookie 'xyz789', got '%s'", *app.QBittorrent.Cookie)
+	if *app.QBittorrent.Cookie.Value != "xyz789" {
+		t.Fatalf("expected cookie 'xyz789', got '%s'", *app.QBittorrent.Cookie.Value)
 	}
 
 	if !strings.Contains(buff.String(), "New cookie for auth stored") {
@@ -275,7 +275,7 @@ func TestAuthStatusNoContent(t *testing.T) {
 }
 
 func resetState() {
-	app.QBittorrent.Cookie = nil
+	app.QBittorrent.Cookie.Value = nil
 
 	buff.Reset()
 }

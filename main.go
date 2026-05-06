@@ -17,7 +17,9 @@ import (
 func main() {
 	app.LoadEnv()
 
-	_ = qbit.Auth()
+	if app.QBittorrent.APIKey == nil {
+		_ = qbit.Auth()
+	}
 
 	metrics := func(w http.ResponseWriter, req *http.Request) {
 		metrics(w, req, qbit.AllRequests)

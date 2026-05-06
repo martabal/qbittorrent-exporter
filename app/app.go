@@ -48,13 +48,19 @@ type BasicAuth struct {
 type QBittorrentSettings struct {
 	Timeout             time.Duration
 	BaseUrl             string
-	Cookie              *string
+	Cookie              Cookie
 	Username            string
 	Password            string
 	FullRefreshInterval int
+	APIKey              *string
 
 	// BasicAuth sets the Authorization header for requests to BaseUrl.
 	BasicAuth *BasicAuth
+}
+
+type Cookie struct {
+	Key   string
+	Value *string
 }
 
 type ExperimentalFeatures struct {
@@ -142,6 +148,9 @@ func LoadEnv() {
 	certificateAuthorityPath := getOptionalEnv(defaultCertificateAuthorityPath)
 	insecureSkipVerify, _ := getEnv(defaultInsecureSkipVerify)
 	minTlsVersionStr, _ := getEnv(defaultMinTlsVersion)
+
+	cookieName, _ := getEnv(defaultCookieName)
+	apiKey := getOptionalEnv(defaultAPIKEY)
 
 	logger.Debug(envFileMessage)
 
@@ -275,11 +284,15 @@ func LoadEnv() {
 	internal.EnsureLeadingSlash(&exporterPath)
 
 	QBittorrent = QBittorrentSettings{
-		BaseUrl:             baseUrl,
-		Username:            qbitUsername,
-		Password:            qbitPassword,
-		Timeout:             time.Duration(timeoutDuration) * time.Second,
-		Cookie:              nil,
+		BaseUrl:  baseUrl,
+		Username: qbitUsername,
+		Password: qbitPassword,
+		Timeout:  time.Duration(timeoutDuration) * time.Second,
+		Cookie: Cookie{
+			Key:   cookieName,
+			Value: nil,
+		},
+		APIKey:              apiKey,
 		FullRefreshInterval: fullRefreshInterval,
 		BasicAuth:           qbittorrentBasicAuth,
 	}

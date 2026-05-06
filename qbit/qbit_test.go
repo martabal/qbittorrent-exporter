@@ -25,9 +25,12 @@ import (
 
 var cookie = "SID"
 
+var APIKEYVALUE = "apiKey"
+
 func setupMockApp() {
+	app.QBittorrent.APIKey = nil
 	app.QBittorrent.Timeout = 10 * time.Millisecond
-	app.QBittorrent.Cookie = &cookie
+	app.QBittorrent.Cookie.Value = &cookie
 }
 
 func createTlsServer(t *testing.T, discardServerLogs bool, maxTlsVersion uint16, handler http.Handler) (*httptest.Server, *x509.Certificate) {
@@ -131,7 +134,7 @@ func TestApiRequest_Success(t *testing.T) {
 	}
 }
 
-func TestApiRequest_Forbidden(t *testing.T) {
+func TestApiRequest_Forbidden_cookie(t *testing.T) {
 	setupMockApp()
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -140,7 +143,7 @@ func TestApiRequest_Forbidden(t *testing.T) {
 	defer server.Close()
 
 	app.QBittorrent.BaseUrl = server.URL
-	app.QBittorrent.Cookie = &cookie
+	app.QBittorrent.Cookie.Value = &cookie
 	url := createUrl("/test")
 
 	_, reAuth, err := apiRequest(url, "GET", nil)
@@ -150,6 +153,30 @@ func TestApiRequest_Forbidden(t *testing.T) {
 
 	if !reAuth {
 		t.Fatalf("Expected reAuth to be true, got %v", reAuth)
+	}
+}
+
+func TestApiRequest_Forbidden_APIKey(t *testing.T) {
+	setupMockApp()
+
+	app.QBittorrent.APIKey = &APIKEYVALUE
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusForbidden)
+	}))
+	defer server.Close()
+
+	app.QBittorrent.BaseUrl = server.URL
+	app.QBittorrent.Cookie.Value = &cookie
+	url := createUrl("/test")
+
+	_, reAuth, err := apiRequest(url, "GET", nil)
+	if err == nil || err.Error() != "403" {
+		t.Fatalf("Expected error '403', got %v", err)
+	}
+
+	if reAuth {
+		t.Fatalf("Expected reAuth to be false, got %v", reAuth)
 	}
 }
 

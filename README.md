@@ -142,6 +142,8 @@ Docker compressed size is ~10 MB.
 | `-e MIN_TLS_VERSION`                 | Only connect to qBittorrent if it supports at least this TLS version                                                                                     | `TLS_1_3`               |
 | `-e ENABLE_INCREASED_CARDINALITY`    | Enable high cardinality metric (`qbittorrent_torrent_info`, `qbittorrent_torrent_save_path`, `qbittorrent_torrent_state`, `qbittorrent_torrent_comment`) | `false`                 |
 
+For qBittorrent >= 5.2.0, you must specify either `QBITTORRENT_API_KEY` or `QBITTORRENT_COOKIE_NAME`.
+
 ### Arguments
 
 | Arguments | Function                                                                                                                                               |

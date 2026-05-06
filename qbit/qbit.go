@@ -334,7 +334,7 @@ func errorHelper(body *[]byte, errMsg *error, url *string) {
 // - retry (if it should retry that query)
 // - err (the error if there was one during the request).
 func apiRequest(url string, method string, queryParams *[]QueryParams) ([]byte, bool, error) {
-	if app.QBittorrent.Cookie == nil {
+	if app.QBittorrent.Cookie.Value == nil {
 		logger.Debug("no cookie set")
 
 		err := Auth()
@@ -364,9 +364,18 @@ func apiRequest(url string, method string, queryParams *[]QueryParams) ([]byte, 
 		req.SetBasicAuth(app.QBittorrent.BasicAuth.Username, app.QBittorrent.BasicAuth.Password)
 	}
 
-	req.AddCookie(&http.Cookie{Name: "SID", Value: *app.QBittorrent.Cookie, Secure: true, //nolint:exhaustruct
-		HttpOnly: true,
-		SameSite: http.SameSiteStrictMode})
+	if app.QBittorrent.APIKey != nil {
+		req.Header.Set("Authorization", "Bearer "+*app.QBittorrent.APIKey)
+	} else {
+		req.AddCookie(&http.Cookie{ //nolint:exhaustruct
+			Name:     app.QBittorrent.Cookie.Key,
+			Value:    *app.QBittorrent.Cookie.Value,
+			Secure:   true,
+			HttpOnly: true,
+			SameSite: http.SameSiteStrictMode,
+		})
+	}
+
 	logger.Trace("New request to " + req.URL.String())
 	resp, err := app.HttpClient.Do(req)
 
@@ -399,13 +408,21 @@ func apiRequest(url string, method string, queryParams *[]QueryParams) ([]byte, 
 
 		return body, false, nil
 	case http.StatusForbidden:
-		err := fmt.Errorf("%d", resp.StatusCode)
+		if app.QBittorrent.APIKey != nil {
+			err := fmt.Errorf("%d", resp.StatusCode)
+			logger.Error(fmt.Sprintf("Error code %d for: %s", resp.StatusCode, url))
 
-		logger.Warn("Cookie changed, trying to reconnect ...")
+			return nil, false, err
+		} else {
+			err := fmt.Errorf("%d", resp.StatusCode)
 
-		_ = Auth()
+			logger.Warn("Cookie changed, trying to reconnect ...")
 
-		return nil, true, err
+			_ = Auth()
+
+			return nil, true, err
+		}
+
 	default:
 		err := fmt.Errorf("%d", resp.StatusCode)
 		logger.Error(fmt.Sprintf("Error code %d for: %s", resp.StatusCode, url))
