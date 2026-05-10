@@ -23,14 +23,16 @@ import (
 	app "qbit-exp/app"
 )
 
-var cookie = "SID"
+var cookieKey = "SID"
+var cookieValue = "random-cookie"
 
-var APIKEYVALUE = "apiKey"
+var apikey = "apiKey"
 
 func setupMockApp() {
 	app.QBittorrent.APIKey = nil
 	app.QBittorrent.Timeout = 10 * time.Millisecond
-	app.QBittorrent.Cookie.Value = &cookie
+	app.QBittorrent.LegacyAuth.Cookie.Key = cookieKey
+	app.QBittorrent.LegacyAuth.Cookie.Value = &cookieValue
 }
 
 func createTlsServer(t *testing.T, discardServerLogs bool, maxTlsVersion uint16, handler http.Handler) (*httptest.Server, *x509.Certificate) {
@@ -143,7 +145,7 @@ func TestApiRequest_Forbidden_cookie(t *testing.T) {
 	defer server.Close()
 
 	app.QBittorrent.BaseUrl = server.URL
-	app.QBittorrent.Cookie.Value = &cookie
+	app.QBittorrent.LegacyAuth.Cookie.Value = &cookieValue
 	url := createUrl("/test")
 
 	_, reAuth, err := apiRequest(url, "GET", nil)
@@ -159,7 +161,7 @@ func TestApiRequest_Forbidden_cookie(t *testing.T) {
 func TestApiRequest_Forbidden_APIKey(t *testing.T) {
 	setupMockApp()
 
-	app.QBittorrent.APIKey = &APIKEYVALUE
+	app.QBittorrent.APIKey = &apikey
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusForbidden)
@@ -167,7 +169,7 @@ func TestApiRequest_Forbidden_APIKey(t *testing.T) {
 	defer server.Close()
 
 	app.QBittorrent.BaseUrl = server.URL
-	app.QBittorrent.Cookie.Value = &cookie
+	app.QBittorrent.LegacyAuth.Cookie.Value = &cookieValue
 	url := createUrl("/test")
 
 	_, reAuth, err := apiRequest(url, "GET", nil)

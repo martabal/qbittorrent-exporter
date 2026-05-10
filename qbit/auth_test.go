@@ -20,8 +20,22 @@ var buff = &bytes.Buffer{}
 
 const defaultTimeout time.Duration = 10 * time.Millisecond
 
-const defaultUsername = "testuser"
-const defaultPassword = "testpass"
+var legacyAuth = app.LegacyAuth{
+	Username: "testuser",
+	Password: "testpass",
+	Cookie: app.Cookie{
+		Key:   "cookieKey",
+		Value: nil,
+	},
+}
+var wronglegacyAuth = app.LegacyAuth{
+	Username: "wronguser",
+	Password: "wrongpass",
+	Cookie: app.Cookie{
+		Key:   "cookieKey",
+		Value: nil,
+	},
+}
 
 func init() {
 	logger.Log = &logger.Logger{Logger: slog.New(slog.NewTextHandler(buff, &slog.HandlerOptions{}))} //nolint:exhaustruct
@@ -46,8 +60,7 @@ func TestAuthSuccess(t *testing.T) {
 	defer ts.Close()
 
 	app.QBittorrent.BaseUrl = ts.URL
-	app.QBittorrent.Username = defaultUsername
-	app.QBittorrent.Password = defaultPassword
+	app.QBittorrent.LegacyAuth = &legacyAuth
 	app.QBittorrent.Timeout = defaultTimeout
 
 	err := Auth()
@@ -55,8 +68,8 @@ func TestAuthSuccess(t *testing.T) {
 		t.Errorf("There was an error: %s", err.Error())
 	}
 
-	if *app.QBittorrent.Cookie.Value != password {
-		t.Errorf("expected cookie value to be 'abc123', got '%s'", *app.QBittorrent.Cookie.Value)
+	if *app.QBittorrent.LegacyAuth.Cookie.Value != password {
+		t.Errorf("expected cookie value to be 'abc123', got '%s'", *app.QBittorrent.LegacyAuth.Cookie.Value)
 	}
 }
 
@@ -72,8 +85,7 @@ func TestAuthFail(t *testing.T) {
 	defer ts.Close()
 
 	app.QBittorrent.BaseUrl = ts.URL
-	app.QBittorrent.Username = "wronguser"
-	app.QBittorrent.Password = "wrongpass"
+	app.QBittorrent.LegacyAuth = &wronglegacyAuth
 	app.QBittorrent.Timeout = defaultTimeout
 
 	defer func() {
@@ -97,8 +109,7 @@ func TestAuthInvalidUrl(t *testing.T) {
 	defer ts.Close()
 
 	app.QBittorrent.BaseUrl = ts.URL + "//"
-	app.QBittorrent.Username = ""
-	app.QBittorrent.Password = ""
+	app.QBittorrent.LegacyAuth = &legacyAuth
 	app.QBittorrent.Timeout = defaultTimeout
 
 	defer func() {
@@ -117,8 +128,6 @@ func TestAuthTimeout(t *testing.T) {
 	defer ts.Close()
 
 	app.QBittorrent.BaseUrl = ts.URL
-	app.QBittorrent.Username = ""
-	app.QBittorrent.Password = ""
 	app.QBittorrent.Timeout = defaultTimeout
 	_ = Auth()
 
@@ -136,8 +145,6 @@ func TestUnknownStatusCode(t *testing.T) {
 	defer ts.Close()
 
 	app.QBittorrent.BaseUrl = ts.URL
-	app.QBittorrent.Username = ""
-	app.QBittorrent.Password = ""
 	app.QBittorrent.Timeout = defaultTimeout
 	_ = Auth()
 
@@ -174,8 +181,7 @@ func TestAuth_BasicAuthSuccess(t *testing.T) {
 	defer ts.Close()
 
 	app.QBittorrent.BaseUrl = ts.URL
-	app.QBittorrent.Username = defaultUsername
-	app.QBittorrent.Password = defaultPassword
+	app.QBittorrent.LegacyAuth = &legacyAuth
 	app.QBittorrent.Timeout = defaultTimeout
 	app.QBittorrent.BasicAuth = &app.BasicAuth{
 		Username: httpBasicAuthUsername,
@@ -187,8 +193,8 @@ func TestAuth_BasicAuthSuccess(t *testing.T) {
 		t.Errorf("There was an error: %s", err.Error())
 	}
 
-	if *app.QBittorrent.Cookie.Value != password {
-		t.Errorf("expected cookie value to be 'abc123', got '%s'", *app.QBittorrent.Cookie.Value)
+	if *app.QBittorrent.LegacyAuth.Cookie.Value != password {
+		t.Errorf("expected cookie value to be 'abc123', got '%s'", *app.QBittorrent.LegacyAuth.Cookie.Value)
 	}
 }
 
@@ -222,8 +228,7 @@ func TestAuth_BasicAuthInvalidAuthentication(t *testing.T) {
 	defer ts.Close()
 
 	app.QBittorrent.BaseUrl = ts.URL
-	app.QBittorrent.Username = defaultUsername
-	app.QBittorrent.Password = defaultPassword
+	app.QBittorrent.LegacyAuth = &legacyAuth
 	app.QBittorrent.Timeout = defaultTimeout
 	app.QBittorrent.BasicAuth = &app.BasicAuth{
 		Username: httpBasicAuthUsername,
@@ -252,8 +257,7 @@ func TestAuthStatusNoContent(t *testing.T) {
 	defer ts.Close()
 
 	app.QBittorrent.BaseUrl = ts.URL
-	app.QBittorrent.Username = "user"
-	app.QBittorrent.Password = "pass"
+	app.QBittorrent.LegacyAuth = &legacyAuth
 	app.QBittorrent.Timeout = defaultTimeout
 
 	err := Auth()
@@ -261,12 +265,12 @@ func TestAuthStatusNoContent(t *testing.T) {
 		t.Fatalf("unexpected error for 204 status: %v", err)
 	}
 
-	if app.QBittorrent.Cookie.Value == nil {
+	if app.QBittorrent.LegacyAuth.Cookie.Value == nil {
 		t.Fatalf("expected cookie to be set for 204, got nil")
 	}
 
-	if *app.QBittorrent.Cookie.Value != "xyz789" {
-		t.Fatalf("expected cookie 'xyz789', got '%s'", *app.QBittorrent.Cookie.Value)
+	if *app.QBittorrent.LegacyAuth.Cookie.Value != "xyz789" {
+		t.Fatalf("expected cookie 'xyz789', got '%s'", *app.QBittorrent.LegacyAuth.Cookie.Value)
 	}
 
 	if !strings.Contains(buff.String(), "New cookie for auth stored") {
@@ -275,7 +279,7 @@ func TestAuthStatusNoContent(t *testing.T) {
 }
 
 func resetState() {
-	app.QBittorrent.Cookie.Value = nil
+	app.QBittorrent.LegacyAuth.Cookie.Value = nil
 
 	buff.Reset()
 }

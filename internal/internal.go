@@ -64,3 +64,7 @@ func CompareSemVer(v1, v2 string) int {
 
 	return 0
 }
+
+func Ptr[T any](v T) *T { //nolint:modernize
+	return &v
+}

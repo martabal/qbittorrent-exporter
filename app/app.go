@@ -46,16 +46,21 @@ type BasicAuth struct {
 }
 
 type QBittorrentSettings struct {
-	Timeout             time.Duration
-	BaseUrl             string
-	Cookie              Cookie
-	Username            string
-	Password            string
+	Timeout time.Duration
+	BaseUrl string
+
 	FullRefreshInterval int
+	LegacyAuth          *LegacyAuth
 	APIKey              *string
 
 	// BasicAuth sets the Authorization header for requests to BaseUrl.
 	BasicAuth *BasicAuth
+}
+
+type LegacyAuth struct {
+	Cookie   Cookie
+	Username string
+	Password string
 }
 
 type Cookie struct {
@@ -99,22 +104,41 @@ func LoadEnv() {
 	fmt.Printf("%s (version %s)\n", projectName, version)
 	fmt.Printf("Using log level: %s%s%s\n", logger.ColorLogLevel[logger.LogLevels[loglevel]], loglevel, logger.Reset)
 
-	qbitUsername, usingDefaultValue := getEnv(defaultUsername)
-	if !usingDefaultValue {
-		logger.Info("username: " + qbitUsername)
-	}
+	apiKey := getOptionalEnv(defaultAPIKey)
 
-	showPasswordString, _ := getEnv(defaultExporterShowPassword)
-	showPassword := envSetToTrue(showPasswordString)
-	qbitPassword, usingDefaultValue := getPassword()
-	// When using the default value it is logged already
-	if !usingDefaultValue {
-		password := GetPasswordMasked(qbitPassword)
-		if showPassword {
-			password = qbitPassword
+	showPassword := false
+
+	var legacyAuth LegacyAuth
+
+	if apiKey == nil {
+		cookieName, _ := getEnv(defaultCookieName)
+
+		qbitUsername, usingDefaultValue := getEnv(defaultUsername)
+		if !usingDefaultValue {
+			logger.Info("username: " + qbitUsername)
 		}
 
-		logger.Info("password: " + password)
+		showPasswordString, _ := getEnv(defaultExporterShowPassword)
+		showPassword = envSetToTrue(showPasswordString)
+		qbitPassword, usingDefaultValue := getPassword()
+		// When using the default value it is logged already
+		if !usingDefaultValue {
+			password := GetPasswordMasked(qbitPassword)
+			if showPassword {
+				password = qbitPassword
+			}
+
+			logger.Info("password: " + password)
+		}
+
+		legacyAuth = LegacyAuth{
+			Username: qbitUsername,
+			Password: qbitPassword,
+			Cookie: Cookie{
+				Key:   cookieName,
+				Value: nil,
+			},
+		}
 	}
 
 	baseUrlEnv, usingDefaultValue := getEnv(defaultBaseUrl)
@@ -148,9 +172,6 @@ func LoadEnv() {
 	certificateAuthorityPath := getOptionalEnv(defaultCertificateAuthorityPath)
 	insecureSkipVerify, _ := getEnv(defaultInsecureSkipVerify)
 	minTlsVersionStr, _ := getEnv(defaultMinTlsVersion)
-
-	cookieName, _ := getEnv(defaultCookieName)
-	apiKey := getOptionalEnv(defaultAPIKEY)
 
 	logger.Debug(envFileMessage)
 
@@ -284,14 +305,11 @@ func LoadEnv() {
 	internal.EnsureLeadingSlash(&exporterPath)
 
 	QBittorrent = QBittorrentSettings{
-		BaseUrl:  baseUrl,
-		Username: qbitUsername,
-		Password: qbitPassword,
-		Timeout:  time.Duration(timeoutDuration) * time.Second,
-		Cookie: Cookie{
-			Key:   cookieName,
-			Value: nil,
-		},
+		BaseUrl:    baseUrl,
+		LegacyAuth: &legacyAuth,
+
+		Timeout: time.Duration(timeoutDuration) * time.Second,
+
 		APIKey:              apiKey,
 		FullRefreshInterval: fullRefreshInterval,
 		BasicAuth:           qbittorrentBasicAuth,
