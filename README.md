@@ -26,6 +26,18 @@ This app is a lightweight and fast prometheus exporter for qBittorrent, made to 
 
 ### Docker-cli ([click here for more info](https://docs.docker.com/engine/reference/commandline/cli/))
 
+qBittorrent >= 5.2.0:
+
+```sh
+docker run --name=qbittorrent-exporter \
+    -e QBITTORRENT_BASE_URL=http://192.168.1.10:8080 \
+    -e QBITTORRENT_API_KEY='<your_api_key>' \
+    -p 8090:8090 \
+    ghcr.io/martabal/qbittorrent-exporter:latest
+```
+
+qBittorrent < 5.2.0:
+
 ```sh
 docker run --name=qbittorrent-exporter \
     -e QBITTORRENT_BASE_URL=http://192.168.1.10:8080 \
@@ -36,6 +48,23 @@ docker run --name=qbittorrent-exporter \
 ```
 
 ### Docker-compose
+
+qBittorrent >= 5.2.0:
+
+```yaml
+services:
+  qbittorrent-exporter:
+    image: ghcr.io/martabal/qbittorrent-exporter:latest
+    container_name: qbittorrent-exporter
+    environment:
+      - QBITTORRENT_BASE_URL=http://192.168.1.10:8080
+      - QBITTORRENT_API_KEY='<your_api_key>'
+    ports:
+      - 8090:8090
+    restart: unless-stopped
+```
+
+qBittorrent < 5.2.0:
 
 ```yaml
 services:
