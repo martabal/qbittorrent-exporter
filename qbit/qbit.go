@@ -334,7 +334,7 @@ func errorHelper(body *[]byte, errMsg *error, url *string) {
 // - retry (if it should retry that query)
 // - err (the error if there was one during the request).
 func apiRequest(url string, method string, queryParams *[]QueryParams) ([]byte, bool, error) {
-	if app.QBittorrent.Cookie.Value == nil {
+	if app.QBittorrent.LegacyAuth.Cookie.Value == nil && app.QBittorrent.APIKey == nil {
 		logger.Debug("no cookie set")
 
 		err := Auth()
@@ -368,8 +368,8 @@ func apiRequest(url string, method string, queryParams *[]QueryParams) ([]byte, 
 		req.Header.Set("Authorization", "Bearer "+*app.QBittorrent.APIKey)
 	} else {
 		req.AddCookie(&http.Cookie{ //nolint:exhaustruct
-			Name:     app.QBittorrent.Cookie.Key,
-			Value:    *app.QBittorrent.Cookie.Value,
+			Name:     app.QBittorrent.LegacyAuth.Cookie.Key,
+			Value:    *app.QBittorrent.LegacyAuth.Cookie.Value,
 			Secure:   true,
 			HttpOnly: true,
 			SameSite: http.SameSiteStrictMode,

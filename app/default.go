@@ -105,7 +105,7 @@ var defaultBasicAuthPassword = "EXPORTER_BASIC_AUTH_PASSWORD"
 
 var defaultCertificateAuthorityPath = "CERTIFICATE_AUTHORITY_PATH"
 
-var defaultAPIKEY = "QBITTORRENT_API_KEY" //nolint:gosec
+var defaultAPIKey = "QBITTORRENT_API_KEY" //nolint:gosec
 
 var defaultInsecureSkipVerify = Env{
 	Key:          "INSECURE_SKIP_VERIFY",

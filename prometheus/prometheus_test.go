@@ -20,21 +20,29 @@ func init() {
 	logger.Log = &logger.Logger{Logger: slog.New(slog.NewTextHandler(buff, &slog.HandlerOptions{}))} //nolint:exhaustruct
 }
 
+var username = "admin"
+var password = "adminadmin"
+
 func TestMain(t *testing.T) {
 	t.Parallel()
 
 	app.QBittorrent = app.QBittorrentSettings{
-		BaseUrl:             "http://localhost:8080",
-		Username:            "admin",
-		Password:            "adminadmin",
+		BaseUrl: "http://localhost:8080",
+		LegacyAuth: &app.LegacyAuth{
+			Username: username,
+			Password: password,
+			Cookie: app.Cookie{
+				Key:   "cookieKey",
+				Value: nil,
+			},
+		},
 		Timeout:             time.Duration(30) * time.Second,
-		Cookie:              app.QBittorrent.Cookie,
 		APIKey:              nil,
 		FullRefreshInterval: 5,
 		BasicAuth:           nil,
 	}
 
-	result := app.GetPasswordMasked(app.QBittorrent.Password)
+	result := app.GetPasswordMasked(app.QBittorrent.LegacyAuth.Password)
 
 	if !isValidMaskedPassword(result) {
 		t.Errorf("Invalid masked password. Expected only asterisks, got: %s", result)

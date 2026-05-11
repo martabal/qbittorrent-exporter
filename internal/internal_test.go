@@ -85,19 +85,19 @@ func TestEnsureLeadingSlash(t *testing.T) {
 	}{
 		{
 			name:           "already has leading slash",
-			input:          new("/example"),
+			input:          Ptr("/example"), //nolint:modernize
 			expectedOutput: "/example",
 			expectPanic:    false,
 		},
 		{
 			name:           "missing leading slash",
-			input:          new("example"),
+			input:          Ptr("example"), //nolint:modernize
 			expectedOutput: "/example",
 			expectPanic:    false,
 		},
 		{
 			name:           "empty string",
-			input:          new(""),
+			input:          Ptr(""), //nolint:modernize
 			expectedOutput: "/",
 			expectPanic:    false,
 		},
