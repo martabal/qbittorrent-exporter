@@ -11,7 +11,7 @@ format:
 	test -z $(gofmt -l .)
 
 lint:
-	docker run --rm -v .:/app -w /app golangci/golangci-lint:latest golangci-lint run -v
+	golangci-lint run
 
 release:
 	git-cliff -l | wl-copy
