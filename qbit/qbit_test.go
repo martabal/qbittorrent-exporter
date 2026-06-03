@@ -20,7 +20,7 @@ import (
 	"testing"
 	"time"
 
-	API "qbit-exp/api"
+	api "qbit-exp/api"
 	app "qbit-exp/app"
 )
 
@@ -520,7 +520,7 @@ func TestGetTrackersInfo_ReturnsErrorOnInvalidJSON(t *testing.T) {
 			{Key: "hash", Value: "abc"},
 		},
 	}
-	c := make(chan func() (*API.Trackers, error), 1)
+	c := make(chan func() (*api.Trackers, error), 1)
 
 	getTrackersInfo(&data, c)
 
@@ -556,7 +556,7 @@ func TestGetTrackersInfo_ReturnsErrorOnAPIError(t *testing.T) {
 			{Key: "hash", Value: "abc"},
 		},
 	}
-	c := make(chan func() (*API.Trackers, error), 1)
+	c := make(chan func() (*api.Trackers, error), 1)
 
 	getTrackersInfo(&data, c)
 

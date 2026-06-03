@@ -137,7 +137,7 @@ func getTrackersInfo(data *Data, c chan func() (*API.Trackers, error)) {
 		errMsg := fmt.Errorf("%s %s: %w", unmarshError, process, err)
 		errorHelper(&body, &errMsg, &url)
 
-		c <- (func() (*API.Trackers, error) { return nil, err })
+		c <- (func() (*API.Trackers, error) { return nil, errMsg })
 
 		return
 	}
