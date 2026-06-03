@@ -121,17 +121,28 @@ func getTrackersInfo(data *Data, c chan func() (*API.Trackers, error)) {
 	body, _, err := apiRequest(url, data.HTTPMethod, data.QueryParams)
 	if err != nil {
 		c <- (func() (*API.Trackers, error) { return nil, err })
+
+		return
 	}
 
 	result := new(API.Trackers)
 
-	err = json.Unmarshal(body, &result)
+	err = json.Unmarshal(body, result)
 	if err != nil {
-		errMsg := fmt.Errorf("%s %s", unmarshError, *data.Process)
+		process := data.URL
+		if data.Process != nil {
+			process = *data.Process
+		}
+
+		errMsg := fmt.Errorf("%s %s: %w", unmarshError, process, err)
 		errorHelper(&body, &errMsg, &url)
-	} else {
-		c <- (func() (*API.Trackers, error) { return result, err })
+
+		c <- (func() (*API.Trackers, error) { return nil, err })
+
+		return
 	}
+
+	c <- (func() (*API.Trackers, error) { return result, nil })
 }
 
 func getTrackers(torrentList *API.SliceInfo, r *prometheus.Registry) {

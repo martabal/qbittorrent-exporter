@@ -20,6 +20,7 @@ import (
 	"testing"
 	"time"
 
+	API "qbit-exp/api"
 	app "qbit-exp/app"
 )
 
@@ -498,5 +499,82 @@ func TestMinTlsVersion(t *testing.T) {
 
 	if !strings.HasSuffix(err.Error(), "tls: protocol version not supported") {
 		t.Fatalf("Expected the error to end with `tls: protocol version not supported`, got: %v", err)
+	}
+}
+
+func TestGetTrackersInfo_ReturnsErrorOnInvalidJSON(t *testing.T) {
+	setupMockApp()
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte("invalid-json"))
+	}))
+	defer server.Close()
+
+	app.QBittorrent.BaseUrl = server.URL
+
+	data := Data{
+		URL:        "/api/v2/torrents/trackers",
+		HTTPMethod: http.MethodGet,
+		QueryParams: &[]QueryParams{
+			{Key: "hash", Value: "abc"},
+		},
+	}
+	c := make(chan func() (*API.Trackers, error), 1)
+
+	getTrackersInfo(&data, c)
+
+	select {
+	case resp := <-c:
+		result, err := resp()
+		if err == nil {
+			t.Fatal("Expected error for invalid JSON, got nil")
+		}
+
+		if result != nil {
+			t.Fatalf("Expected nil trackers result on invalid JSON, got %#v", result)
+		}
+	case <-time.After(100 * time.Millisecond):
+		t.Fatal("Timed out waiting for tracker response")
+	}
+}
+
+func TestGetTrackersInfo_ReturnsErrorOnAPIError(t *testing.T) {
+	setupMockApp()
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	}))
+	defer server.Close()
+
+	app.QBittorrent.BaseUrl = server.URL
+
+	data := Data{
+		URL:        "/api/v2/torrents/trackers",
+		HTTPMethod: http.MethodGet,
+		QueryParams: &[]QueryParams{
+			{Key: "hash", Value: "abc"},
+		},
+	}
+	c := make(chan func() (*API.Trackers, error), 1)
+
+	getTrackersInfo(&data, c)
+
+	select {
+	case resp := <-c:
+		result, err := resp()
+		if err == nil {
+			t.Fatal("Expected API error, got nil")
+		}
+
+		if err.Error() != "500" {
+			t.Fatalf("Expected status code error 500, got %v", err)
+		}
+
+		if result != nil {
+			t.Fatalf("Expected nil trackers result on API error, got %#v", result)
+		}
+	case <-time.After(100 * time.Millisecond):
+		t.Fatal("Timed out waiting for tracker response")
 	}
 }
