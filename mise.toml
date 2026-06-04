@@ -1,6 +1,6 @@
 [tools]
 git-cliff = "2.13.1"
-go = "1.26.3"
+go = "1.26.4"
 golangci-lint = "2.12.2"
 just = "1.51.0"
-rumdl = "0.2.4"
+rumdl = "0.2.7"

@@ -33,36 +33,36 @@ checksum = "sha256:3ae3a5549e85c7ad5b20192ebcfee4371269deca51255f6f2f2e051c6541f
 url = "https://github.com/orhun/git-cliff/releases/download/v2.13.1/git-cliff-2.13.1-x86_64-pc-windows-msvc.zip"
 
 [[tools.go]]
-version = "1.26.3"
+version = "1.26.4"
 backend = "core:go"
 
 [tools.go."platforms.linux-arm64"]
-checksum = "sha256:9d89a3ea57d141c2b22d70083f2c8459ba3890f2d9e818e7e933b75614936565"
-url = "https://dl.google.com/go/go1.26.3.linux-arm64.tar.gz"
+checksum = "sha256:ef758ae7c6cf9267c9c0ef080b8965f453d89ab2d25d9eb22de4405925238768"
+url = "https://dl.google.com/go/go1.26.4.linux-arm64.tar.gz"
 
 [tools.go."platforms.linux-arm64-musl"]
-checksum = "sha256:9d89a3ea57d141c2b22d70083f2c8459ba3890f2d9e818e7e933b75614936565"
-url = "https://dl.google.com/go/go1.26.3.linux-arm64.tar.gz"
+checksum = "sha256:ef758ae7c6cf9267c9c0ef080b8965f453d89ab2d25d9eb22de4405925238768"
+url = "https://dl.google.com/go/go1.26.4.linux-arm64.tar.gz"
 
 [tools.go."platforms.linux-x64"]
-checksum = "sha256:2b2cfc7148493da5e73981bffbf3353af381d5f93e789c82c79aff64962eb556"
-url = "https://dl.google.com/go/go1.26.3.linux-amd64.tar.gz"
+checksum = "sha256:1153d3d50e0ac764b447adfe05c2bcf08e889d42a02e0fe0259bd47f6733ad7f"
+url = "https://dl.google.com/go/go1.26.4.linux-amd64.tar.gz"
 
 [tools.go."platforms.linux-x64-musl"]
-checksum = "sha256:2b2cfc7148493da5e73981bffbf3353af381d5f93e789c82c79aff64962eb556"
-url = "https://dl.google.com/go/go1.26.3.linux-amd64.tar.gz"
+checksum = "sha256:1153d3d50e0ac764b447adfe05c2bcf08e889d42a02e0fe0259bd47f6733ad7f"
+url = "https://dl.google.com/go/go1.26.4.linux-amd64.tar.gz"
 
 [tools.go."platforms.macos-arm64"]
-checksum = "sha256:875cf54a15311eee2c99b9dd67c68c4a49351d489ab622bf2cfd28c8f2078d3c"
-url = "https://dl.google.com/go/go1.26.3.darwin-arm64.tar.gz"
+checksum = "sha256:b62ad2b6d7d2464f12a5bcad7ff47f19d08325773b5efd21610e445a05a9bf53"
+url = "https://dl.google.com/go/go1.26.4.darwin-arm64.tar.gz"
 
 [tools.go."platforms.macos-x64"]
-checksum = "sha256:278d580b32e299fe4a9c990fcf2d02acfe538c7e551a6ee18f9c7164573d2c63"
-url = "https://dl.google.com/go/go1.26.3.darwin-amd64.tar.gz"
+checksum = "sha256:05dc9b5f9997744520aaebb3d5deaa7c755371aebbfb7f97c2511a9f3367538d"
+url = "https://dl.google.com/go/go1.26.4.darwin-amd64.tar.gz"
 
 [tools.go."platforms.windows-x64"]
-checksum = "sha256:20d2ceafb4ed41b96b879010927b28bc92a5be57a7c1801ce365a9ca51d3224a"
-url = "https://dl.google.com/go/go1.26.3.windows-amd64.zip"
+checksum = "sha256:3ca8fb4630b07c419cbdd51f754e31363cfcfb83b3a5354d9e895c90be2cc345"
+url = "https://dl.google.com/go/go1.26.4.windows-amd64.zip"
 
 [[tools.golangci-lint]]
 version = "2.12.2"
@@ -136,40 +136,33 @@ checksum = "sha256:09d1138b6845e73f04bff5e26be3f57663bddca25e36fe6241d28a5aa310b
 url = "https://github.com/casey/just/releases/download/1.51.0/just-1.51.0-x86_64-pc-windows-msvc.zip"
 
 [[tools.rumdl]]
-version = "0.2.4"
+version = "0.2.7"
 backend = "aqua:rvben/rumdl"
 
 [tools.rumdl."platforms.linux-arm64"]
-checksum = "sha256:dbebfff0b8069550f12a833572c3caf7177baebbe7aec7dbcc0cadbba01125a0"
-url = "https://github.com/rvben/rumdl/releases/download/v0.2.4/rumdl-v0.2.4-aarch64-unknown-linux-musl.tar.gz"
-provenance = "github-attestations"
+checksum = "sha256:1032814284db5bd913cc527385c8fc7a37a32ae5cc8490aa245252b814ca88ae"
+url = "https://github.com/rvben/rumdl/releases/download/v0.2.7/rumdl-v0.2.7-aarch64-unknown-linux-musl.tar.gz"
 
 [tools.rumdl."platforms.linux-arm64-musl"]
-checksum = "sha256:dbebfff0b8069550f12a833572c3caf7177baebbe7aec7dbcc0cadbba01125a0"
-url = "https://github.com/rvben/rumdl/releases/download/v0.2.4/rumdl-v0.2.4-aarch64-unknown-linux-musl.tar.gz"
-provenance = "github-attestations"
+checksum = "sha256:1032814284db5bd913cc527385c8fc7a37a32ae5cc8490aa245252b814ca88ae"
+url = "https://github.com/rvben/rumdl/releases/download/v0.2.7/rumdl-v0.2.7-aarch64-unknown-linux-musl.tar.gz"
 
 [tools.rumdl."platforms.linux-x64"]
-checksum = "sha256:b0ae99a215671311d425d49abe65bd69b9fe153f3662b489b8243e73e036959f"
-url = "https://github.com/rvben/rumdl/releases/download/v0.2.4/rumdl-v0.2.4-x86_64-unknown-linux-musl.tar.gz"
-provenance = "github-attestations"
+checksum = "sha256:a7a3d78338280166d546c1eb97f203a4be2a57f4a9191e720afe9d9e44fa430e"
+url = "https://github.com/rvben/rumdl/releases/download/v0.2.7/rumdl-v0.2.7-x86_64-unknown-linux-musl.tar.gz"
 
 [tools.rumdl."platforms.linux-x64-musl"]
-checksum = "sha256:b0ae99a215671311d425d49abe65bd69b9fe153f3662b489b8243e73e036959f"
-url = "https://github.com/rvben/rumdl/releases/download/v0.2.4/rumdl-v0.2.4-x86_64-unknown-linux-musl.tar.gz"
-provenance = "github-attestations"
+checksum = "sha256:a7a3d78338280166d546c1eb97f203a4be2a57f4a9191e720afe9d9e44fa430e"
+url = "https://github.com/rvben/rumdl/releases/download/v0.2.7/rumdl-v0.2.7-x86_64-unknown-linux-musl.tar.gz"
 
 [tools.rumdl."platforms.macos-arm64"]
-checksum = "sha256:83aeb436ea758e9ac8524c580fe5d995d893fbd0544e1cda534cdc5ebbce7a1f"
-url = "https://github.com/rvben/rumdl/releases/download/v0.2.4/rumdl-v0.2.4-aarch64-apple-darwin.tar.gz"
-provenance = "github-attestations"
+checksum = "sha256:68b8c7895a8a1bddf09de4942f1d501003889274b24d5ab6e499a7fa8f9f22db"
+url = "https://github.com/rvben/rumdl/releases/download/v0.2.7/rumdl-v0.2.7-aarch64-apple-darwin.tar.gz"
 
 [tools.rumdl."platforms.macos-x64"]
-checksum = "sha256:64bcc51604ce5e2af47b990b8fed5cb81d5766fabc42ccb9917b7d4fcb356e74"
-url = "https://github.com/rvben/rumdl/releases/download/v0.2.4/rumdl-v0.2.4-x86_64-apple-darwin.tar.gz"
-provenance = "github-attestations"
+checksum = "sha256:f56daa4cd84eafec010e843fc027ff09a5c4a6bdd473616d37c6a4eb14af0c0a"
+url = "https://github.com/rvben/rumdl/releases/download/v0.2.7/rumdl-v0.2.7-x86_64-apple-darwin.tar.gz"
 
 [tools.rumdl."platforms.windows-x64"]
-checksum = "sha256:d3bb0de583f4a01c110e47cefb7b5c048cfba38707e4c828c18aca4cda4a5e4e"
-url = "https://github.com/rvben/rumdl/releases/download/v0.2.4/rumdl-v0.2.4-x86_64-pc-windows-msvc.zip"
-provenance = "github-attestations"
+checksum = "sha256:c687910ea44e6345b0d1546c908be2912f1a599c797256c54a81e56a07278abe"
+url = "https://github.com/rvben/rumdl/releases/download/v0.2.7/rumdl-v0.2.7-x86_64-pc-windows-msvc.zip"
