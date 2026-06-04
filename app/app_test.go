@@ -3,8 +3,6 @@ package app
 import (
 	"os"
 	"testing"
-
-	internal "qbit-exp/internal"
 )
 
 func TestGetFeaturesEnabled(t *testing.T) {
@@ -218,15 +216,15 @@ func TestGetBasicAuth(t *testing.T) {
 		},
 		{
 			name:         "Both set returns BasicAuth",
-			username:     internal.Ptr("user"), //nolint:modernize
-			password:     internal.Ptr("pass"), //nolint:modernize
+			username:     new("user"),
+			password:     new("pass"),
 			wantNil:      false,
 			wantUsername: "user",
 			wantPassword: "pass",
 		},
 		{
 			name:         "Only username set",
-			username:     internal.Ptr("user"), //nolint:modernize
+			username:     new("user"),
 			password:     nil,
 			wantNil:      false,
 			wantUsername: "user",
@@ -235,7 +233,7 @@ func TestGetBasicAuth(t *testing.T) {
 		{
 			name:         "Only password set",
 			username:     nil,
-			password:     internal.Ptr("pass"), //nolint:modernize
+			password:     new("pass"),
 			wantNil:      false,
 			wantUsername: "",
 			wantPassword: "pass",
