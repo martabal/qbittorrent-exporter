@@ -22,6 +22,7 @@ type Info struct {
 	NumLeechs         int64   `json:"num_leechs"`
 	NumSeeds          int64   `json:"num_seeds"`
 	Progress          float64 `json:"progress"`
+	Popularity        float64 `json:"popularity"`
 	Ratio             float64 `json:"ratio"`
 	SavePath          string  `json:"save_path"`
 	Size              int64   `json:"size"`

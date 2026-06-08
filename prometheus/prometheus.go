@@ -84,6 +84,7 @@ const (
 	torrentLabelTag                    string = "tag"
 	torrentLabelTags                   string = "tags"
 	torrentLabelProgress               string = "progress"
+	torrentLabelPopularity             string = "popularity"
 	torrentLabelQueuedIoJobs           string = "queued_io_jobs"
 	torrentLabelRatio                  string = "ratio"
 	torrentLabelSavePath               string = "save_path"
@@ -238,6 +239,7 @@ const (
 	qbittorrentTorrentDownloadSpeedBytes     string = metricCatTorrent + torrentLabelDownloadSpeed
 	qbittorrentTorrentUploadSpeedBytes       string = metricCatTorrent + torrentLabelUploadSpeed
 	qbittorrentTorrentProgress               string = metricCatTorrent + torrentLabelProgress
+	qbittorrentTorrentPopularity             string = metricCatTorrent + torrentLabelPopularity
 	qbittorrentTorrentTimeActive             string = metricCatTorrent + torrentLabelTimeActive
 	qbittorrentTorrentSeeders                string = metricCatTorrent + torrentLabelSeeders
 	qbittorrentTorrentLeechers               string = metricCatTorrent + torrentLabelLeechers
@@ -261,6 +263,7 @@ const (
 	helpQbittorrentTorrentDownloadSpeedBytes     string = "The current download speed of torrents" + BytesHelper
 	helpQbittorrentTorrentUploadSpeedBytes       string = "The current upload speed of torrents" + BytesHelper
 	helpQbittorrentTorrentProgress               string = "The current progress of torrents"
+	helpQbittorrentTorrentPopularity             string = "The popularity score of each torrent"
 	helpQbittorrentTorrentTimeActive             string = "The total active time" + SecondsHelper
 	helpQbittorrentTorrentSeeders                string = "The current number of seeders for each torrent"
 	helpQbittorrentTorrentLeechers               string = "The current number of leechers for each torrent"
@@ -405,6 +408,7 @@ func Torrent(result *API.SliceInfo, webUIVersion *string, r *prometheus.Registry
 		{qbittorrentTorrentDownloadSpeedBytes, helpQbittorrentTorrentDownloadSpeedBytes, labels},
 		{qbittorrentTorrentUploadSpeedBytes, helpQbittorrentTorrentUploadSpeedBytes, labels},
 		{qbittorrentTorrentProgress, helpQbittorrentTorrentProgress, labels},
+		{qbittorrentTorrentPopularity, helpQbittorrentTorrentPopularity, labels},
 		{qbittorrentTorrentTimeActive, helpQbittorrentTorrentTimeActive, labels},
 		{qbittorrentTorrentSeeders, helpQbittorrentTorrentSeeders, labels},
 		{qbittorrentTorrentLeechers, helpQbittorrentTorrentLeechers, labels},
@@ -484,6 +488,7 @@ func Torrent(result *API.SliceInfo, webUIVersion *string, r *prometheus.Registry
 		metrics[qbittorrentTorrentDownloadSpeedBytes].With(torrentLabels).Set(float64(torrent.Dlspeed))
 		metrics[qbittorrentTorrentUploadSpeedBytes].With(torrentLabels).Set(float64(torrent.Upspeed))
 		metrics[qbittorrentTorrentProgress].With(torrentLabels).Set(math.Round(float64(torrent.Progress)*10000) / 10000)
+		metrics[qbittorrentTorrentPopularity].With(torrentLabels).Set(float64(torrent.Popularity))
 		metrics[qbittorrentTorrentTimeActive].With(torrentLabels).Set(float64(torrent.TimeActive))
 		metrics[qbittorrentTorrentSeeders].With(torrentLabels).Set(float64(torrent.NumSeeds))
 		metrics[qbittorrentTorrentLeechers].With(torrentLabels).Set(float64(torrent.NumLeechs))
