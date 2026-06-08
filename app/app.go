@@ -295,7 +295,7 @@ func LoadEnv() {
 	HttpClient = http.Client{ //nolint:exhaustruct
 		Transport: &http.Transport{ //nolint:exhaustruct
 			MaxIdleConns:        100,
-			MaxIdleConnsPerHost: 100,
+			MaxIdleConnsPerHost: 20,
 			IdleConnTimeout:     90 * time.Second,
 			TLSClientConfig: &tls.Config{ //nolint:exhaustruct
 				RootCAs:            caCertPool,
