@@ -522,6 +522,7 @@ func TestCreateTorrentLabels(t *testing.T) {
 		DownloadedSession: 250000000,
 		MaxRatio:          2.0,
 		Ratio:             0.1,
+		Popularity:        3.25,
 		Tags:              "tag1, tag2",
 	}
 
