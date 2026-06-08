@@ -24,6 +24,7 @@ func TestInfoUnmarshal(t *testing.T) {
 		"num_leechs": 10,
 		"num_seeds": 50,
 		"progress": 0.75,
+		"popularity": 3.25,
 		"ratio": 1.5,
 		"save_path": "/downloads",
 		"size": 50000000,
@@ -57,6 +58,10 @@ func TestInfoUnmarshal(t *testing.T) {
 
 	if info.Progress != 0.75 {
 		t.Errorf("Progress: expected %f, got %f", 0.75, info.Progress)
+	}
+
+	if info.Popularity != 3.25 {
+		t.Errorf("Popularity: expected %f, got %f", 3.25, info.Popularity)
 	}
 
 	if info.State != "downloading" {
