@@ -104,72 +104,72 @@ url = "https://github.com/golangci/golangci-lint/releases/download/v2.12.2/golan
 provenance = "github-attestations"
 
 [[tools.just]]
-version = "1.51.0"
+version = "1.55.1"
 backend = "aqua:casey/just"
 
 [tools.just."platforms.linux-arm64"]
-checksum = "sha256:ed7ec466b77709198fd4afed253dba0270203ba5eb1c006bee2b0139090284f5"
-url = "https://github.com/casey/just/releases/download/1.51.0/just-1.51.0-aarch64-unknown-linux-musl.tar.gz"
+checksum = "sha256:b0ee814c9656427408e339893541e30d9027828686839499b2a2a34dd61ad173"
+url = "https://github.com/casey/just/releases/download/1.55.1/just-1.55.1-aarch64-unknown-linux-musl.tar.gz"
 
 [tools.just."platforms.linux-arm64-musl"]
-checksum = "sha256:ed7ec466b77709198fd4afed253dba0270203ba5eb1c006bee2b0139090284f5"
-url = "https://github.com/casey/just/releases/download/1.51.0/just-1.51.0-aarch64-unknown-linux-musl.tar.gz"
+checksum = "sha256:b0ee814c9656427408e339893541e30d9027828686839499b2a2a34dd61ad173"
+url = "https://github.com/casey/just/releases/download/1.55.1/just-1.55.1-aarch64-unknown-linux-musl.tar.gz"
 
 [tools.just."platforms.linux-x64"]
-checksum = "sha256:c8f085ca3e885723c341d06243fc291b5abfdc8bbe3b2c076b117de490387b59"
-url = "https://github.com/casey/just/releases/download/1.51.0/just-1.51.0-x86_64-unknown-linux-musl.tar.gz"
+checksum = "sha256:b0ef600f0df20d5ae91ae931627c499fc52b477ffe5f5ea7b7b3ec616b16c778"
+url = "https://github.com/casey/just/releases/download/1.55.1/just-1.55.1-x86_64-unknown-linux-musl.tar.gz"
 
 [tools.just."platforms.linux-x64-musl"]
-checksum = "sha256:c8f085ca3e885723c341d06243fc291b5abfdc8bbe3b2c076b117de490387b59"
-url = "https://github.com/casey/just/releases/download/1.51.0/just-1.51.0-x86_64-unknown-linux-musl.tar.gz"
+checksum = "sha256:b0ef600f0df20d5ae91ae931627c499fc52b477ffe5f5ea7b7b3ec616b16c778"
+url = "https://github.com/casey/just/releases/download/1.55.1/just-1.55.1-x86_64-unknown-linux-musl.tar.gz"
 
 [tools.just."platforms.macos-arm64"]
-checksum = "sha256:61e3f1b8a545ff064b091eab4b6e14f8cc743ff15549be293b1e92f5b1467002"
-url = "https://github.com/casey/just/releases/download/1.51.0/just-1.51.0-aarch64-apple-darwin.tar.gz"
+checksum = "sha256:0225e3899b1b555bc3f4122d0402ba931a6ee697d188c68e4d971468064c78f4"
+url = "https://github.com/casey/just/releases/download/1.55.1/just-1.55.1-aarch64-apple-darwin.tar.gz"
 
 [tools.just."platforms.macos-x64"]
-checksum = "sha256:d583e45f1f9fcdd26069ad2fe3bb9dea414756d8d0752eb9093974cb5c0246f0"
-url = "https://github.com/casey/just/releases/download/1.51.0/just-1.51.0-x86_64-apple-darwin.tar.gz"
+checksum = "sha256:74d7d0afc195df14d8e34636fb9b6a9c7d3d443622478dbe86140ffe41ad9192"
+url = "https://github.com/casey/just/releases/download/1.55.1/just-1.55.1-x86_64-apple-darwin.tar.gz"
 
 [tools.just."platforms.windows-x64"]
-checksum = "sha256:09d1138b6845e73f04bff5e26be3f57663bddca25e36fe6241d28a5aa310b64e"
-url = "https://github.com/casey/just/releases/download/1.51.0/just-1.51.0-x86_64-pc-windows-msvc.zip"
+checksum = "sha256:8106e6c036aea52dd1d5109bdf9357c37ba87a0e0ef1013d7327103942550c79"
+url = "https://github.com/casey/just/releases/download/1.55.1/just-1.55.1-x86_64-pc-windows-msvc.zip"
 
 [[tools.rumdl]]
-version = "0.2.9"
+version = "0.2.27"
 backend = "aqua:rvben/rumdl"
 
 [tools.rumdl."platforms.linux-arm64"]
-checksum = "sha256:a319a4934c43f0269e8805e773e8ea3be020f147a61c15e16d068b975fb5c280"
-url = "https://github.com/rvben/rumdl/releases/download/v0.2.9/rumdl-v0.2.9-aarch64-unknown-linux-musl.tar.gz"
+checksum = "sha256:b09f1ebc6f8c4dcb90a99a1628608add620c001a7afc1b9694c7d123eaa8582c"
+url = "https://github.com/rvben/rumdl/releases/download/v0.2.27/rumdl-v0.2.27-aarch64-unknown-linux-musl.tar.gz"
 provenance = "github-attestations"
 
 [tools.rumdl."platforms.linux-arm64-musl"]
-checksum = "sha256:a319a4934c43f0269e8805e773e8ea3be020f147a61c15e16d068b975fb5c280"
-url = "https://github.com/rvben/rumdl/releases/download/v0.2.9/rumdl-v0.2.9-aarch64-unknown-linux-musl.tar.gz"
+checksum = "sha256:b09f1ebc6f8c4dcb90a99a1628608add620c001a7afc1b9694c7d123eaa8582c"
+url = "https://github.com/rvben/rumdl/releases/download/v0.2.27/rumdl-v0.2.27-aarch64-unknown-linux-musl.tar.gz"
 provenance = "github-attestations"
 
 [tools.rumdl."platforms.linux-x64"]
-checksum = "sha256:dee92319de062a2d97fa72769eb15f0744241741d0b439fd69e0d58d0a03e505"
-url = "https://github.com/rvben/rumdl/releases/download/v0.2.9/rumdl-v0.2.9-x86_64-unknown-linux-musl.tar.gz"
+checksum = "sha256:cf94f96b38d7697cb1b6d9630d94cd92c87d60438b1a39ea14b0a91a1373a5cf"
+url = "https://github.com/rvben/rumdl/releases/download/v0.2.27/rumdl-v0.2.27-x86_64-unknown-linux-musl.tar.gz"
 provenance = "github-attestations"
 
 [tools.rumdl."platforms.linux-x64-musl"]
-checksum = "sha256:dee92319de062a2d97fa72769eb15f0744241741d0b439fd69e0d58d0a03e505"
-url = "https://github.com/rvben/rumdl/releases/download/v0.2.9/rumdl-v0.2.9-x86_64-unknown-linux-musl.tar.gz"
+checksum = "sha256:cf94f96b38d7697cb1b6d9630d94cd92c87d60438b1a39ea14b0a91a1373a5cf"
+url = "https://github.com/rvben/rumdl/releases/download/v0.2.27/rumdl-v0.2.27-x86_64-unknown-linux-musl.tar.gz"
 provenance = "github-attestations"
 
 [tools.rumdl."platforms.macos-arm64"]
-checksum = "sha256:772ccabd903bf9fc9844b706c14d433c4233202eef19e5c34561f516ae3b8f99"
-url = "https://github.com/rvben/rumdl/releases/download/v0.2.9/rumdl-v0.2.9-aarch64-apple-darwin.tar.gz"
+checksum = "sha256:c0a36e15686b25a7ce94a6bc648a8a05351c2d740494727518c4753319f58f14"
+url = "https://github.com/rvben/rumdl/releases/download/v0.2.27/rumdl-v0.2.27-aarch64-apple-darwin.tar.gz"
 provenance = "github-attestations"
 
 [tools.rumdl."platforms.macos-x64"]
-checksum = "sha256:3939cc5606315a99f0878452c02eab1b8f1a844eed2452c36f838c37ce46b653"
-url = "https://github.com/rvben/rumdl/releases/download/v0.2.9/rumdl-v0.2.9-x86_64-apple-darwin.tar.gz"
+checksum = "sha256:c96cb4d4607456e7ffe982fdaf298f7b62884f00d4cf65c5417eb64b5bfbe557"
+url = "https://github.com/rvben/rumdl/releases/download/v0.2.27/rumdl-v0.2.27-x86_64-apple-darwin.tar.gz"
 provenance = "github-attestations"
 
 [tools.rumdl."platforms.windows-x64"]
-checksum = "sha256:cd4c42c26aa31ff62add313bb8ff6b0d1cbe2e043e8b42895736fa1d20a1755c"
-url = "https://github.com/rvben/rumdl/releases/download/v0.2.9/rumdl-v0.2.9-x86_64-pc-windows-msvc.zip"
+checksum = "sha256:aefd5f6bbd529eba3e9b2be2b711ff0dac6f8b18b30b3005490c67cfb468fdbe"
+url = "https://github.com/rvben/rumdl/releases/download/v0.2.27/rumdl-v0.2.27-x86_64-pc-windows-msvc.zip"
 provenance = "github-attestations"
