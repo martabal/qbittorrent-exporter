@@ -14,7 +14,7 @@ import (
 	"qbit-exp/app"
 	"qbit-exp/logger"
 
-	"github.com/prometheus/client_golang/prometheus"
+	vmmetrics "github.com/VictoriaMetrics/metrics"
 )
 
 var buff = &bytes.Buffer{}
@@ -34,7 +34,7 @@ func TestMetricsFailureResponse(t *testing.T) {
 
 	rec := httptest.NewRecorder()
 
-	metrics(rec, req, func(_ *prometheus.Registry) error {
+	metrics(rec, req, func(_ *vmmetrics.Set) error {
 		return errors.New("mock error")
 	})
 
@@ -64,15 +64,8 @@ func TestMetricsReturnMetric(t *testing.T) {
 
 	rec := httptest.NewRecorder()
 
-	metrics(rec, req, func(registry *prometheus.Registry) error {
-		qbittorrent_app_version := prometheus.NewGauge(prometheus.GaugeOpts{ //nolint:exhaustruct
-			Name: "qbittorrent_app_version",
-			Help: "The current qBittorrent version",
-			ConstLabels: map[string]string{
-				"version": string("1.0"),
-			},
-		})
-		registry.MustRegister(qbittorrent_app_version)
+	metrics(rec, req, func(registry *vmmetrics.Set) error {
+		qbittorrent_app_version := registry.GetOrCreateGauge(`qbittorrent_app_version{version="1.0"}`, nil)
 		qbittorrent_app_version.Set(1)
 
 		return nil
@@ -82,7 +75,7 @@ func TestMetricsReturnMetric(t *testing.T) {
 		t.Errorf("expected status code 200, got %d", status)
 	}
 
-	expectedBody := "# HELP qbittorrent_app_version The current qBittorrent version\n# TYPE qbittorrent_app_version gauge\nqbittorrent_app_version{version=\"1.0\"} 1\n"
+	expectedBody := "qbittorrent_app_version{version=\"1.0\"} 1\n"
 
 	if rec.Body.String() != expectedBody {
 		t.Errorf("expected \n%s, got \n%s", expectedBody, rec.Body.String())

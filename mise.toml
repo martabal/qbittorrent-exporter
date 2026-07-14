@@ -1,9 +1,9 @@
 [tools]
 git-cliff = "2.13.1"
-go = "1.26.4"
+go = "1.26.5"
 golangci-lint = "2.12.2"
-just = "1.55.1"
-rumdl = "0.2.27"
+just = "1.56.0"
+rumdl = "0.2.32"
 
 [settings]
 experimental = true
