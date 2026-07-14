@@ -16,7 +16,7 @@ import (
 	"qbit-exp/logger"
 	prom "qbit-exp/prometheus"
 
-	"github.com/prometheus/client_golang/prometheus"
+	"github.com/VictoriaMetrics/metrics"
 )
 
 // syncState holds the persistent state for delta sync.
@@ -36,7 +36,7 @@ type Data struct {
 	URL         string
 	HTTPMethod  string
 	QueryParams *[]QueryParams
-	Handle      func(body []byte, r *prometheus.Registry, webUIVersion *string) error
+	Handle      func(body []byte, r *metrics.Set, webUIVersion *string) error
 }
 
 type UniqueTracker struct {
@@ -48,7 +48,7 @@ const unmarshError string = "Can not unmarshal JSON for"
 
 const baseAPIRUL string = "/api/v2/"
 
-func newData(url string, handler func(body []byte, r *prometheus.Registry, webUIVersion *string) error) Data {
+func newData(url string, handler func(body []byte, r *metrics.Set, webUIVersion *string) error) Data {
 	return Data{
 		Process:     &url,
 		URL:         baseAPIRUL + url,
@@ -63,12 +63,12 @@ var firstAPIRequest = newData("app/webapiVersion", nil)
 // staticAPIRequests are requests that don't benefit from delta sync.
 // These are small responses that change rarely.
 var staticAPIRequests = [...]Data{
-	newData("app/version", func(body []byte, r *prometheus.Registry, _ *string) error {
+	newData("app/version", func(body []byte, r *metrics.Set, _ *string) error {
 		prom.Version(&body, r)
 
 		return nil
 	}),
-	newData("app/preferences", func(body []byte, r *prometheus.Registry, _ *string) error {
+	newData("app/preferences", func(body []byte, r *metrics.Set, _ *string) error {
 		result := new(API.Preferences)
 
 		err := json.Unmarshal(body, result)
@@ -86,7 +86,7 @@ func createUrl(url string) string {
 	return app.QBittorrent.BaseUrl + url
 }
 
-func getData(r *prometheus.Registry, data *Data, webUIVersion *string, c chan func() (bool, error)) {
+func getData(r *metrics.Set, data *Data, webUIVersion *string, c chan func() (bool, error)) {
 	url := createUrl(data.URL)
 
 	body, retry, err := apiRequest(url, data.HTTPMethod, data.QueryParams)
@@ -145,7 +145,7 @@ func getTrackersInfo(data *Data, c chan func() (*API.Trackers, error)) {
 	c <- (func() (*API.Trackers, error) { return result, nil })
 }
 
-func getTrackers(torrentList *API.SliceInfo, r *prometheus.Registry) {
+func getTrackers(torrentList *API.SliceInfo, r *metrics.Set) {
 	var wg sync.WaitGroup
 
 	uniqueValues := make(map[string]struct{})
@@ -205,7 +205,7 @@ func getTrackers(torrentList *API.SliceInfo, r *prometheus.Registry) {
 	prom.Trackers(*responses, r)
 }
 
-func AllRequests(r *prometheus.Registry) error {
+func AllRequests(r *metrics.Set) error {
 	var wg sync.WaitGroup
 
 	firstRequestUrl := createUrl(firstAPIRequest.URL)

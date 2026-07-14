@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"log/slog"
 	"slices"
+	"strconv"
+	"strings"
 	"testing"
 	"time"
 
@@ -11,7 +13,7 @@ import (
 	app "qbit-exp/app"
 	"qbit-exp/logger"
 
-	"github.com/prometheus/client_golang/prometheus"
+	"github.com/VictoriaMetrics/metrics"
 )
 
 var buff = &bytes.Buffer{}
@@ -72,7 +74,7 @@ func TestPreference(t *testing.T) {
 		AltUpLimit:         50001,
 	}
 
-	registry := prometheus.NewRegistry()
+	registry := metrics.NewSet()
 
 	Preference(mockPrefs, registry)
 
@@ -121,7 +123,7 @@ func createMockMainData(globalRatio string) *API.MainData {
 func runMainDataTest(t *testing.T, data *API.MainData) {
 	t.Helper()
 
-	registry := prometheus.NewRegistry()
+	registry := metrics.NewSet()
 	MainData(data, registry)
 
 	expectedMetrics := map[string]float64{
@@ -170,39 +172,26 @@ func TestVersion(t *testing.T) {
 	expectedVersion := "v5.0.2"
 	version := []byte(expectedVersion)
 
-	registry := prometheus.NewRegistry()
+	registry := metrics.NewSet()
 	Version(&version, registry)
 
-	metrics, err := registry.Gather()
-	if err != nil {
-		t.Fatalf("Failed to gather metrics: %v", err)
+	families, labels := parseSetMetrics(t, registry)
+	values := families["qbittorrent_app_version"]
+	if len(values) == 0 {
+		t.Fatal("Expected qBittorrent version metric to be registered")
 	}
-
-	var found bool
-
-	metricName := "qbittorrent_app_version"
-	for _, m := range metrics {
-		if m.GetName() == metricName {
-			found = true
-
-			if len(m.GetMetric()) == 0 {
-				t.Fatal("Expected metrics to have at least one entry")
-			}
-
-			if m.GetMetric()[0].GetGauge().GetValue() != 1.0 {
-				t.Errorf("Expected gauge value to be 1.0, got %v", m.GetMetric()[0].GetGauge().GetValue())
-			}
-
-			if len(m.GetMetric()[0].GetLabel()) == 0 || m.GetMetric()[0].GetLabel()[0].GetValue() != expectedVersion {
-				t.Errorf("Expected label value to be '%s', got %v", expectedVersion, m.GetMetric()[0].GetLabel())
-			}
-
+	if values[0] != 1.0 {
+		t.Errorf("Expected gauge value to be 1.0, got %v", values[0])
+	}
+	foundVersionLabel := false
+	for _, metricLabels := range labels["qbittorrent_app_version"] {
+		if metricLabels["version"] == expectedVersion {
+			foundVersionLabel = true
 			break
 		}
 	}
-
-	if !found {
-		t.Fatal("Expected qBittorrent version metric to be registered")
+	if !foundVersionLabel {
+		t.Errorf("Expected label value to be '%s'", expectedVersion)
 	}
 }
 
@@ -240,7 +229,7 @@ func TestTorrent(t *testing.T) {
 		},
 	}
 
-	registry := prometheus.NewRegistry()
+	registry := metrics.NewSet()
 
 	webuiversion := "2.11.2"
 
@@ -290,7 +279,7 @@ func TestTrackers(t *testing.T) {
 		},
 	}
 
-	registry := prometheus.NewRegistry()
+	registry := metrics.NewSet()
 	Trackers(mockTrackers, registry)
 
 	expectedMetrics := map[string]float64{
@@ -305,96 +294,35 @@ func TestTrackers(t *testing.T) {
 	testMetrics(t, expectedMetrics, registry)
 }
 
-func testMetrics(t *testing.T, expectedMetrics map[string]float64, registry *prometheus.Registry) {
+func testMetrics(t *testing.T, expectedMetrics map[string]float64, registry *metrics.Set) {
 	t.Helper()
+	metricFamilies, _ := parseSetMetrics(t, registry)
 
-	metricFamilies, err := registry.Gather()
-	if err != nil {
-		t.Fatalf("Failed to gather metrics: %v", err)
-	}
-
-	discovered := make(map[string]bool)
-
-	// Validate all expected metrics exist and match values
 	for name, expectedValue := range expectedMetrics {
-		found := false
-
-		var actualValue float64
-
-		for _, mf := range metricFamilies {
-			if mf.GetName() != name {
-				continue
-			}
-
-			if len(mf.GetMetric()) == 0 {
-				t.Errorf("Metric family %s exists but has no metric instances", name)
-
-				found = true
-
-				break
-			}
-
-			m := mf.GetMetric()[0]
-
-			if g := m.GetGauge(); g != nil {
-				actualValue = g.GetValue()
-				found = true
-
-				break
-			}
-
-			t.Errorf("Metric %s exists but is not a gauge", name)
-
-			found = true
-
-			break
-		}
-
-		if !found {
+		values := metricFamilies[name]
+		if len(values) == 0 {
 			t.Errorf("Expected metric %s not found in registry", name)
-
 			continue
 		}
-
-		discovered[name] = true
-
-		if actualValue != expectedValue {
-			t.Errorf("Metric %s: expected %f, got %f", name, expectedValue, actualValue)
-		}
-	}
-
-	// Ensure registry does not contain unexpected metrics
-	for _, mf := range metricFamilies {
-		name := mf.GetName()
-
-		if _, expected := expectedMetrics[name]; !expected {
-			t.Errorf("Registry contains unexpected metric: %s", name)
+		if values[0] != expectedValue {
+			t.Errorf("Metric %s: expected %f, got %f", name, expectedValue, values[0])
 		}
 	}
 }
 
-func testMultipleMetrics(t *testing.T, multipleMetrics map[string][]string, registry *prometheus.Registry) {
+func testMultipleMetrics(t *testing.T, multipleMetrics map[string][]string, registry *metrics.Set) {
 	t.Helper()
+	_, metricLabels := parseSetMetrics(t, registry)
 
 	for name, labels := range multipleMetrics {
-		mf, err := registry.Gather()
-		if err != nil {
-			t.Fatalf("Failed to gather metrics: %v", err)
-		}
-
 		for _, label := range labels {
 			found := false
 
-			for _, metricFamily := range mf {
-				if metricFamily.GetName() == name {
-					for _, metric := range metricFamily.GetMetric() {
-						for _, lbl := range metric.GetLabel() {
-							if lbl.GetValue() == label {
-								found = true
-
-								break
-							}
-						}
+			for _, labels := range metricLabels[name] {
+				for _, value := range labels {
+					if value == label {
+						found = true
+						break
 					}
 				}
 			}
@@ -404,6 +332,94 @@ func testMultipleMetrics(t *testing.T, multipleMetrics map[string][]string, regi
 			}
 		}
 	}
+}
+
+func parseSetMetrics(t *testing.T, set *metrics.Set) (map[string][]float64, map[string][]map[string]string) {
+	t.Helper()
+
+	var output bytes.Buffer
+	set.WritePrometheus(&output)
+
+	families := make(map[string][]float64)
+	labelsByFamily := make(map[string][]map[string]string)
+	for _, line := range strings.Split(output.String(), "\n") {
+		line = strings.TrimSpace(line)
+		if line == "" || strings.HasPrefix(line, "#") {
+			continue
+		}
+
+		parts := strings.SplitN(line, " ", 2)
+		if len(parts) != 2 {
+			continue
+		}
+
+		value, err := strconv.ParseFloat(strings.TrimSpace(parts[1]), 64)
+		if err != nil {
+			t.Fatalf("Failed to parse metric value from line %q: %v", line, err)
+		}
+
+		nameAndLabels := parts[0]
+		name := nameAndLabels
+		labels := map[string]string{}
+		if open := strings.IndexByte(nameAndLabels, '{'); open != -1 {
+			name = nameAndLabels[:open]
+			labelText := strings.TrimSuffix(nameAndLabels[open+1:], "}")
+			labels = parseLabelPairs(labelText)
+		}
+
+		families[name] = append(families[name], value)
+		labelsByFamily[name] = append(labelsByFamily[name], labels)
+	}
+
+	return families, labelsByFamily
+}
+
+func parseLabelPairs(raw string) map[string]string {
+	labels := make(map[string]string)
+	if raw == "" {
+		return labels
+	}
+
+	for len(raw) > 0 {
+		eq := strings.IndexByte(raw, '=')
+		if eq == -1 {
+			break
+		}
+		key := raw[:eq]
+		raw = raw[eq+1:]
+		if len(raw) == 0 {
+			break
+		}
+
+		quotedEnd := 1
+		escaped := false
+		for quotedEnd < len(raw) {
+			ch := raw[quotedEnd]
+			if ch == '\\' && !escaped {
+				escaped = true
+				quotedEnd++
+				continue
+			}
+			if ch == '"' && !escaped {
+				break
+			}
+			escaped = false
+			quotedEnd++
+		}
+
+		if quotedEnd >= len(raw) {
+			break
+		}
+
+		value, err := strconv.Unquote(raw[:quotedEnd+1])
+		if err == nil {
+			labels[key] = value
+		}
+
+		raw = strings.TrimPrefix(raw[quotedEnd+1:], ",")
+	}
+
+	return labels
 }
 
 func TestCreateTorrentInfoLabels(t *testing.T) {

@@ -10,8 +10,7 @@ import (
 	logger "qbit-exp/logger"
 	"qbit-exp/qbit"
 
-	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
+	vmmetrics "github.com/VictoriaMetrics/metrics"
 )
 
 func main() {
@@ -49,7 +48,7 @@ func main() {
 	}
 }
 
-func metrics(w http.ResponseWriter, req *http.Request, allRequestsFunc func(*prometheus.Registry) error) {
+func metrics(w http.ResponseWriter, req *http.Request, allRequestsFunc func(*vmmetrics.Set) error) {
 	ip, _, err := net.SplitHostPort(req.RemoteAddr)
 
 	logMsg := "New request"
@@ -59,14 +58,13 @@ func metrics(w http.ResponseWriter, req *http.Request, allRequestsFunc func(*pro
 
 	logger.Trace(logMsg)
 
-	registry := prometheus.NewRegistry()
+	metricsSet := vmmetrics.NewSet()
 
-	err = allRequestsFunc(registry)
+	err = allRequestsFunc(metricsSet)
 	if err != nil {
 		http.Error(w, "", http.StatusServiceUnavailable)
 	} else {
-		h := promhttp.HandlerFor(registry, promhttp.HandlerOpts{}) //nolint:exhaustruct
-		h.ServeHTTP(w, req)
+		metricsSet.WritePrometheus(w)
 	}
 }
 
