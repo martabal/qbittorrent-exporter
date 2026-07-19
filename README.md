@@ -31,7 +31,7 @@ qBittorrent >= 5.2.0:
 ```sh
 docker run --name=qbittorrent-exporter \
     -e QBITTORRENT_BASE_URL=http://192.168.1.10:8080 \
-    -e QBITTORRENT_API_KEY='<your_api_key>' \
+    -e QBITTORRENT_API_KEY="<your_api_key>" \
     -p 8090:8090 \
     ghcr.io/martabal/qbittorrent-exporter:latest
 ```
@@ -41,7 +41,7 @@ qBittorrent < 5.2.0:
 ```sh
 docker run --name=qbittorrent-exporter \
     -e QBITTORRENT_BASE_URL=http://192.168.1.10:8080 \
-    -e QBITTORRENT_PASSWORD='<your_password>' \
+    -e QBITTORRENT_PASSWORD="<your_password>" \
     -e QBITTORRENT_USERNAME=admin \
     -p 8090:8090 \
     ghcr.io/martabal/qbittorrent-exporter:latest
@@ -58,7 +58,7 @@ services:
     container_name: qbittorrent-exporter
     environment:
       - QBITTORRENT_BASE_URL=http://192.168.1.10:8080
-      - QBITTORRENT_API_KEY='<your_api_key>'
+      - QBITTORRENT_API_KEY="<your_api_key>"
     ports:
       - 8090:8090
     restart: unless-stopped
@@ -73,7 +73,7 @@ services:
     container_name: qbittorrent-exporter
     environment:
       - QBITTORRENT_BASE_URL=http://192.168.1.10:8080
-      - QBITTORRENT_PASSWORD='<your_password>'
+      - QBITTORRENT_PASSWORD="<your_password>"
       - QBITTORRENT_USERNAME=admin
     ports:
       - 8090:8090
