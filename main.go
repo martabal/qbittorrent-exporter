@@ -29,6 +29,8 @@ func main() {
 
 	http.HandleFunc(app.Exporter.Path, metrics)
 
+	http.HandleFunc("/healthz", healthz)
+
 	http.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
 		http.Redirect(w, req, app.Exporter.Path, http.StatusFound)
 	})
@@ -66,6 +68,12 @@ func metrics(w http.ResponseWriter, req *http.Request, allRequestsFunc func(*vmm
 	} else {
 		metricsSet.WritePrometheus(w)
 	}
+}
+
+// healthz reports server liveness without triggering a metrics collection.
+func healthz(w http.ResponseWriter, _ *http.Request) {
+	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write([]byte("OK"))
 }
 
 func basicAuth(h http.HandlerFunc) http.HandlerFunc {

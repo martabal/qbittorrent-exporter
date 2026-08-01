@@ -87,6 +87,24 @@ func TestMetricsReturnMetric(t *testing.T) {
 	}
 }
 
+func TestHealthzReturnsOK(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
+	req := httptest.NewRequestWithContext(ctx, http.MethodGet, "/healthz", nil)
+	rec := httptest.NewRecorder()
+
+	healthz(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Errorf("expected status code 200, got %d", rec.Code)
+	}
+
+	if rec.Body.String() != "OK" {
+		t.Errorf("expected body 'OK', got %s", rec.Body.String())
+	}
+}
+
 func TestBasicAuth_Success(t *testing.T) {
 	buff.Reset()
 
