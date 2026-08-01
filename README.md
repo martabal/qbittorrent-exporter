@@ -128,6 +128,10 @@ You can find in the dashboard the following metrics:
 - Tags
 - Trackers
 
+## Health check
+
+The exporter exposes a `/healthz` endpoint that returns `200 OK` without querying qBittorrent. Use it for Docker or Kubernetes liveness and readiness probes: probing the metrics path triggers a full collection on each hit, which is expensive with a large number of torrents. `/healthz` is not protected by basic auth.
+
 ## Resources
 
 This app uses ~20 times less RAM compared to the [original exporter](https://github.com/caseyscarborough/qbittorrent-exporter) for the same amount of torrents.
