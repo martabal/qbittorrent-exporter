@@ -292,9 +292,9 @@ func LoadEnv() {
 		logger.Trace("Not using basic auth to protect the exporter instance")
 	}
 
-	HttpClient = http.Client{ //nolint:exhaustruct
-		Transport: &http.Transport{ //nolint:exhaustruct
-			TLSClientConfig: &tls.Config{ //nolint:exhaustruct
+	HttpClient = http.Client{ //nolint:exhaustruct_v5
+		Transport: &http.Transport{ //nolint:exhaustruct_v5
+			TLSClientConfig: &tls.Config{ //nolint:exhaustruct_v5
 				RootCAs:            caCertPool,
 				InsecureSkipVerify: envSetToTrue(insecureSkipVerify), //nolint:gosec
 				MinVersion:         minTlsVersion,

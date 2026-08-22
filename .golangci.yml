@@ -5,6 +5,7 @@ linters:
     - cyclop
     - depguard
     - err113
+    - exhaustruct
     - forbidigo
     - funlen
     - gochecknoglobals
@@ -13,7 +14,9 @@ linters:
     - goconst
     - gocyclo
     - lll
+    - maintidx
     - mnd
+    - gomodguard
     - nestif
     - paralleltest
     - revive
@@ -22,5 +25,5 @@ linters:
     - unparam
     - varnamelen
     - wrapcheck
-    - maintidx
+    - wsl
 version: "2"

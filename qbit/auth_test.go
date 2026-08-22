@@ -38,7 +38,7 @@ var wronglegacyAuth = app.LegacyAuth{
 }
 
 func init() {
-	logger.Log = &logger.Logger{Logger: slog.New(slog.NewTextHandler(buff, &slog.HandlerOptions{}))} //nolint:exhaustruct
+	logger.Log = &logger.Logger{Logger: slog.New(slog.NewTextHandler(buff, &slog.HandlerOptions{}))} //nolint:exhaustruct_v5
 }
 
 func TestAuthSuccess(t *testing.T) {

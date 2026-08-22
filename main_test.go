@@ -20,7 +20,7 @@ import (
 var buff = &bytes.Buffer{}
 
 func init() {
-	logger.Log = &logger.Logger{Logger: slog.New(slog.NewTextHandler(buff, &slog.HandlerOptions{}))} //nolint:exhaustruct
+	logger.Log = &logger.Logger{Logger: slog.New(slog.NewTextHandler(buff, &slog.HandlerOptions{}))} //nolint:exhaustruct_v5
 }
 
 func TestMetricsFailureResponse(t *testing.T) {
@@ -46,7 +46,7 @@ func TestMetricsFailureResponse(t *testing.T) {
 func TestMetricsReturnMetric(t *testing.T) {
 	buff.Reset()
 
-	opts := &slog.HandlerOptions{ //nolint:exhaustruct
+	opts := &slog.HandlerOptions{ //nolint:exhaustruct_v5
 		Level: logger.LevelTrace,
 	}
 
@@ -149,7 +149,7 @@ func TestBasicAuth_Success(t *testing.T) {
 func TestBasicAuth_InvalidCredentials(t *testing.T) {
 	buff.Reset()
 
-	opts := &slog.HandlerOptions{ //nolint:exhaustruct
+	opts := &slog.HandlerOptions{ //nolint:exhaustruct_v5
 		Level: logger.LevelWarn,
 	}
 

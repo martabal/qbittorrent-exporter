@@ -2,7 +2,7 @@ module qbit-exp
 
 go 1.26
 
-toolchain go1.26.5
+toolchain go1.27.0
 
 require (
 	github.com/VictoriaMetrics/metrics v1.44.0

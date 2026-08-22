@@ -378,7 +378,7 @@ func apiRequest(url string, method string, queryParams *[]QueryParams) ([]byte, 
 	if app.QBittorrent.APIKey != nil {
 		req.Header.Set("Authorization", "Bearer "+*app.QBittorrent.APIKey)
 	} else {
-		req.AddCookie(&http.Cookie{ //nolint:exhaustruct
+		req.AddCookie(&http.Cookie{ //nolint:exhaustruct_v5
 			Name:     app.QBittorrent.LegacyAuth.Cookie.Key,
 			Value:    *app.QBittorrent.LegacyAuth.Cookie.Value,
 			Secure:   true,

@@ -39,7 +39,7 @@ func main() {
 
 	logger.Info("Starting the exporter")
 
-	server := &http.Server{ //nolint:exhaustruct
+	server := &http.Server{ //nolint:exhaustruct_v5
 		Addr:              addr,
 		ReadHeaderTimeout: 3 * time.Second,
 	}

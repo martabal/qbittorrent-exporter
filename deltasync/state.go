@@ -27,7 +27,7 @@ func NewState() *State {
 		torrents:    make(map[string]API.Info),
 		categories:  make(map[string]API.Category),
 		tags:        make([]string, 0),
-		serverState: API.ServerState{}, //nolint:exhaustruct
+		serverState: API.ServerState{}, //nolint:exhaustruct_v5
 	}
 }
 
@@ -105,7 +105,7 @@ func (s *State) Reset() {
 	s.torrents = make(map[string]API.Info)
 	s.categories = make(map[string]API.Category)
 	s.tags = []string{}
-	s.serverState = API.ServerState{} //nolint:exhaustruct
+	s.serverState = API.ServerState{} //nolint:exhaustruct_v5
 }
 
 func (s *State) applyFullUpdate(delta *API.DeltaMainData) {
@@ -133,7 +133,7 @@ func (s *State) applyFullUpdate(delta *API.DeltaMainData) {
 	copy(s.tags, delta.Tags)
 
 	// Replace server state (full update includes all fields)
-	s.serverState = API.ServerState{} //nolint:exhaustruct
+	s.serverState = API.ServerState{} //nolint:exhaustruct_v5
 	if len(delta.ServerState) > 0 {
 		_ = json.Unmarshal(delta.ServerState, &s.serverState)
 	}

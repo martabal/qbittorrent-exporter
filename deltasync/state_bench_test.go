@@ -70,7 +70,7 @@ func buildFullDelta(count int) *API.DeltaMainData {
 		panic(err)
 	}
 
-	return &API.DeltaMainData{ //nolint:exhaustruct
+	return &API.DeltaMainData{ //nolint:exhaustruct_v5
 		Rid:         1,
 		FullUpdate:  true,
 		Torrents:    torrents,
@@ -93,7 +93,7 @@ func buildPartialDelta(changed, ridOffset int) *API.DeltaMainData {
 		torrents[hash] = raw
 	}
 
-	return &API.DeltaMainData{ //nolint:exhaustruct
+	return &API.DeltaMainData{ //nolint:exhaustruct_v5
 		Rid:         int64(ridOffset + 1),
 		Torrents:    torrents,
 		ServerState: json.RawMessage(`{"dht_nodes": 600}`),
