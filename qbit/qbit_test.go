@@ -36,6 +36,15 @@ func setupMockApp() {
 	app.QBittorrent.LegacyAuth.Cookie.Value = &cookieValue
 }
 
+func createTestServer(t *testing.T, handler http.Handler) *httptest.Server {
+	t.Helper()
+
+	server := httptest.NewTestServer(t, handler)
+	server.Start()
+
+	return server
+}
+
 func createTlsServer(t *testing.T, discardServerLogs bool, maxTlsVersion uint16, handler http.Handler) (*httptest.Server, *x509.Certificate) {
 	t.Helper()
 
@@ -96,7 +105,7 @@ func createTlsServer(t *testing.T, discardServerLogs bool, maxTlsVersion uint16,
 	}
 
 	// Create test server with custom TLS config
-	server := httptest.NewUnstartedServer(handler)
+	server := httptest.NewTestServer(t, handler)
 
 	server.TLS = &tls.Config{ //nolint:exhaustruct_v5
 		Certificates: []tls.Certificate{serverCert},
@@ -114,11 +123,10 @@ func createTlsServer(t *testing.T, discardServerLogs bool, maxTlsVersion uint16,
 func TestApiRequest_Success(t *testing.T) {
 	setupMockApp()
 
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	server := createTestServer(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		_, _ = w.Write([]byte("success"))
 	}))
-	defer server.Close()
 
 	app.QBittorrent.BaseUrl = server.URL
 	url := createUrl("/test")
@@ -140,10 +148,9 @@ func TestApiRequest_Success(t *testing.T) {
 func TestApiRequest_Forbidden_cookie(t *testing.T) {
 	setupMockApp()
 
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	server := createTestServer(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusForbidden)
 	}))
-	defer server.Close()
 
 	app.QBittorrent.BaseUrl = server.URL
 	app.QBittorrent.LegacyAuth.Cookie.Value = &cookieValue
@@ -164,10 +171,9 @@ func TestApiRequest_Forbidden_APIKey(t *testing.T) {
 
 	app.QBittorrent.APIKey = &apikey
 
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	server := createTestServer(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusForbidden)
 	}))
-	defer server.Close()
 
 	app.QBittorrent.BaseUrl = server.URL
 	app.QBittorrent.LegacyAuth.Cookie.Value = &cookieValue
@@ -186,11 +192,10 @@ func TestApiRequest_Forbidden_APIKey(t *testing.T) {
 func TestApiRequest_Timeout(t *testing.T) {
 	setupMockApp()
 
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	server := createTestServer(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		time.Sleep(20 * time.Millisecond)
 		w.WriteHeader(http.StatusOK)
 	}))
-	defer server.Close()
 
 	app.QBittorrent.BaseUrl = server.URL
 	url := createUrl("/test")
@@ -212,7 +217,7 @@ func TestApiRequest_Timeout(t *testing.T) {
 func TestApiRequest_WithQueryParams(t *testing.T) {
 	setupMockApp()
 
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	server := createTestServer(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.RawQuery != "param1=value1&param2=value2" {
 			t.Fatalf("Expected query params 'param1=value1&param2=value2', got %s", r.URL.RawQuery)
 		}
@@ -220,7 +225,6 @@ func TestApiRequest_WithQueryParams(t *testing.T) {
 		w.WriteHeader(http.StatusOK)
 		_, _ = w.Write([]byte("query success"))
 	}))
-	defer server.Close()
 
 	app.QBittorrent.BaseUrl = server.URL
 	url := createUrl("/test")
@@ -247,10 +251,9 @@ func TestApiRequest_WithQueryParams(t *testing.T) {
 func TestApiRequest_Non200Status(t *testing.T) {
 	setupMockApp()
 
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	server := createTestServer(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 	}))
-	defer server.Close()
 
 	app.QBittorrent.BaseUrl = server.URL
 	url := createUrl("/test")
@@ -275,7 +278,7 @@ func TestApiRequest_WithRequestAuthorization_Success(t *testing.T) {
 	httpBasicAuthUsername := "your-username"
 	httpBasicAuthPassword := "your-password"
 
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	server := createTestServer(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		expectedAuth := "Basic " + base64.StdEncoding.EncodeToString([]byte(httpBasicAuthUsername+":"+httpBasicAuthPassword))
 		if r.Header.Get("Authorization") != expectedAuth {
 			t.Fatalf("Expected Authorization header %q, got %q", expectedAuth, r.Header.Get("Authorization"))
@@ -285,7 +288,6 @@ func TestApiRequest_WithRequestAuthorization_Success(t *testing.T) {
 		w.WriteHeader(http.StatusOK)
 		_, _ = w.Write([]byte("basic auth success"))
 	}))
-	defer server.Close()
 
 	// Set base URL with mock server
 	app.QBittorrent.BaseUrl = server.URL
@@ -313,12 +315,11 @@ func TestApiRequest_WithRequestAuthorization_Success(t *testing.T) {
 func TestApiRequest_ServerWithoutAuthRequirement(t *testing.T) {
 	setupMockApp()
 
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	server := createTestServer(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Auth header should be ignored, server doesn't require authentication
 		w.WriteHeader(http.StatusOK)
 		_, _ = w.Write([]byte("no auth needed"))
 	}))
-	defer server.Close()
 
 	app.QBittorrent.BaseUrl = server.URL
 	httpBasicAuthUsername := "user"
@@ -350,10 +351,9 @@ func TestApiRequest_EmptyCredentials(t *testing.T) {
 	httpBasicAuthUsername := ""
 	httpBasicAuthPassword := ""
 
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	server := createTestServer(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
 	}))
-	defer server.Close()
 
 	app.QBittorrent.BaseUrl = server.URL
 	app.QBittorrent.BasicAuth = &app.BasicAuth{
@@ -379,7 +379,7 @@ func TestApiRequest_InvalidAuthorization(t *testing.T) {
 	httpBasicAuthUsername := "wrong-user"
 	httpBasicAuthPassword := "wrong-pass"
 
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	server := createTestServer(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		expectedAuth := "Basic " + base64.StdEncoding.EncodeToString([]byte("your-username:your-password"))
 		if r.Header.Get("Authorization") != expectedAuth {
 			w.WriteHeader(http.StatusUnauthorized)
@@ -391,7 +391,6 @@ func TestApiRequest_InvalidAuthorization(t *testing.T) {
 		w.WriteHeader(http.StatusOK)
 		_, _ = w.Write([]byte("basic auth success"))
 	}))
-	defer server.Close()
 
 	app.QBittorrent.BaseUrl = server.URL
 	app.QBittorrent.BasicAuth = &app.BasicAuth{
@@ -420,7 +419,6 @@ func TestCustomCA(t *testing.T) {
 		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusOK)
 		}))
-	defer server.Close()
 
 	caPool, err := x509.SystemCertPool()
 	if err != nil {
@@ -453,7 +451,6 @@ func TestSkipCertValidation(t *testing.T) {
 		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusOK)
 		}))
-	defer server.Close()
 
 	app.HttpClient = http.Client{ //nolint:exhaustruct_v5
 		Transport: &http.Transport{ //nolint:exhaustruct_v5
@@ -479,7 +476,6 @@ func TestMinTlsVersion(t *testing.T) {
 		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusOK)
 		}))
-	defer server.Close()
 
 	app.HttpClient = http.Client{ //nolint:exhaustruct_v5
 		Transport: &http.Transport{ //nolint:exhaustruct_v5
@@ -505,11 +501,10 @@ func TestMinTlsVersion(t *testing.T) {
 func TestGetTrackersInfo_ReturnsErrorOnInvalidJSON(t *testing.T) {
 	setupMockApp()
 
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	server := createTestServer(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		_, _ = w.Write([]byte("invalid-json"))
 	}))
-	defer server.Close()
 
 	app.QBittorrent.BaseUrl = server.URL
 
@@ -544,10 +539,9 @@ func TestGetTrackersInfo_ReturnsErrorOnInvalidJSON(t *testing.T) {
 func TestGetTrackersInfo_ReturnsErrorOnAPIError(t *testing.T) {
 	setupMockApp()
 
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	server := createTestServer(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 	}))
-	defer server.Close()
 
 	app.QBittorrent.BaseUrl = server.URL
 
