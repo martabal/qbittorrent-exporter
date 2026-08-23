@@ -1,11 +1,10 @@
-# qbittorrent-exporter
+# Qbittorrent-Exporter
 
 [![Publish Release](https://github.com/martabal/qbittorrent-exporter/actions/workflows/docker.yml/badge.svg)](https://github.com/martabal/qbittorrent-exporter/actions/workflows/docker.yml)
 [![Build](https://github.com/martabal/qbittorrent-exporter/actions/workflows/build.yml/badge.svg)](https://github.com/martabal/qbittorrent-exporter/actions/workflows/build.yml)
 [![Test](https://github.com/martabal/qbittorrent-exporter/actions/workflows/test.yml/badge.svg)](https://github.com/martabal/qbittorrent-exporter/actions/workflows/test.yml)
 
 <p align="center">
-<!-- markdownlint-disable MD045 -->
 <img src="img/qbittorrent.png" width=100> <img src="img/prometheus.png" width=100><img src="img/golang.png" width=100>
 </p>
 
@@ -18,13 +17,13 @@ I was using an excellent [exporter](https://github.com/caseyscarborough/qbittorr
 
 Additionally, this project adds support for tags and categories. It tracks the categories and tags of each torrent and the global categories and tags.
 
-## About this App
+## About This App
 
 This app is a lightweight and fast prometheus exporter for qBittorrent, made to be integrated with the [qbittorrent-grafana-dashboard](https://raw.githubusercontent.com/martabal/qbittorrent-exporter/main/grafana/dashboard.json).
 
-## Run it
+## Run It
 
-### Docker-cli ([click here for more info](https://docs.docker.com/engine/reference/commandline/cli/))
+### Docker-Cli ([Click Here for More Info](https://docs.docker.com/engine/reference/commandline/cli/))
 
 qBittorrent >= 5.2.0:
 
@@ -47,7 +46,7 @@ docker run --name=qbittorrent-exporter \
     ghcr.io/martabal/qbittorrent-exporter:latest
 ```
 
-### Docker-compose
+### Docker-Compose
 
 qBittorrent >= 5.2.0:
 
@@ -80,7 +79,7 @@ services:
     restart: unless-stopped
 ```
 
-### Without docker
+### Without Docker
 
 ```sh
 git clone https://github.com/martabal/qbittorrent-exporter.git
@@ -128,7 +127,7 @@ You can find in the dashboard the following metrics:
 - Tags
 - Trackers
 
-## Health check
+## Health Check
 
 The exporter exposes a `/healthz` endpoint that returns `200 OK` without querying qBittorrent. Use it for Docker or Kubernetes liveness and readiness probes: probing the metrics path triggers a full collection on each hit, which is expensive with a large number of torrents. `/healthz` is not protected by basic auth.
 
@@ -144,7 +143,7 @@ Docker compressed size is ~10 MB.
 
 ## Parameters
 
-### Environment variables
+### Environment Variables
 
 | Parameter                              | Function                                                                                                                                                 | Default Value           |
 | -------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------- |
@@ -166,7 +165,7 @@ Docker compressed size is ~10 MB.
 | `-e ENABLE_HIGH_CARDINALITY`           | Enable high cardinality metric (`qbittorrent_torrent_info`, `qbittorrent_tracker_info`)                                                                  | `false`                 |
 | `-e ENABLE_LABEL_WITH_TRACKER`         | **[EXPERIMENTAL]** Add the torrent tracker to `qbittorrent_torrent_*` metrics label                                                                      | `false`                 |
 | `-e ENABLE_LABEL_WITH_HASH`            | **[EXPERIMENTAL]** Add the torrent hash to `qbittorrent_torrent_*` metrics label                                                                         | `false`                 |
-| `-e ENABLE_LABEL_WITH_TAG`             | **[EXPERIMENTAL]** Add the torrent tag to `qbittorrent_torrent_*` metrics label                                                                          | `false`                 |
+| `-e ENABLE_LABEL_WITH_TAGS`            | **[EXPERIMENTAL]** Add the torrent tag to `qbittorrent_torrent_*` metrics label                                                                          | `false`                 |
 | `-e EXPORTER_URL`                      | The URL shown in the logs when starting the exporter                                                                                                     |                         |
 | `-e EXPORTER_PATH`                     | The path where the metrics are exposed                                                                                                                   | `/metrics`              |
 | `-e DANGEROUS_SHOW_PASSWORD`           | Show the qBittorrent password in logs when starting the exporter                                                                                         | `false`                 |
