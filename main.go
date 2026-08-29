@@ -13,6 +13,10 @@ import (
 	vmmetrics "github.com/VictoriaMetrics/metrics"
 )
 
+func init() {
+	vmmetrics.ExposeMetadata(true)
+}
+
 func main() {
 	app.LoadEnv()
 

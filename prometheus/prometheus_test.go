@@ -201,6 +201,31 @@ func TestVersion(t *testing.T) {
 	}
 }
 
+func TestVersionIncludesMetadata(t *testing.T) {
+	t.Parallel()
+
+	metrics.ExposeMetadata(true)
+
+	expectedVersion := "v5.0.2"
+	version := []byte(expectedVersion)
+
+	registry := metrics.NewSet()
+	Version(&version, registry)
+
+	var output bytes.Buffer
+
+	registry.WritePrometheus(&output)
+
+	scrape := output.String()
+	if !strings.Contains(scrape, "# HELP qbittorrent_app_version") {
+		t.Errorf("expected HELP metadata line, got %q", scrape)
+	}
+
+	if !strings.Contains(scrape, "# TYPE qbittorrent_app_version gauge") {
+		t.Errorf("expected TYPE metadata line, got %q", scrape)
+	}
+}
+
 func TestTorrent(t *testing.T) {
 	t.Parallel()
 

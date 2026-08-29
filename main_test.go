@@ -75,10 +75,17 @@ func TestMetricsReturnMetric(t *testing.T) {
 		t.Errorf("expected status code 200, got %d", status)
 	}
 
-	expectedBody := "qbittorrent_app_version{version=\"1.0\"} 1\n"
+	expectedBody := rec.Body.String()
+	if !strings.Contains(expectedBody, "# HELP qbittorrent_app_version") {
+		t.Errorf("expected metadata help line, got \n%s", expectedBody)
+	}
 
-	if rec.Body.String() != expectedBody {
-		t.Errorf("expected \n%s, got \n%s", expectedBody, rec.Body.String())
+	if !strings.Contains(expectedBody, "# TYPE qbittorrent_app_version gauge") {
+		t.Errorf("expected metadata type line, got \n%s", expectedBody)
+	}
+
+	if !strings.Contains(expectedBody, "qbittorrent_app_version{version=\"1.0\"} 1") {
+		t.Errorf("expected metric line, got \n%s", expectedBody)
 	}
 
 	traceMessage := "New request from"
