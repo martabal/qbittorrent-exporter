@@ -17,7 +17,7 @@ release:
 	git-cliff -l | wl-copy
 
 test:
-	gotestsum ./... -cover
+	gotestsum --format testname ./... -cover
 
 test-coverage-web:
 	gotestsum ./... -coverprofile=cover.out && go tool cover -html=cover.out && rm cover.out

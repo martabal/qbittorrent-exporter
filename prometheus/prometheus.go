@@ -45,6 +45,29 @@ func (g *GaugeVec) With(labels map[string]string) *metrics.Gauge {
 	return g.set.GetOrCreateGauge(metricWithLabels(g.name, labels), nil)
 }
 
+func quotePromLabelValue(s string) string {
+	var builder strings.Builder
+	builder.Grow(len(s) + 2)
+	builder.WriteByte('"')
+
+	for _, r := range s {
+		switch r {
+		case '\\':
+			builder.WriteString(`\\`)
+		case '"':
+			builder.WriteString(`\"`)
+		case '\n':
+			builder.WriteString(`\n`)
+		default:
+			builder.WriteRune(r)
+		}
+	}
+
+	builder.WriteByte('"')
+
+	return builder.String()
+}
+
 func metricWithLabels(name string, labels map[string]string) string {
 	if len(labels) == 0 {
 		return name
@@ -70,7 +93,7 @@ func metricWithLabels(name string, labels map[string]string) string {
 
 		builder.WriteString(key)
 		builder.WriteByte('=')
-		builder.WriteString(strconv.Quote(labels[key]))
+		builder.WriteString(quotePromLabelValue(labels[key]))
 	}
 
 	builder.WriteByte('}')
