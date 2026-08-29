@@ -385,24 +385,30 @@ func parseSetMetrics(t *testing.T, set *metrics.Set) (map[string][]float64, map[
 			continue
 		}
 
-		parts := strings.SplitN(line, " ", 2)
-		if len(parts) != 2 {
-			continue
+		var name string
+
+		labels := map[string]string{}
+		valueStr := ""
+
+		if idx := strings.IndexByte(line, '{'); idx != -1 {
+			name = line[:idx]
+			rest := line[idx+1:]
+
+			closeIdx := findLabelsClose(rest)
+			labels = parseLabelPairs(rest[:closeIdx])
+			valueStr = strings.TrimSpace(rest[closeIdx+1:])
+		} else {
+			parts := strings.SplitN(line, " ", 2)
+			name = parts[0]
+
+			if len(parts) == 2 {
+				valueStr = parts[1]
+			}
 		}
 
-		value, err := strconv.ParseFloat(strings.TrimSpace(parts[1]), 64)
+		value, err := strconv.ParseFloat(strings.TrimSpace(valueStr), 64)
 		if err != nil {
 			t.Fatalf("Failed to parse metric value from line %q: %v", line, err)
-		}
-
-		nameAndLabels := parts[0]
-		name := nameAndLabels
-		labels := map[string]string{}
-
-		if before, after, found := strings.Cut(nameAndLabels, "{"); found {
-			name = before
-			labelText := strings.TrimSuffix(after, "}")
-			labels = parseLabelPairs(labelText)
 		}
 
 		families[name] = append(families[name], value)
@@ -410,6 +416,146 @@ func parseSetMetrics(t *testing.T, set *metrics.Set) (map[string][]float64, map[
 	}
 
 	return families, labelsByFamily
+}
+
+func findLabelsClose(s string) int {
+	inQuotes := false
+	escaped := false
+
+	for i, ch := range s {
+		if inQuotes {
+			if escaped {
+				escaped = false
+
+				continue
+			}
+
+			switch ch {
+			case '\\':
+				escaped = true
+			case '"':
+				inQuotes = false
+			}
+
+			continue
+		}
+
+		switch ch {
+		case '"':
+			inQuotes = true
+		case '}':
+			return i
+		}
+	}
+
+	return len(s)
+}
+
+func TestQuotePromLabelValue(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name  string
+		input string
+		want  string
+	}{
+		{"empty", "", `""`},
+		{"plain ascii", "hello", `"hello"`},
+		{"backslash", `a\b`, `"a\\b"`},
+		{"double quote", `a"b`, `"a\"b"`},
+		{"newline", "a\nb", `"a\nb"`},
+		{"combined escapes", "a\\\"\nb", `"a\\\"\nb"`},
+		{"non-ascii passthrough", "köszönöm", `"köszönöm"`},
+		{"zero width space passthrough", "a\u200bb", "\"a\u200bb\""},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			got := quotePromLabelValue(tt.input)
+			if got != tt.want {
+				t.Errorf("quotePromLabelValue(%q) = %q, want %q", tt.input, got, tt.want)
+			}
+
+			inner := strings.TrimSuffix(strings.TrimPrefix(got, `"`), `"`)
+			for i := 0; i < len(inner); i++ {
+				if inner[i] != '\\' {
+					continue
+				}
+
+				if i+1 >= len(inner) {
+					t.Fatalf("dangling backslash in escaped output %q", got)
+				}
+
+				switch inner[i+1] {
+				case '\\', '"', 'n':
+					i++
+				default:
+					t.Errorf("invalid Prometheus escape sequence \\%c in %q", inner[i+1], got)
+				}
+			}
+		})
+	}
+}
+
+func TestMetricWithLabelsNoInvalidEscapes(t *testing.T) {
+	t.Parallel()
+
+	name := "Cixin Liu - A sötét erdő (Háromtest-trilógia 2.)\u200b.mobi"
+
+	got := metricWithLabels(qbittorrentTorrentAddedOn, map[string]string{
+		labelName: name,
+	})
+
+	if strings.Contains(got, `\u`) {
+		t.Errorf("metricWithLabels output contains invalid \\u escape: %q", got)
+	}
+
+	want := qbittorrentTorrentAddedOn + `{name="` + name + `"}`
+	if got != want {
+		t.Errorf("metricWithLabels() = %q, want %q", got, want)
+	}
+}
+
+func TestMetricWithLabelsRoundTripsThroughWritePrometheus(t *testing.T) {
+	t.Parallel()
+
+	registry := metrics.NewSet()
+
+	names := []string{
+		"thank you\u200bköszönöm",
+		`quote"backslash\combo`,
+		"plain ascii name",
+	}
+
+	for _, name := range names {
+		registry.GetOrCreateGauge(metricWithLabels(qbittorrentTorrentAddedOn, map[string]string{
+			labelName: name,
+		}), nil).Set(1)
+	}
+
+	var output bytes.Buffer
+
+	registry.WritePrometheus(&output)
+
+	scrape := output.String()
+	if strings.Contains(scrape, `\u`) {
+		t.Errorf("scrape output contains invalid \\u escape sequence:\n%s", scrape)
+	}
+
+	_, labelsByFamily := parseSetMetrics(t, registry)
+
+	gotNames := make([]string, 0, len(labelsByFamily[qbittorrentTorrentAddedOn]))
+	for _, labels := range labelsByFamily[qbittorrentTorrentAddedOn] {
+		gotNames = append(gotNames, labels[labelName])
+	}
+
+	for _, want := range names {
+		if !slices.Contains(gotNames, want) {
+			t.Errorf("expected label value %q to round-trip through WritePrometheus, got %v", want, gotNames)
+		}
+	}
 }
 
 func parseLabelPairs(raw string) map[string]string {
