@@ -1,6 +1,8 @@
 package API
 
-import "encoding/json"
+import (
+	"encoding/json/jsontext"
+)
 
 const QbittorrentTimeOut string = "qBittorrent is timing out"
 const ErrorWithUrl string = "Error with url"
@@ -79,29 +81,29 @@ type Category struct {
 }
 
 type Trackers []struct {
-	Message       string          `json:"msg"`
-	NumDownloaded int             `json:"num_downloaded"`
-	NumLeeches    int             `json:"num_leeches"`
-	NumPeers      int             `json:"num_peers"`
-	NumSeeds      int             `json:"num_seeds"`
-	Status        int             `json:"status"`
-	Tier          json.RawMessage `json:"tier"`
-	URL           string          `json:"url"`
+	Message       string         `json:"msg"`
+	NumDownloaded int            `json:"num_downloaded"`
+	NumLeeches    int            `json:"num_leeches"`
+	NumPeers      int            `json:"num_peers"`
+	NumSeeds      int            `json:"num_seeds"`
+	Status        int            `json:"status"`
+	Tier          jsontext.Value `json:"tier"`
+	URL           string         `json:"url"`
 }
 
 // DeltaMainData represents the response from sync/maindata with rid parameter.
 // Unlike MainData, this includes torrent data and supports incremental updates.
-// Torrents and ServerState use json.RawMessage so that partial JSON can be
+// Torrents and ServerState use jsontext.Value so that partial JSON can be
 // unmarshalled directly into existing Info/ServerState structs (json.Unmarshal
 // only overwrites fields present in the JSON, naturally providing merge semantics).
 type DeltaMainData struct {
-	Rid               int64                      `json:"rid"`
-	FullUpdate        bool                       `json:"full_update"`
-	Torrents          map[string]json.RawMessage `json:"torrents"`
-	TorrentsRemoved   []string                   `json:"torrents_removed"`
-	Categories        map[string]Category        `json:"categories"`
-	CategoriesRemoved []string                   `json:"categories_removed"`
-	Tags              []string                   `json:"tags"`
-	TagsRemoved       []string                   `json:"tags_removed"`
-	ServerState       json.RawMessage            `json:"server_state"`
+	Rid               int64                     `json:"rid"`
+	FullUpdate        bool                      `json:"full_update"`
+	Torrents          map[string]jsontext.Value `json:"torrents"`
+	TorrentsRemoved   []string                  `json:"torrents_removed"`
+	Categories        map[string]Category       `json:"categories"`
+	CategoriesRemoved []string                  `json:"categories_removed"`
+	Tags              []string                  `json:"tags"`
+	TagsRemoved       []string                  `json:"tags_removed"`
+	ServerState       jsontext.Value            `json:"server_state"`
 }
