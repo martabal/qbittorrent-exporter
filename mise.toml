@@ -4,7 +4,7 @@ go = "1.27.3"
 golangci-lint = "2.15.0"
 gotestsum = "1.13.0"
 just = "1.59.0"
-rumdl = "0.3.0"
+rumdl = "v0.3.2"
 
 [settings]
 experimental = true
