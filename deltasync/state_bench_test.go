@@ -1,7 +1,8 @@
 package deltasync
 
 import (
-	"encoding/json"
+	"encoding/json/jsontext"
+	"encoding/json/v2"
 	"fmt"
 	"testing"
 
@@ -41,7 +42,7 @@ func BenchmarkApplyDeltaUpdate(b *testing.B) {
 }
 
 func buildFullDelta(count int) *API.DeltaMainData {
-	torrents := make(map[string]json.RawMessage, count)
+	torrents := make(map[string]jsontext.Value, count)
 
 	for i := range count {
 		hash := fmt.Sprintf("hash_%d", i)
@@ -79,7 +80,7 @@ func buildFullDelta(count int) *API.DeltaMainData {
 }
 
 func buildPartialDelta(changed, ridOffset int) *API.DeltaMainData {
-	torrents := make(map[string]json.RawMessage, changed)
+	torrents := make(map[string]jsontext.Value, changed)
 
 	for i := range changed {
 		hash := fmt.Sprintf("hash_%d", i)
@@ -96,6 +97,6 @@ func buildPartialDelta(changed, ridOffset int) *API.DeltaMainData {
 	return &API.DeltaMainData{ //nolint:exhaustruct_v5
 		Rid:         int64(ridOffset + 1),
 		Torrents:    torrents,
-		ServerState: json.RawMessage(`{"dht_nodes": 600}`),
+		ServerState: jsontext.Value(`{"dht_nodes": 600}`),
 	}
 }

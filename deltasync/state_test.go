@@ -1,7 +1,8 @@
 package deltasync
 
 import (
-	"encoding/json"
+	"encoding/json/jsontext"
+	"encoding/json/v2"
 	"testing"
 
 	API "qbit-exp/api"
@@ -14,8 +15,8 @@ const (
 	stateSeeding  = "seeding"
 )
 
-// raw is a helper to create json.RawMessage from a value.
-func raw(v any) json.RawMessage {
+// raw is a helper to create jsontext.Value from a value.
+func raw(v any) jsontext.Value {
 	b, err := json.Marshal(v)
 	if err != nil {
 		panic(err)
@@ -55,7 +56,7 @@ func TestState_ApplyFullUpdate(t *testing.T) {
 	delta := &API.DeltaMainData{ //nolint:exhaustruct_v5
 		Rid:        100,
 		FullUpdate: true,
-		Torrents: map[string]json.RawMessage{
+		Torrents: map[string]jsontext.Value{
 			"hash1": raw(map[string]any{"name": torrent1Name, "state": stateDownload, "progress": 0.5}),
 			"hash2": raw(map[string]any{"name": torrent2Name, "state": stateSeeding, "progress": 1.0}),
 		},
@@ -120,7 +121,7 @@ func TestState_ApplyDeltaUpdate(t *testing.T) {
 	initialDelta := &API.DeltaMainData{ //nolint:exhaustruct_v5
 		Rid:        100,
 		FullUpdate: true,
-		Torrents: map[string]json.RawMessage{
+		Torrents: map[string]jsontext.Value{
 			"hash1": raw(map[string]any{
 				"name": torrent1Name, "state": stateDownload,
 				"progress": 0.5, "dlspeed": 1000000,
@@ -138,7 +139,7 @@ func TestState_ApplyDeltaUpdate(t *testing.T) {
 	deltaDelta := &API.DeltaMainData{ //nolint:exhaustruct_v5
 		Rid:        101,
 		FullUpdate: false,
-		Torrents: map[string]json.RawMessage{
+		Torrents: map[string]jsontext.Value{
 			"hash1": raw(map[string]any{"state": stateSeeding, "dlspeed": 0, "progress": 1.0}),
 			"hash2": raw(map[string]any{"name": torrent2Name, "state": stateDownload}),
 		},
@@ -209,7 +210,7 @@ func TestState_DeltaPreservesUnchangedFields(t *testing.T) {
 	state.Apply(&API.DeltaMainData{ //nolint:exhaustruct_v5
 		Rid:        1,
 		FullUpdate: true,
-		Torrents: map[string]json.RawMessage{
+		Torrents: map[string]jsontext.Value{
 			"hash1": raw(map[string]any{
 				"name": "Original", "state": stateDownload,
 				"dlspeed": 100000, "size": 50000000, "progress": 0.5,
@@ -224,7 +225,7 @@ func TestState_DeltaPreservesUnchangedFields(t *testing.T) {
 	// Delta only updates dlspeed — everything else must be preserved
 	state.Apply(&API.DeltaMainData{ //nolint:exhaustruct_v5
 		Rid: 2,
-		Torrents: map[string]json.RawMessage{
+		Torrents: map[string]jsontext.Value{
 			"hash1": raw(map[string]any{"dlspeed": 0}),
 		},
 		ServerState: raw(map[string]any{"dht_nodes": 150}),
@@ -275,7 +276,7 @@ func TestState_TorrentRemoval(t *testing.T) {
 	initialDelta := &API.DeltaMainData{ //nolint:exhaustruct_v5
 		Rid:        100,
 		FullUpdate: true,
-		Torrents: map[string]json.RawMessage{
+		Torrents: map[string]jsontext.Value{
 			"hash1": raw(map[string]any{"name": torrent1Name, "state": stateSeeding}),
 			"hash2": raw(map[string]any{"name": torrent2Name, "state": stateSeeding}),
 			"hash3": raw(map[string]any{"name": "Torrent 3", "state": stateSeeding}),
@@ -290,7 +291,7 @@ func TestState_TorrentRemoval(t *testing.T) {
 	// Remove hash2
 	deltaDelta := &API.DeltaMainData{ //nolint:exhaustruct_v5
 		Rid:             101,
-		Torrents:        map[string]json.RawMessage{},
+		Torrents:        map[string]jsontext.Value{},
 		TorrentsRemoved: []string{"hash2"},
 	}
 	state.Apply(deltaDelta)
@@ -316,7 +317,7 @@ func TestState_CategoryUpdates(t *testing.T) {
 	initialDelta := &API.DeltaMainData{ //nolint:exhaustruct_v5
 		Rid:        100,
 		FullUpdate: true,
-		Torrents:   map[string]json.RawMessage{},
+		Torrents:   map[string]jsontext.Value{},
 		Categories: map[string]API.Category{
 			"movies": {Name: "movies", SavePath: "/movies"},
 			"music":  {Name: "music", SavePath: "/music"},
@@ -332,7 +333,7 @@ func TestState_CategoryUpdates(t *testing.T) {
 	// Add new category, remove old one
 	deltaDelta := &API.DeltaMainData{ //nolint:exhaustruct_v5
 		Rid:      101,
-		Torrents: map[string]json.RawMessage{},
+		Torrents: map[string]jsontext.Value{},
 		Categories: map[string]API.Category{
 			"games": {Name: "games", SavePath: "/games"},
 		},
@@ -367,7 +368,7 @@ func TestState_TagUpdates(t *testing.T) {
 	initialDelta := &API.DeltaMainData{ //nolint:exhaustruct_v5
 		Rid:        100,
 		FullUpdate: true,
-		Torrents:   map[string]json.RawMessage{},
+		Torrents:   map[string]jsontext.Value{},
 		Tags:       []string{"tag1", "tag2"},
 	}
 	state.Apply(initialDelta)
@@ -380,7 +381,7 @@ func TestState_TagUpdates(t *testing.T) {
 	// Add new tag, remove old one
 	deltaDelta := &API.DeltaMainData{ //nolint:exhaustruct_v5
 		Rid:         101,
-		Torrents:    map[string]json.RawMessage{},
+		Torrents:    map[string]jsontext.Value{},
 		Tags:        []string{"tag3"},
 		TagsRemoved: []string{"tag1"},
 	}
@@ -414,7 +415,7 @@ func TestState_Reset(t *testing.T) {
 	delta := &API.DeltaMainData{ //nolint:exhaustruct_v5
 		Rid:        100,
 		FullUpdate: true,
-		Torrents: map[string]json.RawMessage{
+		Torrents: map[string]jsontext.Value{
 			"hash1": raw(map[string]any{"name": "Test", "state": stateSeeding}),
 		},
 		Categories: map[string]API.Category{
@@ -457,7 +458,7 @@ func TestState_FirstDeltaIsTreatedAsFullUpdate(t *testing.T) {
 	delta := &API.DeltaMainData{ //nolint:exhaustruct_v5
 		Rid:        50,
 		FullUpdate: false, // This would normally mean delta, but rid=0 forces full
-		Torrents: map[string]json.RawMessage{
+		Torrents: map[string]jsontext.Value{
 			"hash1": raw(map[string]any{"name": "Test", "state": stateSeeding}),
 		},
 	}
@@ -481,7 +482,7 @@ func TestState_HashSetFromMapKey(t *testing.T) {
 	delta := &API.DeltaMainData{ //nolint:exhaustruct_v5
 		Rid:        100,
 		FullUpdate: true,
-		Torrents: map[string]json.RawMessage{
+		Torrents: map[string]jsontext.Value{
 			"expected-hash": raw(map[string]any{"name": "Test Torrent"}),
 		},
 	}
