@@ -5,7 +5,7 @@ go 1.27
 toolchain go1.27.3
 
 require (
-	github.com/VictoriaMetrics/metrics v1.44.1
+	github.com/VictoriaMetrics/metrics v1.45.0
 	github.com/joho/godotenv v1.5.1
 )
 
