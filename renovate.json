@@ -1,7 +1,7 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": ["config:recommended"],
-  "enabledManagers": ["github-actions", "gomod", "mise"],
+  "enabledManagers": ["dockerfile", "github-actions", "gomod", "mise"],
   "packageRules": [
     {
       "matchManagers": ["github-actions"],
@@ -12,7 +12,7 @@
       "groupName": "dev-dependencies"
     },
     {
-      "matchManagers": ["mise"],
+      "matchManagers": ["mise", "dockerfile"],
       "groupName": "tools-dependencies"
     }
   ]
